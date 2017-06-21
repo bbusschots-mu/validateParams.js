@@ -1,0 +1,33 @@
+{
+  "name": "validateParams.js",
+  "version": "0.0.1",
+  "description": "A wrapper around validate.js to facilitate easy function parameter validation in JavaScript.",
+  "main": "validateParams.js",
+  "scripts": {
+    "test": "qunit test/test.js",
+    "generate-docs": "node_modules/.bin/jsdoc --configure jsdoc.conf.json",
+    "generate-docs-dev": "node_modules/.bin/jsdoc --configure jsdoc.conf.json --private --destination ./docs-dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bbusschots-mu/validateParams.js.git"
+  },
+  "keywords": [
+    "JavaScript",
+    "validation"
+  ],
+  "author": "Bart Busschots <bart.busschots@nuim.ie>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bbusschots-mu/validateParams.js/issues"
+  },
+  "homepage": "https://github.com/bbusschots-mu/validateParams.js#readme",
+  "devDependencies": {
+    "jsdoc": "^3.4.3",
+    "minami": "^1.2.3",
+    "qunitjs": "^2.3.3"
+  },
+  "dependencies": {
+    "validate.js": "^0.11.1"
+  }
+}
