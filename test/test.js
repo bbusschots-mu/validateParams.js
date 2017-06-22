@@ -177,3 +177,51 @@ QUnit.module('validateParams.isArguments() function', {}, function(){
         );
     });
 });
+
+QUnit.module('validateParams.asOrdinal() function', {}, function(){
+    QUnit.test('function exists', function(a){
+        a.equal(typeof validateParams.asOrdinal, 'function');
+    });
+    
+    QUnit.test('function produced expected outputs', function(a){
+        a.expect(30);
+        
+        // test single-digit numbers
+        a.equal(validateParams.asOrdinal(0), '0th');
+        a.equal(validateParams.asOrdinal(1), '1st');
+        a.equal(validateParams.asOrdinal(2), '2nd');
+        a.equal(validateParams.asOrdinal(3), '3rd');
+        a.equal(validateParams.asOrdinal(4), '4th');
+        
+        // test the teens
+        a.equal(validateParams.asOrdinal(10), '10th');
+        a.equal(validateParams.asOrdinal(11), '11th');
+        a.equal(validateParams.asOrdinal(12), '12th');
+        a.equal(validateParams.asOrdinal(13), '13th');
+        a.equal(validateParams.asOrdinal(14), '14th');
+        
+        // test regular 2-digit numbers
+        a.equal(validateParams.asOrdinal(30), '30th');
+        a.equal(validateParams.asOrdinal(31), '31st');
+        a.equal(validateParams.asOrdinal(32), '32nd');
+        a.equal(validateParams.asOrdinal(33), '33rd');
+        a.equal(validateParams.asOrdinal(34), '34th');
+        
+        // test three-digit numbers
+        a.equal(validateParams.asOrdinal(100), '100th');
+        a.equal(validateParams.asOrdinal(101), '101st');
+        a.equal(validateParams.asOrdinal(102), '102nd');
+        a.equal(validateParams.asOrdinal(103), '103rd');
+        a.equal(validateParams.asOrdinal(104), '104th');
+        a.equal(validateParams.asOrdinal(110), '110th');
+        a.equal(validateParams.asOrdinal(111), '111th');
+        a.equal(validateParams.asOrdinal(112), '112th');
+        a.equal(validateParams.asOrdinal(113), '113th');
+        a.equal(validateParams.asOrdinal(114), '114th');
+        a.equal(validateParams.asOrdinal(120), '120th');
+        a.equal(validateParams.asOrdinal(121), '121st');
+        a.equal(validateParams.asOrdinal(122), '122nd');
+        a.equal(validateParams.asOrdinal(123), '123rd');
+        a.equal(validateParams.asOrdinal(124), '124th');
+    });
+});
