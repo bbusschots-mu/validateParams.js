@@ -28,19 +28,51 @@ var validate = typeof validate !== 'undefined' ? validate : require('validate.js
 /**
  * A function for validating the parameters to a function.
  *
- * This is a wrapper around validate.js. Each parameter is validated using
- * `validate.single()`, and an Error is thrown if the arguments do not pass
- * validation.
+ * This is a wrapper around the `validate()` function from
+ * [validate.js]{@link https://validatejs.org/#validate}. Both the values to be
+ * tested and the constraints they should be tested against are specified using
+ * arrays (or array-like objects) rather than associative arrays as expected by
+ * `validate()`. The function assembles the specified values and constraints
+ * into associative arrays using the variable names `param1`, `param2` etc..
  *
  * @variation 3
  * @param {Arguments|Array} params - an array-like object representing the
  * parameters to be validated, usually an `Arguments` object.
  * @param {Array} constraints - an array of constraint objects as expected
  * by `validate.single()`, one for each parameter to be validated.
- * @param {Object} [options] - a plain object to be passed as the `options`
- * parameter to `validate.single()`.
- * @returns {boolean} always returns true.
+ * @param {Object} [options] - an associative array of options.
+ * @param {string} [options.format='grouped'] - the format in which to return
+ * any error messages found. For details see the
+ * [Format section of the validate.js docs]{@link https://validatejs.org/#validate-error-formatting}.
+ * @param {boolean} [options.fullMessages=true] - whether or not to pre-fix
+ * error messages with the variable name (`param1` etc.).
+ * @returns {boolean|string[]} if there were no errors, false is returned,
+ * otherwise, an array of error strings is returned.
  * @throws {Error} throws an error on invalid arguments.
+ * @example
+ * function repeatString(s, n){
+ *     var errors = validateParams(arguments, [
+ *         {
+ *             presence: true
+ *             
+ *         },
+ *         {
+ *             presence: true,
+ *             numericality: {
+ *                 onlyInteger: true,
+ *                 greaterThan: 0
+ *             }
+ *         }
+ *     ]);
+ *     if(errors){
+ *         throw new Error('invalid args!');
+ *     }
+ *     var ans = '';
+ *     for(var i = 0; i < n; i++){
+ *         ans += String(s);
+ *     }
+ *     return ans;
+ * }
  */
 var validateParams = function(params, constraints, options){
     // validate parameters
@@ -54,19 +86,20 @@ var validateParams = function(params, constraints, options){
         throw new Error('if present, the third parameter must be a plain object');
     }
     
-    // loop through each parameter and validate it
-    var errors = [];
-    for(var i = 0; i < params.length; i++){
-        var human = i + 1;
-        if(typeof constraints[i] === 'object'){
-            var paramErrors = validate.single(params[i], constraints[i], typeof options === 'object' ? options : {});
-            if(paramErrors){
-                errors.concat(paramErrors);
-            }
-        }else{
-            validateParams._warn('no constraints ' + human + ' parameter - assumed pass');
-        }
+    // build the values and constraints objects
+    var valdiateAttributes = {};
+    var validateConstraints = {};
+    for(var i = 0; i < constraints.length; i++){
+        var paramName = 'param' + (i + 1);
+        valdiateAttributes[paramName] = params[i];
+        validateConstraints[paramName] = validate.isObject(constraints[i]) ? constraints[i] : {};
     }
+    
+    // do the validation
+    var errors = validate(valdiateAttributes, validateConstraints, options);
+    
+    // return the errors
+    return errors;
 };
 
 //

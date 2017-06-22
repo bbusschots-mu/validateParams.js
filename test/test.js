@@ -110,47 +110,106 @@ function dummyBasicTypesExcept(){
 // === Test the main Function ==================================================
 //
 
-QUnit.module('validateParams() function', {}, function(){
-    QUnit.test('function exists', function(a){
-        a.equal(typeof validateParams, 'function');
-    });
-    
-    QUnit.test('parameter number validation', function(a){
-        a.expect(4);
-        a.throws(
-            function(){ validateParams(); },
-            Error,
-            'first argument required'
-        );
-        a.throws(
-            function(){ validateParams([]); },
-            Error,
-            'second argument required'
-        );
-        a.ok((function(){ validateParams([], []); return true; })(), 'third argument is not required');
-        a.ok((function(){ validateParams([], [], {}); return true; })(), 'third argument is allowed');
-    });
-    
-    QUnit.test('params validation', function(a){
-        var mustThrow = dummyBasicTypesExcept('arr');
-        a.expect(mustThrow.length + 2);
-        
-        // make sure all the basic types excep array do indeed throw
-        mustThrow.forEach(function(tn){
-            a.throws(
-                function(){ validateParams(DUMMY_BASIC_TYPES[tn].val, []); },
-                Error,
-                'params not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
-            );
+QUnit.module('validateParams() function',
+    {
+        beforeEach: function(){
+            this.dummyFn = function(){
+                var errors = validateParams(arguments, [
+                    {
+                        presence: true,
+                    },
+                    {
+                        presence: true,
+                        numericality: true
+                    },
+                    {
+                        numericality: true
+                    }
+                ]);
+                if(errors){
+                    throw new Error();
+                }
+            };
+        }
+    },
+    function(){
+        QUnit.test('function exists', function(a){
+            a.equal(typeof validateParams, 'function');
         });
         
-        // make sure an array does not throw
-        a.ok((function(){ validateParams([], []); return true; })(), 'params can be an array');
+        QUnit.test('parameter number validation', function(a){
+            a.expect(4);
+            a.throws(
+                function(){ validateParams(); },
+                Error,
+                'first argument required'
+            );
+            a.throws(
+                function(){ validateParams([]); },
+                Error,
+                'second argument required'
+            );
+            a.ok((function(){ validateParams([], []); return true; })(), 'third argument is not required');
+            a.ok((function(){ validateParams([], [], {}); return true; })(), 'third argument is allowed');
+        });
         
-        // make sure an Arguments object does not throw
-        a.ok((function(){ validateParams(arguments, []); return true; })(), 'params can be an Arguments object');
-    });
-});
+        QUnit.test('params validation', function(a){
+            var mustThrow = dummyBasicTypesExcept('arr');
+            a.expect(mustThrow.length + 2);
+            
+            // make sure all the basic types excep array do indeed throw
+            mustThrow.forEach(function(tn){
+                a.throws(
+                    function(){ validateParams(DUMMY_BASIC_TYPES[tn].val, []); },
+                    Error,
+                    'params not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
+                );
+            });
+            
+            // make sure an array does not throw
+            a.ok((function(){ validateParams([], []); return true; })(), 'params can be an array');
+            
+            // make sure an Arguments object does not throw
+            a.ok((function(){ validateParams(arguments, []); return true; })(), 'params can be an Arguments object');
+        });
+        
+        QUnit.test('basic validation', function(a){
+            var fn = this.dummyFn;
+            
+            a.expect(6);
+            a.throws(
+                function(){
+                    fn();
+                },
+                Error,
+                'error when two required arguments are missing'
+            );
+            a.throws(
+                function(){
+                    fn('stuff');
+                },
+                Error,
+                'error when one required arguments are missing'
+            );
+            a.throws(
+                function(){
+                    fn('stuff', 'thingys');
+                },
+                Error,
+                'error when all required arguments are present, but on is invalid'
+            );
+            a.throws(
+                function(){
+                    fn('stuff', 2, 'whatsists');
+                },
+                Error,
+                'error when called valid values for all required params but an invalid value for an optional param'
+            );
+            a.ok((function(){ fn('stuff', 2); return true; })(), 'no error when all required params are present and valid');
+            a.ok((function(){ fn('stuff', 2, 4); return true; })(), 'no error when all required params are present and valid, and an optional param is present and valid');
+        });
+    }
+);
 
 QUnit.module('validateParams.isArguments() function', {}, function(){
     QUnit.test('function exists', function(a){
