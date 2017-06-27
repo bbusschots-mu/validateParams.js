@@ -5,6 +5,9 @@
 // import the module under test
 var validateParams = require('../');
 
+// import validate.js
+var validate = require('validate.js');
+
 // A library of dummy data and related functions to speed up data validation
 
 /**
@@ -107,7 +110,7 @@ function dummyBasicTypesExcept(){
 }
 
 //
-// === Test the main Function ==================================================
+// === The Tests ===============================================================
 //
 
 QUnit.module('validateParams() function',
@@ -208,8 +211,92 @@ QUnit.module('validateParams() function',
             a.ok((function(){ fn('stuff', 2); return true; })(), 'no error when all required params are present and valid');
             a.ok((function(){ fn('stuff', 2, 4); return true; })(), 'no error when all required params are present and valid, and an optional param is present and valid');
         });
+        
+        QUnit.test('fatal mode', function(a){
+            a.expect(5);
+            
+            // create a dummy function that validates params with options.fatal=true
+            var fatalFn = function(){
+                validateParams(arguments,
+                    [
+                        {
+                           presence: true,
+                           numericality: true
+                        },
+                        {
+                            presence: true,
+                            numericality: true
+                        }
+                    ],
+                    { fatal: true, format: 'flat' }
+                );
+            };
+            
+            // test that the function throws or not as appropraite
+            a.throws(function(){ fatalFn('boogers'); }, validateParams.ValidationError, 'fatal mode throws as expected');
+            a.ok((function(){ fatalFn(2, 3); return true; })(), 'fatal mode does not throw on valid params');
+            
+            // test that the thrown error has the expected properties
+            var errorObj;
+            try{
+                fatalFn('boogers'); // trigger an error
+            }catch(err){
+                errorObj = err; // store the thrown error
+            }
+            a.ok(errorObj instanceof validateParams.ValidationError, 'thrown error has expected prototype');
+            a.ok(validate.isArray(errorObj.validationErrors), 'thrown error contains an array of validation errors');
+            a.equal(errorObj.validationErrors.length, 2, 'thrown error contains the expected number of validation errors');
+        });
     }
 );
+
+QUnit.module('validateParams.assert() function', {}, function(){
+    QUnit.test('function exists', function(a){
+        a.equal(typeof validateParams.assert, 'function');
+    });
+    
+    QUnit.test('function behaves as expected', function(a){
+        a.expect(2);
+        
+        // create a dummy function that validates params with validateParams.assert()
+        var fatalFn = function(){
+            validateParams.assert(arguments,
+                [
+                    {
+                       presence: true,
+                       numericality: true
+                    },
+                    {
+                        presence: true,
+                        numericality: true
+                    }
+                ]
+            );
+        };
+        
+        // test that the function throws or not as appropraite
+        a.throws(function(){ fatalFn('boogers'); }, validateParams.ValidationError, 'throws as expected');
+        a.ok((function(){ fatalFn(2, 3); return true; })(), 'does not throw on valid params');
+    });
+});
+
+QUnit.module('validateParams.ValidationError prototype', {}, function(){
+    QUnit.test('prototype exists', function(a){
+        a.equal(typeof validateParams.ValidationError, 'function');
+    });
+    
+    QUnit.test('constructor correctly builds object', function(a){
+        a.expect(5);
+        var dummyMessage = 'test error message';
+        var dummyErrors = ['some error', 'some other error'];
+        var testError = new validateParams.ValidationError(dummyMessage, dummyErrors);
+        a.ok(testError instanceof validateParams.ValidationError, 'is instance of validateParams.ValidationError');
+        a.ok(testError instanceof Error, 'is instance of Error');
+        a.equal(testError.name, 'validateParams.ValidationError', 'has expected .name property');
+        a.equal(testError.message, dummyMessage, 'has expected .message property');
+        a.deepEqual(testError.validationErrors, dummyErrors, 'has expected .validationErrors property');
+    });
+});
 
 QUnit.module('validateParams.isArguments() function', {}, function(){
     QUnit.test('function exists', function(a){
