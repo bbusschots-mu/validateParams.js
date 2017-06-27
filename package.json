@@ -1,5 +1,5 @@
 {
-  "name": "validateParams.js",
+  "name": "@maynoothuniversity/validate-params",
   "version": "0.0.1",
   "description": "A wrapper around validate.js to facilitate easy function parameter validation in JavaScript.",
   "main": "validateParams.js",

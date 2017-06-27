@@ -1,4 +1,4 @@
-# validateParams.js
+# validateParams.js (@maynoothuniversity/validate-params)
 
 A wrapper around [validate.js](https://validatejs.org/) to facilitate easy
 function parameter validation in JavaScript.
@@ -9,7 +9,7 @@ values against to also be specified as name-value pairs. This is perfect for
 web forms where each input has a name, but the model doesn't work well for
 function parameters which take the form of lists of un-named values.
 
-The two validation functions provided by `validateParams.js` expect both the
+The two validation functions provided by this module expect both the
 values to be validated and the constraints to be applied as lists (Arguments
 objects or Arrays), and transform them into name-value pairs indexed by
 `param1`, `param2` etc. which they then pass to the `validate()` function from
@@ -29,7 +29,17 @@ For details on constraints and options, see the
 
 ### NodeJS
 
-TO DO
+Install the module and its dependencies:
+
+```
+npm install '@maynoothuniversity/validate-params' --save
+```
+
+Load the module:
+
+```
+var validateParam = require('@maynoothuniversity/validate-params');
+```
 
 ### Browser (CDN)
 
