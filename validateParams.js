@@ -1,9 +1,15 @@
 /**
  * @file Provides the [validateParams]{@link module:validateParams} module.
- * @version 0.0.1
- * @author Bart Busschots bart.busschots@mu.ie
+ * @version 0.1.1
+ * @author Bart Busschots <bart.busschots@mu.ie>
  * @license MIT
  * @see https://github.com/bbusschots-mu/validateParams.js
+ */
+
+/**
+ * A validate.js custom validator.
+ * @typedef {function} validator
+ * @see {@link https://validatejs.org/#custom-validator}
  */
 
 /**
@@ -31,6 +37,11 @@ if(typeof require !== 'function' && typeof require !== 'function'){
 
 // If we are in a Node environment, require validate.js
 var validate = typeof validate !== 'undefined' ? validate : require('validate.js');
+
+// If we are in a Node environment, require humanJoin.js, and always configure it
+var humanJoin = typeof humanJoin !== 'undefined' ? humanJoin : require('@maynoothuniversity/human-join');
+humanJoin.optionDefaults.quoteWith = "'";
+humanJoin.optionDefaults.conjunction = ", or ";
 
 //
 //=== The Main Function (and shortcut wrapper) =================================
@@ -271,6 +282,38 @@ validateParams.asOrdinal = function(n){
     return n + 'th';
 }
 
+/**
+ * Register the custom validators defined in
+ * {@link module:validateParams.validators} into an instance of the
+ * [validate()]{@link external:validate} function.
+ *
+ * @param {function} [v] - the instance of the
+ * [validate()]{@link external:validate} function to registe the custom
+ * validators into. Defaults to the instance of `validate()` used within this
+ * module.
+ * @throws {Error} An error is thrown if an argument is present, but is not
+ * valid.
+ * @see module:validateParams.validators
+ * @see external:validate
+ * @see [validate.js Custom Validators]{@link https://validatejs.org/#custom-validator}
+ */
+validateParams.registerValidators = function(v){
+    // default to using the loaded copy of validate
+    if(typeof v === 'undefined'){
+        v = validate;
+    }
+    
+    // make sure we have a valid validators object
+    if(typeof v !== 'function' && typeof v.validators !== 'object'){
+        throw new Error('invalid arguments');
+    }
+    
+    // register all our validators
+    Object.keys(validateParams.validators).forEach(function(vName){
+        v.validators[vName] = validateParams.validators[vName];
+    });
+}
+
 //
 //=== 'Private' Helper Functions ===============================================
 //
@@ -291,6 +334,257 @@ validateParams._warn = function(msg){
         }
     }
 };
+
+//
+//=== Custom Validators ========================================================
+//
+
+/**
+ * Custom validate.js validators.
+ *
+ * These validators are automatically registered with the instance of
+ * validate.js loaded by this module. They can be loaded into another instance
+ * with the `validateParams.registerValidators()` function.
+ *
+ * @alias module:validateParams.validators
+ * @namespace
+ * @see [validate.js Custom Validators]{@link https://validatejs.org/#custom-validator}
+ */
+validateParams.validators = {
+    /**
+     * A validator for filtering values by the result of applying the `typeof`
+     * operator to them.
+     *
+     * By default the validator accepts values with a `typeof` that is equal to
+     * any of the supplied types, or `'undefined'`. This implicit acceptance of
+     * `undefned` is in keeping with guidelines in the validate.js
+     * documentation which specify that all validators should pass undefined
+     * values except for the `presence` validator.
+     *
+     * When used in a constraint, this validator supports the following values:
+     *
+     * * A plain object with the following keys:
+     *   * `type` or `types` **required** - a single string, or an array of
+     *     strings respectively, specifying one or more types to match against.
+     *   * `invert`, `notEqual` or `not` - if any one of these keys has any
+     *     truthy value the validator will accpet any type that's not specified
+     *     in the `type` or `types` key. That is to say, the validator will
+     *     perform an inverse match.
+     *   * `enforcePresence`, `presence` or `require` - if any one of these
+     *     keys has a truthy value, the implicit acceptance of `undefined` will
+     *     be disabled.
+     * * An array of strings - a shortcut for `{ types: THE_ARRAY }`, i.e. the
+     *   type must be one of the strings in the array.
+     * * A string - a shortcut for `{ types: 'THE_STRING' }`, i.e. the type must
+     *   be the given string.
+     * * `true` - accept any type except `undefined`. Note that this will
+     *    enforce presence.
+     *
+     * @member
+     * @type {validator}
+     * @example
+     * // a first argument that can be anything, as long as it's defined
+     * validateParams(arguments, [
+     *     { typeOf: true }
+     * ]);
+     * 
+     * // an optional first argument that must be a callback if present
+     * validateParams(arguments, [
+     *     { typeOf: 'function' }
+     * ]);
+     *
+     * // a required first argument that must be a string or a number
+     * validateParams(arguments, [
+     *     {
+     *         presence: true
+     *         typeOf: ['string', 'number']
+     *     }
+     * ]);
+     * // or
+     * validateParams(arguments, [
+     *     {
+     *         typeOf: {
+     *             types: ['string', 'number'],
+     *             require: true
+     *         }
+     *     }
+     * ]);
+     *
+     * // an optional first argument that can be anything but a function
+     * validateParams(arguments, [
+     *     { typeOf: { type: 'function', invert: true } }
+     * ]);
+     */
+    hasTypeof: function(value, options){
+        // gather together the list of acceptable types and figure out whether or not to invert
+        var specifiedTypes = [];
+        var tempTypesArray = [];
+        var doEnforcePresence = false;
+        var doInvert = false;
+        if(typeof options === 'boolean'){
+            // validate() does not run a validator set to false at all, so must be true
+            if(typeof value === 'undefined'){
+                return ['must be defined'];
+            }else{
+                return undefined; // pass the validator
+            }
+        }else if(typeof options === 'string'){
+            specifiedTypes.push(options);
+        }else if(validate.isArray(options)){
+            tempTypesArray = options;
+        }else if(validate.isObject(options)){
+            // read the type or types from the object
+            if(typeof options.type !== 'undefined'){
+                if(typeof options.type === 'string'){
+                    specifiedTypes.push(options.type);
+                }else{
+                    validateParams._warn('skipping invalid type specification: ' + String(options.type));
+                }
+            }else if(typeof options.types !== 'undefined'){
+                if(typeof options.types === 'string'){
+                    specifiedTypes.push(options.types);
+                }else if(validate.isArray(options.types)){
+                    tempTypesArray = options.types;
+                }else{
+                    throw new Error('invalid types specification in options - must be a string or an array of strings');
+                }
+            }
+            
+            // see if we need to enforce presence
+            if(options.enforcePresence || options.presence || options.require){
+                doEnforcePresence = true;
+            }
+            
+            // see if we need to invert
+            if(options.invert || options.notEqual || options.not){
+                doInvert = true;
+            }
+        }else{
+            throw new Error('invalid options passed - must be `true`, a string, an array of strings, or a plain object');
+        }
+        tempTypesArray.forEach(function(t){
+            if(typeof t === 'string'){
+                specifiedTypes.push(t);
+            }else{
+                validateParams._warn('skipping invalid type specification: ' + String(t));
+            }
+        });
+        if(!specifiedTypes.length){
+            throw new Error('invalid options passed - no valid type specifications found');
+        }
+        
+        
+        var errors = [];
+        var valType = typeof value;
+
+        // implicitly accept undefined unless presence is enforced
+        if(!doEnforcePresence && valType === 'undefined'){
+            return undefined; 
+        }
+        
+        // implicitly reject undefined if presence is enforced
+        if(doEnforcePresence && valType === 'undefined'){
+            return ' cannot be undefined';
+        }
+        
+        // do the hard work
+        if(doInvert){
+            specifiedTypes.forEach(function(t){
+                if(valType == t){
+                    errors.push("can't have type '" + t + "'");
+                }
+            });
+        }else{
+            var matched = false;
+            specifiedTypes.forEach(function(t){
+                if(valType == t){
+                    matched = true;
+                }
+            });
+            if(!matched){
+                errors.push("must be one of the following types: " + humanJoin(specifiedTypes) + "'");
+            }
+        }
+        
+        // return as appropriate
+        if(errors.length > 0){
+            return errors;
+        }
+        return undefined;
+    },
+    
+    /**
+     * A validator for filtering values by testing them against a given
+     * prototype or prototypes with the `instanceof` operator.
+     *
+     * In keeping with guidelines in the validate.js documentation, this
+     * validator implicitly accepts *empty* values.
+     *
+     * When used in a constraint, this validator supports the following values:
+     *
+     * * A plain object with the following keys:
+     *   * `prototypes` **required** - an array of one or more prototypes.
+     *   * `invert`, `notEqual` or `not` - if any of these keys have a truthy
+     *     value only values that don't have any of the specified prototypes
+     *     will be accepted.
+     * * An array of prototypes - equivalent to `{ prototypes: THE_ARRAY }`
+     * * `true` - equivalent to `{ prototypes: [Object] }`, i.e. any object is
+     *   accepted.
+     *
+     * @member
+     * @type {validator}
+     * @example
+     * // TO DO
+     */
+    isInstanceof: function(value, options){
+        // implicitly pass empty values
+        if(validate.isEmpty(value)){
+            return undefined;
+        }
+        
+        // gather together the list of acceptable prototypes and figure out whether or not to invert
+        var prototypeList = [];
+        var prototypeSourceList = [];
+        var doInvert = false;
+        if(typeof options === 'boolean'){
+            // validate() does not run a validator set to false at all, so must be true
+            prototypeList.push(Object);
+        }else if(validate.isArray(options)){
+            prototypeSourceList = options;
+        }else if(validate.isObject(options)){
+            // try read out the prototypes
+            if(validate.isArray(options.prototypes)){
+                prototypeSourceList = options.prototypes;
+            }else{
+                throw new Error('invalid options passed - options.prototypes must be an array');
+            }
+            
+            // see if we need to invert
+            if(options.invert || options.notEqual || options.not){
+                doInvert = true;
+            }
+        }else{
+            throw new Error('invalid options passed - must be `true`, an array of prototypes, or a plain object');
+        }
+        prototypeSourceList.forEach(function(p){
+            if(typeof p === 'function'){
+                prototypeList.push(p);
+            }else{
+                validateParams._warn('skipping invalid value in prototypes array: ' + String(p));
+            }
+        });
+        if(!prototypeList.length){
+            throw new Error('invalid options passed - no valid protoypes specified');
+        }
+        
+        // LEFT OFF HERE
+    }
+};
+validateParams.registerValidators(); // register all the defined validators
+
+//
+//=== Export the Module ========================================================
+//
 
 // If we're in a Node environment, export the function
 if(module){
