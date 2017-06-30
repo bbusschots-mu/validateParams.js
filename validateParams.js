@@ -255,6 +255,9 @@ validateParams.ValidationError.prototype = Object.create(Error.prototype, {
  *
  * @alias module:validateParams.getValidateInstance
  * @returns {function}
+ * @since version 0.1.1
+ * @example
+ * var paramsValidateFn = validateParams.getValidateInstance();
  */
 validateParams.getValidateInstance = function(){
     return validate;
@@ -289,6 +292,7 @@ validateParams.isArguments = function(item){
  * @private
  * @type {Object.<string, string>}
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof}
+ * @since version 0.1.1
  */
 validateParams._typeofStringsLookup = {
     'undefined': true,
@@ -308,6 +312,10 @@ validateParams._typeofStringsLookup = {
  * @param {*} v - the value to test
  * @returns {boolean}
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof}
+ * @since version 0.1.1
+ * @example
+ * var isValid1 = validateParams.isTypeofString('number'); // true
+ * var isValid2 = validateParams.isTypeofString('num'); // false
  */
 validateParams.isTypeofString = function(v){
     return typeof v === 'string' && validateParams._typeofStringsLookup[v] ? true : false;
@@ -351,6 +359,7 @@ validateParams.asOrdinal = function(n){
  * @see module:validateParams.validators
  * @see external:validate
  * @see [validate.js Custom Validators]{@link https://validatejs.org/#custom-validator}
+ * @since version 0.1.1
  */
 validateParams.registerValidators = function(v){
     // default to using the loaded copy of validate
@@ -404,6 +413,7 @@ validateParams._warn = function(msg){
  * @alias module:validateParams.validators
  * @namespace
  * @see [validate.js Custom Validators]{@link https://validatejs.org/#custom-validator}
+ * @since version 0.1.1
  */
 validateParams.validators = {
     /**
