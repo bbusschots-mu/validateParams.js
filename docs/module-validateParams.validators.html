@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>validators - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-validateParams.ValidationError.html">validateParams.ValidationError</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-validateParams.html">validateParams</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.asOrdinal">asOrdinal</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.assert">assert</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.getValidateInstance">getValidateInstance</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isArguments">isArguments</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isTypeofString">isTypeofString</a></span></li><li class="nav-heading">Externals</li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isEmpty.html">external:isEmpty</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isObject.html">external:isObject</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-validate.html">external:validate</a></span></li><li class="nav-heading">Namespaces</li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="module-validateParams.validators.html">validateParams.validators</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#valiateParams">valiateParams</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">validators</h1>
+    
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>
+            <span class="ancestors"><a href="module-validateParams.html">validateParams</a>.</span>
+        
+        validators
+        </h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description"><p>Custom validate.js validators.</p>
+<p>These validators are automatically registered with the instance of
+validate.js loaded by this module. They can be loaded into another instance
+with the <code>validateParams.registerValidators()</code> function.</p></div>
+        
+
+        
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><p><a href="https://validatejs.org/#custom-validator">validate.js Custom Validators</a></p></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<div class="section-members">
+<h4 class="name" id=".hasTypeOf"><span class="type-signature">(static) </span>hasTypeOf<span class="type-signature"> :<a href="global.html#validator">validator</a></span></h4>
+
+
+
+
+<div class="description">
+    <p>An alias for the <code>hasTypeof</code> validator.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="module-validateParams.validators.html#.hasTypeof">module:validateParams.validators.hasTypeof</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code><a href="global.html#validator">validator</a></code></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</div>
+
+        
+            
+<div class="section-members">
+<h4 class="name" id=".hasTypeof"><span class="type-signature">(static) </span>hasTypeof<span class="type-signature"> :<a href="global.html#validator">validator</a></span></h4>
+
+
+
+
+<div class="description">
+    <p>A validator for filtering values by the result of applying the <code>typeof</code>
+operator to them.</p>
+<p>In keeping with guidelines in the validate.js documentation, this
+validator implicitly accepts undefined values. However, it does not use
+the <a href="external-isEmpty.html">validate.isEmpty()</a> function to implicitly
+pass values because it makes no sense to have an empty string, or a
+string with only white space pass as a callback or a number. Explicit
+rejection of undefined values can be enabled using the <code>defined</code> option
+and its aliases. Because undefinedness is dealt with separately, the
+string <code>'undefined'</code> is ignored when processing the list of acceptable
+types.</p>
+<p>When used in a constraint, this validator supports the following values:</p>
+<ul>
+<li>A plain object specifying one or more of the following opions:<ul>
+<li><code>type</code> or <code>types</code> - a single string, or an array of strings
+respectively, specifying one or more types to match against.</li>
+<li><code>invert</code>, <code>notEqual</code>, 'notAnyOf' or <code>not</code> - if any of these keys has
+a truthy value the validator will accpet any type that's not
+specified in the <code>type</code> or <code>types</code> key. That is to say, the validator
+will perform an inverse match.</li>
+<li><code>notUndefined</code>, <code>defined</code> or <code>required</code> - if any of these keys has a
+truthy value, undefined values will be rejected, regardless of any
+the values specified via the <code>type</code> or <code>types</code> options.</li>
+</ul>
+</li>
+<li>An array of strings - a shortcut for <code>{ types: THE_ARRAY }</code>, i.e. the
+type must be one of the strings in the array.</li>
+<li>A string - a shortcut for <code>{ type: 'THE_STRING' }</code>, i.e. the type must
+be the given string.</li>
+<li><code>true</code> - a shortcut for <code>{ notUndefined: true, invert: true }</code>, i.e.
+the value can have any type other than <code>'undefined'</code>.</li>
+</ul>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof">https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code><a href="global.html#validator">validator</a></code></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// a first parameter that can be anything, as long as it's defined
+validateParams.assert(arguments, [ { hasTypeof: true } ]);
+
+// an optional first parameter that must be a callback if present
+validateParams.assert(arguments, [ { hasTypeof: 'function' } ]);
+
+// a required first parameter that must be a string or a number
+validateParams(arguments, [
+    {
+        hasTypeof: {
+            types: ['string', 'number'],
+            notUndefined: true
+        }
+    }
+]);
+
+// an optional first parameter that can be anything but a function
+validateParams(arguments, [
+    { hasTypeof: { type: 'function', invert: true } }
+]);</code></pre>
+
+
+</div>
+
+        
+            
+<div class="section-members">
+<h4 class="name" id=".isInstanceOf"><span class="type-signature">(static) </span>isInstanceOf<span class="type-signature"> :<a href="global.html#validator">validator</a></span></h4>
+
+
+
+
+<div class="description">
+    <p>An alias for the <code>isInstanceof</code> validator.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="module-validateParams.validators.html#.isInstanceof">module:validateParams.validators.isInstanceof</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code><a href="global.html#validator">validator</a></code></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</div>
+
+        
+            
+<div class="section-members">
+<h4 class="name" id=".isInstanceof"><span class="type-signature">(static) </span>isInstanceof<span class="type-signature"> :<a href="global.html#validator">validator</a></span></h4>
+
+
+
+
+<div class="description">
+    <p>A validator for filtering values by testing them against a given
+prototype or prototypes with the <code>instanceof</code> operator.</p>
+<p>In keeping with guidelines in the validate.js documentation, this
+validator implicitly accepts undefined values. However, it does not use
+the <a href="external-isEmpty.html">validate.isEmpty()</a> function to implicitly
+pass values because it makes no sense to have an empty string, or a
+string with only white space pass as an instance of a given prototype.
+Explicit rejection of undefined values can be enabled using the <code>defined</code>
+option and its aliases.</p>
+<p>Only undefined values and values for which the
+<a href="external-isObject.html">vadidate.isObject()</a> function returns true will
+ever be accepted by this validator.</p>
+<p>When used in a constraint, this validator supports the following values:</p>
+<ul>
+<li>A plain object with the following keys:<ul>
+<li><code>prototypes</code> <strong>required</strong> - an array of one or more prototypes.</li>
+<li><code>invert</code>, <code>notEqual</code> or <code>not</code> - if any of these keys have a truthy
+value only objects that don't have any of the specified prototypes
+will be accepted.</li>
+<li><code>notUndefined</code>, <code>defined</code> or <code>required</code> - if any of these keys has a
+truthy value, undefined values will be rejected.</li>
+</ul>
+</li>
+<li>An array of prototypes - equivalent to <code>{ prototypes: THE_ARRAY }</code></li>
+<li><code>true</code> - equivalent to <code>{ notUndefined:true, invert: true }</code>, i.e. any
+object is accepted, and undefined values are rejected.</li>
+</ul>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof">https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code><a href="global.html#validator">validator</a></code></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// a first parameter that can be any object, as long as it's defined
+validateParams.assert(arguments, [ { isInstanceof: true } ]);
+
+// an optional first parameter that can be any object
+validateParams.assert(arguments, [ { isInstanceof: { invert: true } } ]);
+
+// an optional first parameter that can be any error
+validateParams.assert(arguments, [ { isInstanceof: [Error] } ]);
+
+// an optional first parameter that can be any error or a Date
+validateParams.assert(arguments, [ { isInstanceof: [Error, Date] } ]);
+
+// an optional first parameter than can be an object of any prototype
+// other than an Error
+validateParams.assert(arguments, [
+    {
+        isInstanceof: {
+            prototypes: [ Error ],
+            invert: true
+        }
+    }
+]);</code></pre>
+
+
+</div>
+
+        
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Fri Jun 30 2017 17:30:16 GMT+0100 (IST) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>
