@@ -298,6 +298,16 @@ QUnit.module('validateParams.ValidationError prototype', {}, function(){
     });
 });
 
+QUnit.module('validateParams.getValidateInstance() function', {}, function(){
+    QUnit.test('function exists', function(a){
+        a.equal(typeof validateParams.getValidateInstance, 'function');
+    });
+    
+    QUnit.test('returns a reference to a function', function(a){
+        a.equal(typeof validateParams.getValidateInstance(), 'function');
+    });
+});
+
 QUnit.module('validateParams.isArguments() function', {}, function(){
     QUnit.test('function exists', function(a){
         a.equal(typeof validateParams.isArguments, 'function');
@@ -530,10 +540,10 @@ QUnit.module('custom validators', {}, function(){
             a.notOk(validateParams([], [numStrConstraint]), 'undefined accepted as a number or a string');
         });
         
-        QUnit.test("'invert', 'notEqual' & 'not' options", function(a){
+        QUnit.test("'invert', 'notEqual', 'notAnyOf' & 'not' options", function(a){
             var mustPassSingle = dummyBasicTypesExcept('num');
             var mustPassMultiple = dummyBasicTypesExcept('num', 'str');
-            a.expect((mustPassSingle.length * 3) + (mustPassMultiple.length * 3) + 7);
+            a.expect((mustPassSingle.length * 4) + (mustPassMultiple.length * 4) + 9);
             
             var singleConstraintInvert = {
                 hasTypeof: {
@@ -545,6 +555,12 @@ QUnit.module('custom validators', {}, function(){
                 hasTypeof: {
                     type: 'number',
                     notEqual: true
+                }
+            };
+            var singleConstraintNotAnyOf = {
+                hasTypeof: {
+                    type: 'number',
+                    notAnyOf: true
                 }
             };
             var singleConstraintNot = {
@@ -565,6 +581,12 @@ QUnit.module('custom validators', {}, function(){
                     notEqual: true
                 }
             };
+            var multipleConstraintNotAnyOf = {
+                hasTypeof: {
+                    types: ['number', 'string'],
+                    notAnyOf: true
+                }
+            };
             var multipleConstraintNot = {
                 hasTypeof: {
                     types: ['number', 'string'],
@@ -577,6 +599,7 @@ QUnit.module('custom validators', {}, function(){
                 var t = DUMMY_BASIC_TYPES[tn];
                 a.notOk(validateParams([t.val], [singleConstraintInvert]), t.desc + " accepted as anything but a number via 'invert' option");
                 a.notOk(validateParams([t.val], [singleConstraintNotEqual]), t.desc + " accepted as anything but a number via 'notEqual' option");
+                a.notOk(validateParams([t.val], [singleConstraintNotAnyOf]), t.desc + " accepted as anything but a number via 'notAnyOf' option");
                 a.notOk(validateParams([t.val], [singleConstraintNot]), t.desc + " accepted as anything but a number via 'not' option");
             });
             a.throws(
@@ -595,6 +618,13 @@ QUnit.module('custom validators', {}, function(){
             );
             a.throws(
                 function(){
+                    validateParams.assert([42], [singleConstraintNotAnyOf]);
+                },
+                validateParams.ValidationError,
+                "42 rejeced as anything but a number via 'notAnyOf' option"
+            );
+            a.throws(
+                function(){
                     validateParams.assert([42], [singleConstraintNot]);
                 },
                 validateParams.ValidationError,
@@ -606,6 +636,7 @@ QUnit.module('custom validators', {}, function(){
                 var t = DUMMY_BASIC_TYPES[tn];
                 a.notOk(validateParams([t.val], [multipleConstraintInvert]), t.desc + " accepted as anything but a number or a string via 'invert' option");
                 a.notOk(validateParams([t.val], [multipleConstraintNotEqual]), t.desc + " accepted as anything but a number or a string via 'notEqual' option");
+                a.notOk(validateParams([t.val], [multipleConstraintNotAnyOf]), t.desc + " accepted as anything but a number or a string via 'notAnyOf' option");
                 a.notOk(validateParams([t.val], [multipleConstraintNot]), t.desc + " accepted as anything but a number or a string via 'not' option");
             });
             a.throws(
@@ -624,6 +655,13 @@ QUnit.module('custom validators', {}, function(){
             );
             a.throws(
                 function(){
+                    validateParams.assert([42], [multipleConstraintNotAnyOf]);
+                },
+                validateParams.ValidationError,
+                "42 rejeced as anything but a number or a string via 'notAnyOf' option"
+            );
+            a.throws(
+                function(){
                     validateParams.assert([42], [multipleConstraintNot]);
                 },
                 validateParams.ValidationError,
@@ -637,99 +675,480 @@ QUnit.module('custom validators', {}, function(){
             );
         });
         
-        QUnit.test("'enforcePresence', 'presence' & 'require' options", function(a){
+        QUnit.test("'notUndefined', 'defined' & 'required' options", function(a){
             a.expect(12);
             
             // test the un-inverted use-case
-            var enforcePresenceContraint = {
+            var notUndefinedContraint = {
                 hasTypeof: {
                     type: 'number',
-                    enforcePresence: true
+                    notUndefined: true
                 }
             };
-            var presenceContraint = {
+            var definedContraint = {
                 hasTypeof: {
                     type: 'number',
-                    presence: true
+                    defined: true
                 }
             };
-            var requireContraint = {
+            var requiredContraint = {
                 hasTypeof: {
                     type: 'number',
-                    require: true
+                    required: true
                 }
             };
             a.throws(
                 function(){
-                    validateParams.assert([undefined], [enforcePresenceContraint]);
+                    validateParams.assert([undefined], [notUndefinedContraint]);
                 },
                 validateParams.ValidationError,
-                "undefined rejected with 'enforcePresence' option on type number"
+                "undefined rejected with 'notUndefined' option on type number"
             );
             a.throws(
                 function(){
-                    validateParams.assert([undefined], [presenceContraint]);
+                    validateParams.assert([undefined], [definedContraint]);
                 },
                 validateParams.ValidationError,
-                "undefined rejected with 'presence' option on type number"
+                "undefined rejected with 'defined' option on type number"
             );
             a.throws(
                 function(){
-                    validateParams.assert([undefined], [requireContraint]);
+                    validateParams.assert([undefined], [requiredContraint]);
                 },
                 validateParams.ValidationError,
-                "undefined rejected with 'require' option on type number"
+                "undefined rejected with 'required' option on type number"
             );
-            a.notOk(validateParams([42], [enforcePresenceContraint]), "42 accepted with 'enforcePresence' option on type number");
-            a.notOk(validateParams([42], [presenceContraint]), "42 accepted with 'presence' option on type number");
-            a.notOk(validateParams([42], [requireContraint]), "42 accepted with 'require' option on type number");
+            a.notOk(validateParams([42], [notUndefinedContraint]), "42 accepted with 'notUndefined' option on type number");
+            a.notOk(validateParams([42], [definedContraint]), "42 accepted with 'defined' option on type number");
+            a.notOk(validateParams([42], [requiredContraint]), "42 accepted with 'required' option on type number");
             
             // test the inverted use-case
-            var enforcePresenceContraintInverted = {
+            var notUndefinedContraintInverted = {
                 hasTypeof: {
                     type: 'number',
                     invert: true,
-                    enforcePresence: true
+                    notUndefined: true
                 }
             };
-            var presenceContraintInverted = {
+            var definedContraintInverted = {
                 hasTypeof: {
                     type: 'number',
                     invert: true,
-                    presence: true
+                    defined: true
                 }
             };
-            var requireContraintInverted = {
+            var requiredContraintInverted = {
                 hasTypeof: {
                     type: 'number',
                     invert: true,
-                    require: true
+                    required: true
                 }
             };
             a.throws(
                 function(){
-                    validateParams.assert([undefined], [enforcePresenceContraintInverted]);
+                    validateParams.assert([undefined], [notUndefinedContraintInverted]);
                 },
                 validateParams.ValidationError,
-                "undefined rejected with 'enforcePresence' option on type anything but number"
+                "undefined rejected with 'notUndefined' option on type anything but number"
             );
             a.throws(
                 function(){
-                    validateParams.assert([undefined], [presenceContraintInverted]);
+                    validateParams.assert([undefined], [definedContraintInverted]);
                 },
                 validateParams.ValidationError,
-                "undefined rejected with 'presence' option on type anything but number"
+                "undefined rejected with 'defined' option on type anything but number"
             );
             a.throws(
                 function(){
-                    validateParams.assert([undefined], [requireContraintInverted]);
+                    validateParams.assert([undefined], [requiredContraintInverted]);
                 },
                 validateParams.ValidationError,
-                "undefined rejected with 'require' option on type anything but number"
+                "undefined rejected with 'required' option on type anything but number"
             );
-            a.notOk(validateParams(['stuff'], [enforcePresenceContraintInverted]), "'stuff' accepted with 'enforcePresence' option on type anything but number");
-            a.notOk(validateParams(['stuff'], [presenceContraintInverted]), "'stuff' accepted with 'presence' option on type anything but number");
-            a.notOk(validateParams(['stuff'], [requireContraintInverted]), "'stuff' accepted with 'require' option on type anything but number");
+            a.notOk(validateParams(['stuff'], [notUndefinedContraintInverted]), "'stuff' accepted with 'notUndefined' option on type anything but number");
+            a.notOk(validateParams(['stuff'], [definedContraintInverted]), "'stuff' accepted with 'defined' option on type anything but number");
+            a.notOk(validateParams(['stuff'], [requiredContraintInverted]), "'stuff' accepted with 'required' option on type anything but number");
+        });
+    });
+    
+    QUnit.module('isInstanceof', {}, function(){
+        QUnit.test('validator exists', function(a){
+            a.equal(typeof validateParams.validators.isInstanceof, 'function');
+        });
+        
+        QUnit.test('isInstanceof: true', function(a){
+            var mustThrow = dummyBasicTypesExcept('obj', 'fn', 'arr');
+            a.expect(mustThrow.length + 1);
+            
+            // make sure non-object basic types reject, including undefined
+            mustThrow.forEach(function(tn){
+                var t = DUMMY_BASIC_TYPES[tn];
+                a.throws(
+                    function(){
+                        validateParams.assert([t.val], [ { isInstanceof: true } ]);
+                    },
+                    validateParams.ValidationError,
+                    t.desc + ' rejected'
+                );
+            });
+            
+            // make sure a random prototyped object passes
+            a.notOk(
+                validateParams([new Date()], [{isInstanceof: true}]),
+                'An instance of Date passed'
+            );
+        });
+        
+        QUnit.test('isInstanceof: { prototypes: AN_ARRAY }', function(a){
+            var mustThrow = dummyBasicTypesExcept('obj', 'fn', 'arr', 'undef');
+            a.expect((mustThrow.length * 2) + 6);
+            
+            var singleProtoConstraint = {isInstanceof: [Error]};
+            var multiProtoConstraint = {isInstanceof: [Error, Date]};
+            
+            // make sure non-object basic types reject
+            mustThrow.forEach(function(tn){
+                var t = DUMMY_BASIC_TYPES[tn];
+                a.throws(
+                    function(){
+                        validateParams.assert([t.val], [singleProtoConstraint]);
+                    },
+                    validateParams.ValidationError,
+                    t.desc + ' rejected by single-prototype constraint'
+                );
+                a.throws(
+                    function(){
+                        validateParams.assert([t.val], [multiProtoConstraint]);
+                    },
+                    validateParams.ValidationError,
+                    t.desc + ' rejected by multi-prototype constraint'
+                );
+            });
+            
+            // make sure undefined accepts
+            a.notOk(validateParams([], [singleProtoConstraint]), 'undefined accepted by single-prototype constraint');
+            a.notOk(validateParams([], [multiProtoConstraint]), 'undefined accepted by multi-prototype constraint');
+            
+            // make sure specified prototypes accept
+            a.notOk(validateParams([new Error('blah')], [singleProtoConstraint]), 'Error object accepted by single-prototype constraint');
+            a.notOk(validateParams([new Error('blah')], [multiProtoConstraint]), 'Error object accepted by multi-prototype constraint');
+            a.notOk(validateParams([new Date()], [multiProtoConstraint]), 'Date object accepted by multi-prototype constraint');
+            
+            // make sure sub-classes of specified prototypes accept
+            a.notOk(validateParams([new TypeError('blah')], [singleProtoConstraint]), 'Sub-class of specified prototype accepted');
+        });
+        
+         QUnit.test("'invert', 'notEqual', 'notAnyOf' & 'not' options", function(a){
+            a.expect(28);
+            
+            var singleConstraintInvert = {
+                isInstanceof: {
+                    prototypes: [Error],
+                    invert: true
+                }
+            };
+            var singleConstraintNotEqual = {
+                isInstanceof: {
+                    prototypes: [Error],
+                    notEqual: true
+                }
+            };
+            var singleConstraintNotAnyOf = {
+                isInstanceof: {
+                    prototypes: [Error],
+                    notAnyOf: true
+                }
+            };
+            var singleConstraintNot = {
+                isInstanceof: {
+                    prototypes: [Error],
+                    not: true
+                }
+            };
+            var multiConstraintInvert = {
+                isInstanceof: {
+                    prototypes: [Error, Date],
+                    invert: true
+                }
+            };
+            var multiConstraintNotEqual = {
+                isInstanceof: {
+                    prototypes: [Error, Date],
+                    notEqual: true
+                }
+            };
+            var multiConstraintNotAnyOf = {
+                isInstanceof: {
+                    prototypes: [Error, Date],
+                    notAnyOf: true
+                }
+            };
+            var multiConstraintNot = {
+                isInstanceof: {
+                    prototypes: [Error, Date],
+                    not: true
+                }
+            };
+            
+            // make sure everything works as expected when a single prototype is specified
+            a.notOk(validateParams([new Date()], [singleConstraintInvert]), "An instance of Date accepted as any object but an Error via 'invert' option");
+            a.notOk(validateParams([new Date()], [singleConstraintNotEqual]), "An instance of Date accepted as any object but an Error via 'notEqual' option");
+            a.notOk(validateParams([new Date()], [singleConstraintNotAnyOf]), "An instance of Date accepted as any object but an Error via 'notAnyOf' option");
+            a.notOk(validateParams([new Date()], [singleConstraintNot]), "An instance of Date accepted as any object but an Error via 'not' option");
+            a.throws(
+                function(){
+                    validateParams.assert([new Error()], [singleConstraintInvert]);
+                },
+                validateParams.ValidationError,
+                "An instance of Error rejeced as any object but an Error via 'invert' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new Error()], [singleConstraintNotEqual]);
+                },
+                validateParams.ValidationError,
+                "An instance of Error rejeced as any object but an Error via 'notEqual' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new Error()], [singleConstraintNotAnyOf]);
+                },
+                validateParams.ValidationError,
+                "An instance of Error rejeced as any object but an Error via 'notAnyOf' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new Error()], [singleConstraintNot]);
+                },
+                validateParams.ValidationError,
+                "An instance of Error rejeced as any object but an Error via 'not' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new TypeError()], [singleConstraintInvert]);
+                },
+                validateParams.ValidationError,
+                "An instance of TypeError rejeced as any object but an Error via 'invert' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new TypeError()], [singleConstraintNotEqual]);
+                },
+                validateParams.ValidationError,
+                "An instance of TypeError rejeced as any object but an Error via 'notEqual' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new TypeError()], [singleConstraintNotAnyOf]);
+                },
+                validateParams.ValidationError,
+                "An instance of TypeError rejeced as any object but an Error via 'notAnyOf' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new TypeError()], [singleConstraintNot]);
+                },
+                validateParams.ValidationError,
+                "An instance of TypeError rejeced as any object but an Error via 'not' option"
+            );
+            
+            // make sure everything works as expected when two prototypes are specified
+            a.notOk(validateParams([new RegExp()], [multiConstraintInvert]), "An instance of RegExp accepted as any object but an Error or a Date via 'invert' option");
+            a.notOk(validateParams([new RegExp()], [multiConstraintNotEqual]), "An instance of RegExp accepted as any object but an Error or a Date via 'notEqual' option");
+            a.notOk(validateParams([new RegExp()], [multiConstraintNotAnyOf]), "An instance of RegExp accepted as any object but an Error or a Date via 'notAnyOf' option");
+            a.notOk(validateParams([new RegExp()], [multiConstraintNot]), "An instance of RegExp accepted as any object but an Error or a Date via 'not' option");
+            a.throws(
+                function(){
+                    validateParams.assert([new Error()], [multiConstraintInvert]);
+                },
+                validateParams.ValidationError,
+                "An instance of Error rejeced as any object but an Error or a Date via 'invert' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new Error()], [multiConstraintNotEqual]);
+                },
+                validateParams.ValidationError,
+                "An instance of Error rejeced as any object but an Error or a Date via 'notEqual' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new Error()], [multiConstraintNotAnyOf]);
+                },
+                validateParams.ValidationError,
+                "An instance of Error rejeced as any object but an Error or a Date via 'notAnyOf' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new Error()], [multiConstraintNot]);
+                },
+                validateParams.ValidationError,
+                "An instance of Error rejeced as any object but an Error or a Date via 'not' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new TypeError()], [multiConstraintInvert]);
+                },
+                validateParams.ValidationError,
+                "An instance of TypeError rejeced as any object but an Error or a Date via 'invert' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new TypeError()], [multiConstraintNotEqual]);
+                },
+                validateParams.ValidationError,
+                "An instance of TypeError rejeced as any object but an Error or a Date via 'notEqual' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new TypeError()], [multiConstraintNotAnyOf]);
+                },
+                validateParams.ValidationError,
+                "An instance of TypeError rejeced as any object but an Error or a Date via 'notAnyOf' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new TypeError()], [multiConstraintNot]);
+                },
+                validateParams.ValidationError,
+                "An instance of TypeError rejeced as any object but an Error or a Date via 'not' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new Date()], [multiConstraintInvert]);
+                },
+                validateParams.ValidationError,
+                "An instance of Date rejeced as any object but an Error or a Date via 'invert' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new Date()], [multiConstraintNotEqual]);
+                },
+                validateParams.ValidationError,
+                "An instance of Date rejeced as any object but an Error or a Date via 'notEqual' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new Date()], [multiConstraintNotAnyOf]);
+                },
+                validateParams.ValidationError,
+                "An instance of Date rejeced as any object but an Error or a Date via 'notAnyOf' option"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([new Date()], [multiConstraintNot]);
+                },
+                validateParams.ValidationError,
+                "An instance of Date rejeced as any object but an Error or a Date via 'not' option"
+            );
+        });
+         
+        QUnit.test("'notUndefined', 'defined' & 'required' options", function(a){
+            a.expect(15);
+            
+            // test the un-inverted use-case
+            var notUndefinedContraint = {
+                isInstanceof: {
+                    prototypes: [Error],
+                    notUndefined: true
+                }
+            };
+            var definedContraint = {
+                isInstanceof: {
+                    prototypes: [Error],
+                    defined: true
+                }
+            };
+            var requiredContraint = {
+                isInstanceof: {
+                    prototypes: [Error],
+                    required: true
+                }
+            };
+            a.throws(
+                function(){
+                    validateParams.assert([undefined], [notUndefinedContraint]);
+                },
+                validateParams.ValidationError,
+                "undefined rejected with 'notUndefined' option on prototype Error"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([undefined], [definedContraint]);
+                },
+                validateParams.ValidationError,
+                "undefined rejected with 'defined' option on prototype Error"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([undefined], [requiredContraint]);
+                },
+                validateParams.ValidationError,
+                "undefined rejected with 'required' option on prototype Error"
+            );
+            a.notOk(validateParams([new Error()], [notUndefinedContraint]), "instance of Error accepted with 'notUndefined' option on prototype Error");
+            a.notOk(validateParams([new Error()], [definedContraint]), "instance of Error accepted with 'defined' option on prototype Error");
+            a.notOk(validateParams([new Error()], [requiredContraint]), "instance of Error accepted with 'required' option on prototype Error");
+            a.notOk(validateParams([new TypeError()], [notUndefinedContraint]), "instance of Error accepted with 'notUndefined' option on prototype Error");
+            a.notOk(validateParams([new TypeError()], [definedContraint]), "instance of TypeError accepted with 'defined' option on prototype Error");
+            a.notOk(validateParams([new TypeError()], [requiredContraint]), "instance of TypeError accepted with 'required' option on prototype Error");
+            
+            // test the inverted use-case
+            var notUndefinedContraintInverted = {
+                isInstanceof: {
+                    prototypes: [Error],
+                    invert: true,
+                    notUndefined: true
+                }
+            };
+            var definedContraintInverted = {
+                isInstanceof: {
+                    prototypes: [Error],
+                    invert: true,
+                    defined: true
+                }
+            };
+            var requiredContraintInverted = {
+                isInstanceof: {
+                    prototypes: [Error],
+                    invert: true,
+                    required: true
+                }
+            };
+            a.throws(
+                function(){
+                    validateParams.assert([undefined], [notUndefinedContraintInverted]);
+                },
+                validateParams.ValidationError,
+                "undefined rejected with 'notUndefined' option on any object but instances of Error"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([undefined], [definedContraintInverted]);
+                },
+                validateParams.ValidationError,
+                "undefined rejected with 'defined' option on any object but instances of Error"
+            );
+            a.throws(
+                function(){
+                    validateParams.assert([undefined], [requiredContraintInverted]);
+                },
+                validateParams.ValidationError,
+                "undefined rejected with 'required' option on any object but instances of Error"
+            );
+            a.notOk(validateParams([new Date()], [notUndefinedContraintInverted]), "instance of Date accepted with 'notUndefined' option on any object but instances of Error");
+            a.notOk(validateParams([new Date()], [definedContraintInverted]), "instance of Date accepted with 'defined' option on any object but instances of Error");
+            a.notOk(validateParams([new Date()], [requiredContraintInverted]), "instance of Date accepted with 'required' option on any object but instances of Error");
+        });
+    });
+    
+    QUnit.module('validator aliases', {}, function(){
+        QUnit.test('hasTypeOf maps to hasTypeof', function(a){
+            a.strictEqual(validateParams.validators.hasTypeOf, validateParams.validators.hasTypeof);
+        });
+        
+        QUnit.test('isInstanceOf maps to isInstanceof', function(a){
+            a.strictEqual(validateParams.validators.isInstanceOf, validateParams.validators.isInstanceof);
         });
     });
 });
