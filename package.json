@@ -1,10 +1,10 @@
 {
   "name": "@maynoothuniversity/validate-params",
-  "version": "0.1.1",
+  "version": "0.2.1",
   "description": "A wrapper around validate.js to facilitate easy function parameter validation in JavaScript.",
   "main": "validateParams.js",
   "scripts": {
-    "test": "qunit test/test.js",
+    "test": "node_modules/qunitjs/bin/qunit test/test.js",
     "generate-docs": "node_modules/.bin/jsdoc --configure jsdoc.conf.json",
     "generate-docs-dev": "node_modules/.bin/jsdoc --configure jsdoc.conf.json --private --destination ./docs-dev"
   },

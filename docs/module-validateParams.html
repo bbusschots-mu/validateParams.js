@@ -24,7 +24,7 @@
 <label for="nav-trigger" class="overlay"></label>
 
 <nav>
-    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-validateParams.ValidationError.html">validateParams.ValidationError</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-validateParams.html">validateParams</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.asOrdinal">asOrdinal</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.assert">assert</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.getValidateInstance">getValidateInstance</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isArguments">isArguments</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isTypeofString">isTypeofString</a></span></li><li class="nav-heading">Externals</li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isEmpty.html">external:isEmpty</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isObject.html">external:isObject</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-validate.html">external:validate</a></span></li><li class="nav-heading">Namespaces</li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="module-validateParams.validators.html">validateParams.validators</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#valiateParams">valiateParams</a></span></li>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-validateParams.ValidationError.html">validateParams.ValidationError</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-validateParams.html">validateParams</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.asOrdinal">asOrdinal</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.assert">assert</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.filterMetaValidators">filterMetaValidators</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.getValidateInstance">getValidateInstance</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isArguments">isArguments</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isTypeofString">isTypeofString</a></span></li><li class="nav-heading">Externals</li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isEmpty.html">external:isEmpty</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isObject.html">external:isObject</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-validate.html">external:validate</a></span></li><li class="nav-heading">Namespaces</li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="module-validateParams.validators.html">validateParams.validators</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#valiateParams">valiateParams</a></span></li>
 </nav>
 
 <div id="main">
@@ -53,9 +53,13 @@
         
             <div class="description"><p>A wrapper around <a href="http://validatejs.org/">validate.js</a> designed to
 facilitate its use for function parameter validation.</p>
-<p>This module exports its functionality as a single function which contains
-further helper functions as properties. This is the same design pattern as
-validate.js.</p></div>
+<p>As well as facilitating easier to access to the validation provided by
+validate.js, this module also adds some extra features including some
+<a href="module-validateParams.validators.html">custom validators</a>, and
+support for coercion.</p>
+<p>This module exports its functionality as a single main function,
+<code>validateParams()</code>, which contains further helper functions as properties.
+This is the same design pattern used for validate.js.</p></div>
         
 
         
@@ -160,6 +164,80 @@ validate.js.</p></div>
         </dl>
     
 
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<div class="section-members">
+<h4 class="name" id=".validate"><span class="type-signature">(static) </span>validate<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    <p>An alias for
+<a href="module-validateParams.html#.getValidateInstance">validateParams.getValidateInstance()</a>.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+    <dt class="tag-since">Since:</dt>
+    <dd class="tag-since"><ul class="dummy"><li>version 0.2.1</li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="module-validateParams.html#.getValidateInstance">module:validateParams.getValidateInstance</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+</div>
+
+        
     
 
     
@@ -418,7 +496,8 @@ validateParams.ValidationError error.</p>
 <div class="section-examples">
 <h5>Example</h5>
 
-    <pre class="prettyprint"><code>function repeatString(s, n){
+    <pre class="prettyprint"><code>// basic example - 2 required parameters
+function repeatString(s, n){
     validateParams.assert(arguments, [
         {
             presence: true
@@ -437,9 +516,192 @@ validateParams.ValidationError error.</p>
         ans += String(s);
     }
     return ans;
+}
+
+// example with a coercion
+function getAPIURL(baseURL){
+    validateParams.assert(arguments, [{
+        presence: true,
+        url: {
+            schemes: ['http', 'https'],
+            allowLocal: true
+        },
+        meta_coerce: function(v){
+           // append a trailing / if needed
+           return typeof v === 'string' &amp;&amp; !v.match(/\/$/) ? v + '/' : v;
+        }
+    }]);
+    return baseURL + 'api.php';
 }</code></pre>
 
 </div>
+
+</div>
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id=".filterMetaValidators"><span class="type-signature">(static) </span>filterMetaValidators<span class="signature">(constraintObject)</span><span class="type-signature"> &rarr; {<a href="global.html#ValidateConstraints">ValidateConstraints</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>A function to create a copy of a constraint object which omits any
+meta-validators present in the original. In other words, all keys in the
+original are coppied to the new returned object, except those who's names
+start with <code>meta_</code>.</p>
+<p>This function does not throw errors, if it receives invalid input, it simply
+returns it un-altered, but it will log a warning if it does so.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+    <dt class="tag-since">Since:</dt>
+    <dd class="tag-since"><ul class="dummy"><li>version 0.2.1</li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>constraintObject</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code><a href="global.html#ValidateParamsConstraints">ValidateParamsConstraints</a></code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>the constraint object to be coppied and
+filtered.</p>
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="section-returns">
+<h5>Returns:</h5>
+
+        
+
+<dl class="param-type">
+    <dt>
+        Type:
+    </dt>
+    <dd>
+        
+<span class="param-type"><code><a href="global.html#ValidateConstraints">ValidateConstraints</a></code></span>
+
+
+    </dd>
+</dl>
+
+
+<div class="param-desc">
+    <ul>
+<li>a new object containing every key-value pair in the
+original, except those who's name begins with <code>meta_</code>.</li>
+</ul>
+</div>
+
+    
+</div>
+
+
 
 </div>
         
@@ -467,6 +729,9 @@ function from validate.js used by this module.</p>
 
     
 
+    
+    <dt class="tag-since">Since:</dt>
+    <dd class="tag-since"><ul class="dummy"><li>version 0.1.1</li></ul></dd>
     
 
     
@@ -540,6 +805,13 @@ function from validate.js used by this module.</p>
 </div>
 
 
+
+<div class="section-examples">
+<h5>Example</h5>
+
+    <pre class="prettyprint"><code>var paramsValidateFn = validateParams.getValidateInstance();</code></pre>
+
+</div>
 
 </div>
         
@@ -733,6 +1005,9 @@ by the <code>typeof</code> operator.</p>
     
 
     
+    <dt class="tag-since">Since:</dt>
+    <dd class="tag-since"><ul class="dummy"><li>version 0.1.1</li></ul></dd>
+    
 
     
 
@@ -865,6 +1140,14 @@ by the <code>typeof</code> operator.</p>
 
 
 
+<div class="section-examples">
+<h5>Example</h5>
+
+    <pre class="prettyprint"><code>var isValid1 = validateParams.isTypeofString('number'); // true
+var isValid2 = validateParams.isTypeofString('num'); // false</code></pre>
+
+</div>
+
 </div>
         
     
@@ -884,7 +1167,7 @@ by the <code>typeof</code> operator.</p>
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Fri Jun 30 2017 17:30:15 GMT+0100 (IST) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Jul 04 2017 12:16:48 GMT+0100 (IST) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>

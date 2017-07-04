@@ -308,6 +308,57 @@ QUnit.module('validateParams.getValidateInstance() function', {}, function(){
     });
 });
 
+QUnit.module('validateParams.validate() function', {}, function(){
+    QUnit.test('is an alias to validateParams.getValidateInstance()', function(a){
+        a.strictEqual(validateParams.validate, validateParams.getValidateInstance);
+    });
+});
+
+QUnit.module('validateParams.filterMetaValidators() function', {}, function(){
+    QUnit.test('function exists', function(a){
+        a.equal(typeof validateParams.filterMetaValidators, 'function');
+    });
+    
+    QUnit.test('invalid data passed through', function(a){
+        var mustPassUnaltered = dummyBasicTypesExcept('obj', 'arr');
+        a.expect(mustPassUnaltered.length);
+        mustPassUnaltered.forEach(function(tn){
+            var t = DUMMY_BASIC_TYPES[tn];
+            a.strictEqual(
+                validateParams.filterMetaValidators(t.val),
+                t.val,
+                t.desc + ' passed un-altered'
+            );
+        });
+    });
+    
+    QUnit.test('object keys correctly filtered', function(a){
+        a.expect(3);
+        
+        // create a constraint with a mix of validators and meta-validators
+        var testConstraint = {
+            presence: true,
+            url: {
+                schemes: ['http', 'https'],
+                allowLocal: true
+            },
+            meta_coerce: function(v){
+                return typeof v === 'string' && !v.match(/\/$/) ? v + '/' : v;
+            }
+        };
+        
+        // filter the test constraint
+        var filteredConstraint = validateParams.filterMetaValidators(testConstraint);
+        
+        // make sure the validators were passed
+        a.strictEqual(filteredConstraint.presence, testConstraint.presence, 'presence constraint passed');
+        a.strictEqual(filteredConstraint.url, testConstraint.url, 'url constraint passed');
+        
+        // make sure the meta-validator was stripped
+        a.strictEqual(typeof filteredConstraint.meta_coerce, 'undefined', 'meta_coerce meta-constraint filtered out');
+    });
+});
+
 QUnit.module('validateParams.isArguments() function', {}, function(){
     QUnit.test('function exists', function(a){
         a.equal(typeof validateParams.isArguments, 'function');
@@ -379,6 +430,37 @@ QUnit.module('validateParams.asOrdinal() function', {}, function(){
         a.equal(validateParams.asOrdinal(122), '122nd');
         a.equal(validateParams.asOrdinal(123), '123rd');
         a.equal(validateParams.asOrdinal(124), '124th');
+    });
+});
+
+QUnit.module('coercion', {}, function(){
+    QUnit.test('coercion on arguments object', function(a){
+        // create a function that applies a coercion
+        var testFn = function(v){
+            validateParams.assert(arguments, [
+                {
+                    meta_coerce: function(){
+                        return 4;
+                    }
+                }
+            ]);
+            return v;
+        };
+        
+        // check the coercion is applied
+        a.equal(testFn(5), 4);
+    });
+    
+    QUnit.test('coercion on Array', function(a){
+        var a1 = [5];
+        validateParams.assert(a1, [
+            {
+                meta_coerce: function(){
+                    return 4;
+                }
+            }
+        ]);
+        a.equal(a1[0], 4);
     });
 });
 

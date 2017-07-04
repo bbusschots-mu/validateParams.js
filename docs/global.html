@@ -24,7 +24,7 @@
 <label for="nav-trigger" class="overlay"></label>
 
 <nav>
-    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-validateParams.ValidationError.html">validateParams.ValidationError</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-validateParams.html">validateParams</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.asOrdinal">asOrdinal</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.assert">assert</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.getValidateInstance">getValidateInstance</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isArguments">isArguments</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isTypeofString">isTypeofString</a></span></li><li class="nav-heading">Externals</li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isEmpty.html">external:isEmpty</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isObject.html">external:isObject</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-validate.html">external:validate</a></span></li><li class="nav-heading">Namespaces</li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="module-validateParams.validators.html">validateParams.validators</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#valiateParams">valiateParams</a></span></li>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-validateParams.ValidationError.html">validateParams.ValidationError</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-validateParams.html">validateParams</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.asOrdinal">asOrdinal</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.assert">assert</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.filterMetaValidators">filterMetaValidators</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.getValidateInstance">getValidateInstance</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isArguments">isArguments</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isTypeofString">isTypeofString</a></span></li><li class="nav-heading">Externals</li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isEmpty.html">external:isEmpty</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isObject.html">external:isObject</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-validate.html">external:validate</a></span></li><li class="nav-heading">Namespaces</li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="module-validateParams.validators.html">validateParams.validators</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#valiateParams">valiateParams</a></span></li>
 </nav>
 
 <div id="main">
@@ -132,6 +132,20 @@ using arrays (or array-like objects) rather than associative arrays as
 expected by <a href="external-validate.html">validate()</a>. The function assembles the
 specified values and constraints into associative arrays using the names
 <code>param1</code>, <code>param2</code> etc..</p>
+<h5>Meta-Validators</h5><p>Meta-validators are used to add extra functionality to this function which is
+not available in the validate.js module.</p>
+<p>Any validator name starting with <code>meta_</code> in any of the constraint objects
+will be interpreted as a meta-validator, and will be stripped out before
+being passed to <a href="external-validate.html">validate()</a>.</p>
+<h5>Coercions</h5><p>A coercion is a function that tries to make the value of a parameter valid
+before the constraints are applied. Coercions alter the values stored in the
+parameters list, so the updated value will be available for use after
+validation.</p>
+<p>Coercions are implemented using the meta-validator <code>meta_coercion</code>. The value
+for assigned to this name in a constraint should be a
+<a href="global.html#CoercionCallback">coercion callback</a>. If present, that callback will
+be invoked with the value to be coerced as the first parameter, and the
+callback should return an altered value or the original value.</p>
 </div>
 
 
@@ -259,7 +273,7 @@ parameters to be validated, usually an <code>Arguments</code> object.</p>
             <td class="type">
             
                 
-<span class="param-type"><code>Array</code></span>
+<span class="param-type"><code>Array.&lt;<a href="global.html#ValidateParamsConstraints">ValidateParamsConstraints</a>></code></span>
 
 
             
@@ -278,8 +292,12 @@ parameters to be validated, usually an <code>Arguments</code> object.</p>
             
 
             <td class="description last">
-                <p>an array of constraint objects as expected
-by <code>validate.single()</code>, one for each parameter to be validated.</p>
+                <p>an array of
+constraint objects which can contain both validator data as expected by
+<code>validate.single()</code> and meta-validator data as supported by this function.
+The constraints defined in the first element of this array will be applied
+to the first parameter, the constraints in the second element to the second
+parameter and so-on.</p>
                 
             </td>
         </tr>
@@ -591,7 +609,8 @@ otherwise, an array of error strings is returned.</p>
 <div class="section-examples">
 <h5>Example</h5>
 
-    <pre class="prettyprint"><code>function repeatString(s, n){
+    <pre class="prettyprint"><code>// basic example - 2 required parameters
+function repeatString(s, n){
     var errors = validateParams(arguments, [
         {
             presence: true
@@ -613,6 +632,25 @@ otherwise, an array of error strings is returned.</p>
         ans += String(s);
     }
     return ans;
+}
+
+// example with a coercion
+function getAPIURL(baseURL){
+    var errors = validateParams(arguments, [{
+        presence: true,
+        url: {
+            schemes: ['http', 'https'],
+            allowLocal: true
+        },
+        meta_coerce: function(v){
+           // append a trailing / if needed
+           return typeof v === 'string' &amp;&amp; !v.match(/\/$/) ? v + '/' : v;
+        }
+    }]);
+    if(errors){
+        throw new Error('invalid args!');
+    }
+    return baseURL + 'api.php';
 }</code></pre>
 
 </div>
@@ -630,14 +668,333 @@ otherwise, an array of error strings is returned.</p>
 
     
 
-    <h4 class="name" id="validator"><span class="type-signature"></span>validator<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="CoercionCallback"><span class="type-signature"></span>CoercionCallback<span class="signature">(value)</span><span class="type-signature"> &rarr; {*}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>A validate.js custom validator.</p>
+    <p>A validation callback for use with the <code>meta_coerce</code> meta-validation.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>*</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>the value to be coerced.</p>
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="section-returns">
+<h5>Returns:</h5>
+
+        
+
+<dl class="param-type">
+    <dt>
+        Type:
+    </dt>
+    <dd>
+        
+<span class="param-type"><code>*</code></span>
+
+
+    </dd>
+</dl>
+
+
+<div class="param-desc">
+    <p>The coerced value.</p>
+</div>
+
+    
+</div>
+
+
+
+</div>
+            
+                
+<div class="section-members">
+<h4 class="name" id="ValidateConstraints">ValidateConstraints</h4>
+
+
+
+
+<div class="description">
+    <p>A plain object containing validator settings indexed by validator names.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>Object</code></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>{
+    presence: true;
+    url: {
+        schemes: ['http', 'https'],
+        allowLocal: true
+    }
+}</code></pre>
+
+
+</div>
+
+            
+                
+<div class="section-members">
+<h4 class="name" id="ValidateParamsConstraints">ValidateParamsConstraints</h4>
+
+
+
+
+<div class="description">
+    <p>A plain object contaning a mix of validator and meta-validator settings
+indexed by name.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>Object</code></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>{
+    presence: true;
+    url: {
+        schemes: ['http', 'https'],
+        allowLocal: true
+    },
+    meta_coerce: function(v){
+        return typeof v === 'string' &amp;&amp; !v.match(/\/$/) ? v + '/' : v;
+    }
+}</code></pre>
+
+
+</div>
+
+            
+                
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="Validator"><span class="type-signature"></span>Validator<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>A validate.js validator.</p>
 </div>
 
 
@@ -725,7 +1082,7 @@ otherwise, an array of error strings is returned.</p>
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Fri Jun 30 2017 17:30:15 GMT+0100 (IST) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Jul 04 2017 12:16:48 GMT+0100 (IST) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>

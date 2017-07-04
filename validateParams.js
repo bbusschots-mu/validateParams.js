@@ -1,15 +1,9 @@
 /**
  * @file Provides the [validateParams]{@link module:validateParams} module.
- * @version 0.1.1
+ * @version 0.2.1
  * @author Bart Busschots <bart.busschots@mu.ie>
  * @license MIT
  * @see https://github.com/bbusschots-mu/validateParams.js
- */
-
-/**
- * A validate.js custom validator.
- * @typedef {function} validator
- * @see {@link https://validatejs.org/#custom-validator}
  */
 
 /**
@@ -31,12 +25,60 @@
  */
 
 /**
+ * A validate.js validator.
+ * @typedef {function} Validator
+ * @see {@link https://validatejs.org/#custom-validator}
+ */
+
+/**
+ * A plain object containing validator settings indexed by validator names.
+ * @typedef {Object} ValidateConstraints
+ * @example
+ * {
+ *     presence: true;
+ *     url: {
+ *         schemes: ['http', 'https'],
+ *         allowLocal: true
+ *     }
+ * }
+ */
+
+/**
+ * A plain object contaning a mix of validator and meta-validator settings
+ * indexed by name.
+ * @typedef {Object} ValidateParamsConstraints
+ * @example
+ * {
+ *     presence: true;
+ *     url: {
+ *         schemes: ['http', 'https'],
+ *         allowLocal: true
+ *     },
+ *     meta_coerce: function(v){
+ *         return typeof v === 'string' && !v.match(/\/$/) ? v + '/' : v;
+ *     }
+ * }
+ */
+
+/**
+ * A validation callback for use with the `meta_coerce` meta-validation.
+ * @callback CoercionCallback
+ * @param {*} value - the value to be coerced.
+ * @returns {*} The coerced value.
+ */
+
+/**
  * A wrapper around [validate.js]{@link http://validatejs.org/} designed to
  * facilitate its use for function parameter validation.
  *
- * This module exports its functionality as a single function which contains
- * further helper functions as properties. This is the same design pattern as
- * validate.js.
+ * As well as facilitating easier to access to the validation provided by
+ * validate.js, this module also adds some extra features including some
+ * [custom validators]{@link module:validateParams.validators}, and
+ * support for coercion.
+ *
+ * This module exports its functionality as a single main function,
+ * `validateParams()`, which contains further helper functions as properties.
+ * This is the same design pattern used for validate.js.
  * 
  * @module validateParams
  * @requires module:validate.js
@@ -70,11 +112,37 @@ humanJoin.optionDefaults.conjunction = ", or ";
  * specified values and constraints into associative arrays using the names
  * `param1`, `param2` etc..
  *
+ * ##### Meta-Validators
+ *
+ * Meta-validators are used to add extra functionality to this function which is
+ * not available in the validate.js module.
+ * 
+ * Any validator name starting with `meta_` in any of the constraint objects
+ * will be interpreted as a meta-validator, and will be stripped out before
+ * being passed to [validate()]{@link external:validate}.
+ *
+ * ##### Coercions
+ *
+ * A coercion is a function that tries to make the value of a parameter valid
+ * before the constraints are applied. Coercions alter the values stored in the
+ * parameters list, so the updated value will be available for use after
+ * validation.
+ *
+ * Coercions are implemented using the meta-validator `meta_coercion`. The value
+ * for assigned to this name in a constraint should be a
+ * [coercion callback]{@link CoercionCallback}. If present, that callback will
+ * be invoked with the value to be coerced as the first parameter, and the
+ * callback should return an altered value or the original value.
+ *
  * @alias valiateParams
- * @param {Arguments|Array} params - an array-like object representing the
+ * @param {(Arguments|Array)} params - an array-like object representing the
  * parameters to be validated, usually an `Arguments` object.
- * @param {Array} constraints - an array of constraint objects as expected
- * by `validate.single()`, one for each parameter to be validated.
+ * @param {ValidateParamsConstraints[]} constraints - an array of
+ * constraint objects which can contain both validator data as expected by
+ * `validate.single()` and meta-validator data as supported by this function.
+ * The constraints defined in the first element of this array will be applied
+ * to the first parameter, the constraints in the second element to the second
+ * parameter and so-on.
  * @param {Object} [options] - an associative array of options.
  * @param {string} [options.format='grouped'] - the format in which to return
  * any error messages found. For details see the
@@ -91,6 +159,7 @@ humanJoin.optionDefaults.conjunction = ", or ";
  * parameters fail to validate and `options.fatal=true`.
  * @see external:validate
  * @example
+ * // basic example - 2 required parameters
  * function repeatString(s, n){
  *     var errors = validateParams(arguments, [
  *         {
@@ -114,8 +183,31 @@ humanJoin.optionDefaults.conjunction = ", or ";
  *     }
  *     return ans;
  * }
+ *
+ * // example with a coercion
+ * function getAPIURL(baseURL){
+ *     var errors = validateParams(arguments, [{
+ *         presence: true,
+ *         url: {
+ *             schemes: ['http', 'https'],
+ *             allowLocal: true
+ *         },
+ *         meta_coerce: function(v){
+ *            // append a trailing / if needed
+ *            return typeof v === 'string' && !v.match(/\/$/) ? v + '/' : v;
+ *         }
+ *     }]);
+ *     if(errors){
+ *         throw new Error('invalid args!');
+ *     }
+ *     return baseURL + 'api.php';
+ * }
+ * 
  */
 var validateParams = function(params, constraints, options){
+    // counter for use in loops
+    var i;
+    
     // validate parameters
     if(!(params && (validate.isArray(params) || validateParams.isArguments(params)))){
         throw new Error('first parameter must be an array of parameters to test, or an Arguments object');
@@ -138,13 +230,21 @@ var validateParams = function(params, constraints, options){
         }
     }
     
+    // apply any defined coercions
+    for(i = 0; i < constraints.length; i++){
+        if(validate.isObject(constraints[i]) && validate.isFunction(constraints[i].meta_coerce)){
+            // apply the coercion
+            params[i] = constraints[i].meta_coerce(params[i]);
+        }
+    }
+    
     // build the values and constraints objects
     var valdiateAttributes = {};
     var validateConstraints = {};
-    for(var i = 0; i < constraints.length; i++){
+    for(i = 0; i < constraints.length; i++){
         var paramName = 'param' + (i + 1);
         valdiateAttributes[paramName] = params[i];
-        validateConstraints[paramName] = validate.isObject(constraints[i]) ? constraints[i] : {};
+        validateConstraints[paramName] = validate.isObject(constraints[i]) ? validateParams.filterMetaValidators(constraints[i]) : {};
     }
     
     // do the validation
@@ -168,6 +268,7 @@ var validateParams = function(params, constraints, options){
  * @alias module:validateParams.assert
  * @throws {validateParams.ValidationError}
  * @example
+ * // basic example - 2 required parameters
  * function repeatString(s, n){
  *     validateParams.assert(arguments, [
  *         {
@@ -187,6 +288,22 @@ var validateParams = function(params, constraints, options){
  *         ans += String(s);
  *     }
  *     return ans;
+ * }
+ *
+ * // example with a coercion
+ * function getAPIURL(baseURL){
+ *     validateParams.assert(arguments, [{
+ *         presence: true,
+ *         url: {
+ *             schemes: ['http', 'https'],
+ *             allowLocal: true
+ *         },
+ *         meta_coerce: function(v){
+ *            // append a trailing / if needed
+ *            return typeof v === 'string' && !v.match(/\/$/) ? v + '/' : v;
+ *         }
+ *     }]);
+ *     return baseURL + 'api.php';
  * }
  */
 validateParams.assert = function(params, constraints, options){
@@ -262,6 +379,51 @@ validateParams.ValidationError.prototype = Object.create(Error.prototype, {
 validateParams.getValidateInstance = function(){
     return validate;
 };
+
+/**
+ * An alias for
+ * [validateParams.getValidateInstance()]{@link module:validateParams.getValidateInstance}.
+ *
+ * @alias module:validateParams.validate
+ * @see module:validateParams.getValidateInstance
+ * @since version 0.2.1
+ */
+validateParams.validate = validateParams.getValidateInstance;
+
+/**
+ * A function to create a copy of a constraint object which omits any
+ * meta-validators present in the original. In other words, all keys in the
+ * original are coppied to the new returned object, except those who's names
+ * start with `meta_`.
+ *
+ * This function does not throw errors, if it receives invalid input, it simply
+ * returns it un-altered, but it will log a warning if it does so.
+ *
+ * @alias module:validateParams.filterMetaValidators
+ * @param {ValidateParamsConstraints} constraintObject - the constraint object to be coppied and
+ * filtered.
+ * @returns {ValidateConstraints} - a new object containing every key-value pair in the
+ * original, except those who's name begins with `meta_`.
+ * @since version 0.2.1
+ */
+validateParams.filterMetaValidators = function(constraintObject){
+    // return invalid data immediately
+    if(typeof constraintObject !== 'object'){
+        validateParams._warn('meta contraint filter passing invalid arguments un-changed');
+        return constraintObject;
+    }
+    
+    // itterate over all the keys and geneate a new object
+    var filteredConstraint = {};
+    Object.keys(constraintObject).forEach(function(k){
+        if(!k.match(/^meta[_]/)){
+            filteredConstraint[k] = constraintObject[k];
+        }
+    });
+    
+    // return the new object
+    return filteredConstraint;
+}
 
 /**
  * A function to test if a given item is an Arguments object.
@@ -450,7 +612,7 @@ validateParams.validators = {
      *   the value can have any type other than `'undefined'`.
      *
      * @member
-     * @type {validator}
+     * @type {Validator}
      * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof}
      * @example
      * // a first parameter that can be anything, as long as it's defined
@@ -606,7 +768,7 @@ validateParams.validators = {
      *   object is accepted, and undefined values are rejected.
      *
      * @member
-     * @type {validator}
+     * @type {Validator}
      * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof}
      * @example
      * // a first parameter that can be any object, as long as it's defined
