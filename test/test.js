@@ -8,6 +8,9 @@ var validateParams = require('../');
 // import validate.js
 var validate = require('validate.js');
 
+// import shellJS
+var shell = require('shelljs');
+
 // A library of dummy data and related functions to speed up data validation
 
 /**
@@ -121,11 +124,39 @@ function dummyBasicTypesExcept(){
 // === The Tests ===============================================================
 //
 
+QUnit.module('project management', {}, function(){
+    QUnit.test('version numbers', function(a){
+        a.expect(3);
+        
+        // RE for valid versions
+        var versionRE = new RegExp(/\d+([.]\d+){2}/);
+        
+        // read the version from package.json
+        var packageString = shell.cat('package.json');
+        var packageData = JSON.parse(packageString);
+        var packageVersion = packageData.version;
+        
+        // read the version from the JSDoc comment
+        var jsDocVersion = '';
+        var jsDocLine = shell.grep('@version', 'validateParams.js');
+        var jsDocRE = new RegExp('[@]version[ ]+(' + versionRE.source + ')');
+        var jsDocResult = jsDocRE.exec(jsDocLine);
+        if(jsDocResult && jsDocResult[1]){
+            jsDocVersion = jsDocResult[1];
+        }
+        
+        // make sure both versions are valid
+        a.ok(versionRE.exec(packageVersion), 'version number in package.json is valid');
+        a.ok(versionRE.exec(jsDocVersion), 'version number in JSDoc comment is valid');
+        a.equal(packageVersion, jsDocVersion, 'both versions are the same');
+    });
+});
+
 QUnit.module('validateParams.apply() function',
     {
         beforeEach: function(){
             this.dummyFn = function(){
-                var errors = validateParams.apply(arguments, [
+                var result = validateParams.apply(arguments, [
                     {
                         presence: true,
                     },
@@ -137,7 +168,7 @@ QUnit.module('validateParams.apply() function',
                         numericality: true
                     }
                 ]);
-                if(errors){
+                if(result.errors()){
                     throw new Error();
                 }
             };
@@ -417,6 +448,37 @@ QUnit.module('validateParams.ValidationError prototype', {}, function(){
     });
 });
 
+QUnit.module('validateParams.Result prototype', {}, function(){
+    QUnit.test('prototype exists', function(a){
+        a.equal(typeof validateParams.Result, 'function');
+    });
+    
+    QUnit.test('constructor successfully builds empty object', function(a){
+        a.expect(6);
+        var r = new validateParams.Result();
+        a.ok(r instanceof validateParams.Result, 'is instance of validateParams.Result');
+        a.ok(validate.isArray(r._parameterList), 'parameter list is an array');
+        a.ok(validate.isArray(r._constraintList), 'constraint list is an array');
+        a.ok(validate.isObject(r._options), 'options is an object');
+        a.ok(validate.isObject(r._validateAttributes), 'validate attributes is an object');
+        a.ok(validate.isObject(r._validateConstraints), 'validate constraints is an object');
+    });
+    
+    QUnit.test('read-only accessors correctly access data', function(a){
+        a.expect(6);
+        var paramList = [42];
+        var constraintsList = [{presence: true}, {presence: true}];
+        var options = {format: 'flat'};
+        var r = validateParams.apply(paramList, constraintsList, options);
+        a.strictEqual(r.parameterList(), paramList, '.parameterList() returns correct referece');
+        a.strictEqual(r.constraintList(), constraintsList, '.constraintList() returns correct referece');
+        a.strictEqual(r.options(), options, '.options() returns correct referece');
+        a.deepEqual(r.validateAttributes(), { param1: 42, param2: undefined }, '.validateAttributes() returns expected data structure');
+        a.deepEqual(r.validateConstraints(), { param1: { presence: true }, param2: { presence: true } }, '.validateConstraints() returns expected data structure');
+        a.deepEqual(r.errors(), [ "Param2 can't be blank" ], '.errors() returns expected value');
+    });
+});
+
 QUnit.module('validateParams.getValidateInstance() function', {}, function(){
     QUnit.test('function exists', function(a){
         a.equal(typeof validateParams.getValidateInstance, 'function');
@@ -602,7 +664,7 @@ QUnit.module('custom validators', {}, function(){
             mustPass.forEach(function(tn){
                 var t = DUMMY_BASIC_TYPES[tn];
                 a.notOk(
-                    validateParams.assert([t.val], [{hasTypeof: true}]),
+                    validateParams([t.val], [{hasTypeof: true}]),
                     t.desc + ' passed'
                 );
             });
