@@ -205,6 +205,13 @@ humanJoin.optionDefaults.conjunction = ", or ";
  * 
  */
 var validateParams = function(params, constraints, options){
+    return validateParams.apply(params, constraints, options);
+};
+
+/**
+ * The function that does the actual work.
+ */
+validateParams.apply = function(params, constraints, options){
     // counter for use in loops
     var i;
     
