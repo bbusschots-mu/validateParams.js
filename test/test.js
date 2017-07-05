@@ -369,7 +369,7 @@ QUnit.module('validateParams.coerce() function', {}, function(){
         var testFn = function(v){
             validateParams.coerce(arguments, [
                 {
-                    meta_coerce: function(){
+                    vpopt_coerce: function(){
                         return 4;
                     }
                 }
@@ -385,7 +385,7 @@ QUnit.module('validateParams.coerce() function', {}, function(){
         var a1 = [5];
         validateParams.coerce(a1, [
             {
-                meta_coerce: function(){
+                vpopt_coerce: function(){
                     return 4;
                 }
             }
@@ -495,9 +495,9 @@ QUnit.module('validateParams.validateJS() function', {}, function(){
     });
 });
 
-QUnit.module('validateParams.filterMetaValidators() function', {}, function(){
+QUnit.module('validateParams.filterParameterOptions() function', {}, function(){
     QUnit.test('function exists', function(a){
-        a.equal(typeof validateParams.filterMetaValidators, 'function');
+        a.equal(typeof validateParams.filterParameterOptions, 'function');
     });
     
     QUnit.test('invalid data passed through', function(a){
@@ -506,7 +506,7 @@ QUnit.module('validateParams.filterMetaValidators() function', {}, function(){
         mustPassUnaltered.forEach(function(tn){
             var t = DUMMY_BASIC_TYPES[tn];
             a.strictEqual(
-                validateParams.filterMetaValidators(t.val),
+                validateParams.filterParameterOptions(t.val),
                 t.val,
                 t.desc + ' passed un-altered'
             );
@@ -514,29 +514,45 @@ QUnit.module('validateParams.filterMetaValidators() function', {}, function(){
     });
     
     QUnit.test('object keys correctly filtered', function(a){
-        a.expect(3);
+        a.expect(6);
         
-        // create a constraint with a mix of validators and meta-validators
-        var testConstraint = {
+        // create constraints with a mix of validators and per-parameter options
+        var testConstraint1 = {
             presence: true,
             url: {
                 schemes: ['http', 'https'],
                 allowLocal: true
             },
-            meta_coerce: function(v){
+            vpopt_coerce: function(v){
                 return typeof v === 'string' && !v.match(/\/$/) ? v + '/' : v;
             }
         };
+        var testConstraint2 = {
+            presence: true,
+            url: {
+                schemes: ['http', 'https'],
+                allowLocal: true
+            },
+            paramOptions: {
+                coerce: function(v){
+                    return typeof v === 'string' && !v.match(/\/$/) ? v + '/' : v;
+                }
+            }
+        };
         
-        // filter the test constraint
-        var filteredConstraint = validateParams.filterMetaValidators(testConstraint);
+        // filter the test constraints
+        var filteredConstraint1 = validateParams.filterParameterOptions(testConstraint1);
+        var filteredConstraint2 = validateParams.filterParameterOptions(testConstraint2);
         
         // make sure the validators were passed
-        a.strictEqual(filteredConstraint.presence, testConstraint.presence, 'presence constraint passed');
-        a.strictEqual(filteredConstraint.url, testConstraint.url, 'url constraint passed');
+        a.strictEqual(filteredConstraint1.presence, testConstraint1.presence, 'presence constraint passed through constraint 1');
+        a.strictEqual(filteredConstraint2.presence, testConstraint2.presence, 'presence constraint passed through constraint 2');
+        a.strictEqual(filteredConstraint1.url, testConstraint1.url, 'url constraint passed through constraint 1');
+        a.strictEqual(filteredConstraint2.url, testConstraint2.url, 'url constraint passed through constraint 2');
         
-        // make sure the meta-validator was stripped
-        a.strictEqual(typeof filteredConstraint.meta_coerce, 'undefined', 'meta_coerce meta-constraint filtered out');
+        // make sure the per-parameter option was stripped
+        a.strictEqual(typeof filteredConstraint1.vpopt_coerce, 'undefined', 'vpopt_coerce per-parameter option filtered out');
+        a.strictEqual(typeof filteredConstraint2.paramOptions, 'undefined', 'paramOptions filtered out');
     });
 });
 

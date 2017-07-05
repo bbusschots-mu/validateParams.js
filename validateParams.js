@@ -210,6 +210,55 @@ var validateParams = function(params, constraints, options){
 
 /**
  * The function that does the actual work.
+ *
+ * ##### Parameter-specific Options
+ *
+ * This module adds support for a number parameter-specific options that do not
+ * exist in validate.js. These options are specified within the constraint
+ * objects that make up the constraint list. These options will be stripped from
+ * the constraint before they are passed on to the
+ * [validate()]{@link external:validate} function.
+ *
+ * For convenience, Parameter-specific options can be specified in two ways.
+ *
+ * Options can be collected into a single plain object and included into a
+ * parameter constraint with the name `paramOptions`. This works well when you
+ * need to specify multiple options on a single parameter.
+ *
+ * The alternative to collecting the parameter-specific options into a single
+ * plain object is to add them directly into the constraint, but with their
+ * name prefixed with `vpopt_`.
+ *
+ * ##### Coercions (Parameter-specific option `coerce`)
+ *
+ * A coercion is a function which attempts to transform an invalid value into
+ * a valid one before validation is performed. Coercions alter the values stored
+ * in the parameter list.
+ *
+ * When coercing the `arguments` object, bear in mind that while the value in
+ * the `arguments` object will get updated, the value stored in corresponding
+ * named arguments will not change:
+ *
+ * ```
+ * function demoFn(x){
+ *     validateParams.assert(arguments, [{
+ *         presence: true,
+ *         numericality: {
+ *             onlyInteger: true,
+ *             greaterThanOrEqualTo: 0,
+ *             lessThanOrEqualTo: 10
+ *         }
+ *         vpopt_coerce: function(n){
+ *             if(n < 0) return 0;
+ *             if(n > 10) return 10;
+ *             return n;
+ *         }
+ *     }]);
+ *     return (x, arguments[0]);
+ * }
+ *
+ * demoFn(40); // returns [40, 10] because arguments[0] was coerced, but not x
+ * ```
  * 
  * @returns {validateParams.Result}
  * @since version 1.1.1
@@ -249,7 +298,7 @@ validateParams.apply = function(params, constraints, options){
     for(i = 0; i < constraints.length; i++){
         var paramName = 'param' + (i + 1);
         valdiateAttributes[paramName] = params[i];
-        validateConstraints[paramName] = validate.isObject(constraints[i]) ? validateParams.filterMetaValidators(constraints[i]) : {};
+        validateConstraints[paramName] = validate.isObject(constraints[i]) ? validateParams.filterParameterOptions(constraints[i]) : {};
     }
     
     // do the validation
@@ -282,6 +331,57 @@ validateParams.apply = function(params, constraints, options){
  * to return anything. However, purely for convenience, the reference is also
  * returned.
  *
+ * Coercions are implemented as a parameter-specific option named `coerce`.
+ * There is more information on on parameter-specific options available in the
+ * description of the
+ * [validateParams.apply()]{@link module:validateParams.apply} function.
+ *
+ * A coercion is simply a callback which will be called with the value to be
+ * coerced as the first and only argument, and which should return the coerced
+ * value. Values that do not need to be altered by a coercion should still be
+ * returned, otherwise the value will be coerced to `undefined`!
+ *
+ * ```
+ * // A function which uses two constraints, one in each of the possible two
+ * // formats for specifying parameter-specific options
+ * function demoFn(){
+ *     validateParams.assert(arguments, [
+ *         { // constraint for 1st parameter
+ *             presence: true,
+ *             // coerce truthy values to true, rest to false
+ *             vpopt_coerce: function(v){
+ *                 return v ? true : false; 
+ *             }
+ *         },
+ *         { // constraint for 2nd parameter
+ *             presence: true,
+ *             numericality: {
+ *                 onlyInteger: true,
+ *                 greaterThanOrEqualTo: 0,
+ *                 lessThanOrEqualTo: 10
+ *             },
+ *             paramOptions: {
+ *                 // coerce numbers into the valid range
+ *                 coerce: function(n){
+ *                     if(typeof n === 'number'){
+ *                         if(n < 0) return 0;
+ *                         if(n > 10) return 10;
+ *                     }
+ *                     return n;
+ *                 }
+ *             }
+ *         }
+ *     ]);
+ *     return [arguments[0], arguments[1]];
+ * }
+ *
+ * // call the function
+ * demoFn(); // throws error (second argument not altered from undefined)
+ * demoFn('', 42); // returns [false, 10] (both values coerced)
+ * demoFn(false, 4); // returns [false, 4] (neither value changed)
+ * demoFn('', 'boo!'); // throws error (coercion left 2nd param invalid)
+ * ```
+ *
  * @param {Array} params - the list of parameters to be coerced.
  * @param {Array} constraints - the list of constraints which could contain
  * coercions to be applied.
@@ -304,9 +404,23 @@ validateParams.coerce = function(params, constraints, options){
     
     // apply any defined coercions
     for(var i = 0; i < constraints.length; i++){
-        if(validate.isObject(constraints[i]) && validate.isFunction(constraints[i].meta_coerce)){
-            // apply the coercion
-            params[i] = constraints[i].meta_coerce(params[i]);
+        // try find a coercion to apply
+        var coerceFn = false;
+        if(validate.isObject(constraints[i])){
+            // look for vpopt_coerce
+            if(validate.isFunction(constraints[i].vpopt_coerce)){
+                coerceFn = constraints[i].vpopt_coerce;
+            }
+            
+            // look for a coercion inside paramOptions
+            if(validate.isObject(constraints[i].paramOptions) && validate.isFunction(constraints[i].paramOptions.coerce)){
+                coerceFn = constraints[i].paramOptions.coerce;
+            }
+        }
+        
+        // if a coercion was found, apply it
+        if(coerceFn){
+            params[i] = coerceFn(params[i]);
         }
     }
     
@@ -583,31 +697,31 @@ validateParams.validateJS = validateParams.getValidateInstance;
 
 /**
  * A function to create a copy of a constraint object which omits any
- * meta-validators present in the original. In other words, all keys in the
- * original are coppied to the new returned object, except those who's names
- * start with `meta_`.
+ * parameter-specific options present in the original. In other words, all keys
+ * in the original are coppied to the new returned object, except the one named
+ * `paramOptions` and any who who's names start with `vpopt_`.
  *
  * This function does not throw errors, if it receives invalid input, it simply
  * returns it un-altered, but it will log a warning if it does so.
  *
- * @alias module:validateParams.filterMetaValidators
+ * @alias module:validateParams.filterParameterOptions
  * @param {ValidateParamsConstraints} constraintObject - the constraint object to be coppied and
  * filtered.
  * @returns {ValidateConstraints} - a new object containing every key-value pair in the
  * original, except those who's name begins with `meta_`.
- * @since version 0.2.1
+ * @since version 1.1.1
  */
-validateParams.filterMetaValidators = function(constraintObject){
+validateParams.filterParameterOptions = function(constraintObject){
     // return invalid data immediately
     if(typeof constraintObject !== 'object'){
-        validateParams._warn('meta contraint filter passing invalid arguments un-changed');
+        validateParams._warn('per-parameter options filter returning invalid constraint data un-changed');
         return constraintObject;
     }
     
     // itterate over all the keys and geneate a new object
     var filteredConstraint = {};
     Object.keys(constraintObject).forEach(function(k){
-        if(!k.match(/^meta[_]/)){
+        if(!(k === 'paramOptions' || k.match(/^vpopt[_]/))){
             filteredConstraint[k] = constraintObject[k];
         }
     });
