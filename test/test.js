@@ -308,9 +308,9 @@ QUnit.module('validateParams.getValidateInstance() function', {}, function(){
     });
 });
 
-QUnit.module('validateParams.validate() function', {}, function(){
+QUnit.module('validateParams.validateJS() function', {}, function(){
     QUnit.test('is an alias to validateParams.getValidateInstance()', function(a){
-        a.strictEqual(validateParams.validate, validateParams.getValidateInstance);
+        a.strictEqual(validateParams.validateJS, validateParams.getValidateInstance);
     });
 });
 

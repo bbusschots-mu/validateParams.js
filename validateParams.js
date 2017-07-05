@@ -384,11 +384,11 @@ validateParams.getValidateInstance = function(){
  * An alias for
  * [validateParams.getValidateInstance()]{@link module:validateParams.getValidateInstance}.
  *
- * @alias module:validateParams.validate
+ * @alias module:validateParams.validateJS
  * @see module:validateParams.getValidateInstance
- * @since version 0.2.1
+ * @since version 1.1.1
  */
-validateParams.validate = validateParams.getValidateInstance;
+validateParams.validateJS = validateParams.getValidateInstance;
 
 /**
  * A function to create a copy of a constraint object which omits any
