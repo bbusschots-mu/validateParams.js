@@ -32,6 +32,14 @@ QUnit.testStart(function() {
             desc: 'undefined',
             val: undefined
         },
+        'null': {
+            desc: 'undefined',
+            val: null
+        },
+        nan: {
+            desc: 'NaN (not a number)',
+            val: NaN
+        },
         bool: {
             desc: 'a boolean',
             val: true
@@ -156,7 +164,7 @@ QUnit.module('validateParams.apply() function',
             a.ok((function(){ validateParams.apply([], [], {}); return true; })(), 'third argument is allowed');
         });
         
-        QUnit.test('params validation', function(a){
+        QUnit.test('parameter list validation', function(a){
             var mustThrow = dummyBasicTypesExcept('arr');
             a.expect(mustThrow.length + 2);
             
@@ -165,15 +173,49 @@ QUnit.module('validateParams.apply() function',
                 a.throws(
                     function(){ validateParams.apply(DUMMY_BASIC_TYPES[tn].val, []); },
                     Error,
-                    'params not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
+                    'parameter list not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
                 );
             });
             
             // make sure an array does not throw
-            a.ok((function(){ validateParams.apply([], []); return true; })(), 'params can be an array');
+            a.ok((function(){ validateParams.apply([], []); return true; })(), 'parameter list can be an array');
             
             // make sure an Arguments object does not throw
-            a.ok((function(){ validateParams.apply(arguments, []); return true; })(), 'params can be an Arguments object');
+            a.ok((function(){ validateParams.apply(arguments, []); return true; })(), 'parameter list can be an Arguments object');
+        });
+        
+        QUnit.test('constraint list validation', function(a){
+            var mustThrow = dummyBasicTypesExcept('arr');
+            a.expect(mustThrow.length + 1);
+            
+            // make sure all the basic types excep array do indeed throw
+            mustThrow.forEach(function(tn){
+                a.throws(
+                    function(){ validateParams.apply([], DUMMY_BASIC_TYPES[tn].val); },
+                    Error,
+                    'constraint list not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
+                );
+            });
+            
+            // make sure an array does not throw
+            a.ok((function(){ validateParams.apply([], []); return true; })(), 'constraint list can be an array');
+        });
+        
+        QUnit.test('options validation', function(a){
+            var mustThrow = dummyBasicTypesExcept('obj', 'undef');
+            a.expect(mustThrow.length + 1);
+            
+            // make sure all the basic types excep array do indeed throw
+            mustThrow.forEach(function(tn){
+                a.throws(
+                    function(){ validateParams.apply([], [], DUMMY_BASIC_TYPES[tn].val); },
+                    Error,
+                    'options not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
+                );
+            });
+            
+            // make sure an object does not throw
+            a.ok((function(){ validateParams.apply([], [], {}); return true; })(), 'options can be an object');
         });
         
         QUnit.test('basic validation', function(a){
@@ -249,6 +291,83 @@ QUnit.module('validateParams.apply() function',
         });
     }
 );
+
+QUnit.module('validateParams.coerce() function', {}, function(){
+    QUnit.test('function exists', function(a){
+        a.equal(typeof validateParams.coerce, 'function');
+    });
+    
+    QUnit.test('parameter number validation', function(a){
+        a.expect(4);
+        a.throws(
+            function(){ validateParams.coerce(); },
+            Error,
+            'first argument required'
+        );
+        a.throws(
+            function(){ validateParams.coerce([]); },
+            Error,
+            'second argument required'
+        );
+        a.ok((function(){ validateParams.coerce([], []); return true; })(), 'third argument is not required');
+        a.ok((function(){ validateParams.coerce([], [], {}); return true; })(), 'third argument is allowed');
+    });
+    
+    QUnit.test('params validation', function(a){
+        var mustThrow = dummyBasicTypesExcept('arr');
+        a.expect(mustThrow.length + 2);
+            
+        // make sure all the basic types excep array do indeed throw
+        mustThrow.forEach(function(tn){
+            a.throws(
+                function(){ validateParams.coerce(DUMMY_BASIC_TYPES[tn].val, []); },
+                Error,
+                'params not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
+            );
+        });
+            
+        // make sure an array does not throw
+        a.ok((function(){ validateParams.coerce([], []); return true; })(), 'params can be an array');
+            
+        // make sure an Arguments object does not throw
+        a.ok((function(){ validateParams.coerce(arguments, []); return true; })(), 'params can be an Arguments object');
+    });
+    
+    QUnit.test('coercion on arguments object', function(a){
+        // create a function that applies a coercion
+        var testFn = function(v){
+            validateParams.coerce(arguments, [
+                {
+                    meta_coerce: function(){
+                        return 4;
+                    }
+                }
+            ]);
+            return v;
+        };
+        
+        // check the coercion is applied
+        a.equal(testFn(5), 4);
+    });
+    
+    QUnit.test('coercion on Array', function(a){
+        var a1 = [5];
+        validateParams.coerce(a1, [
+            {
+                meta_coerce: function(){
+                    return 4;
+                }
+            }
+        ]);
+        a.equal(a1[0], 4);
+    });
+    
+    QUnit.test('returns reference to parameter list', function(a){
+        var params = [1, 2];
+        var out = validateParams.coerce(params, []);
+        a.strictEqual(out, params);
+    });
+});
 
 QUnit.module('validateParams.assert() function', {}, function(){
     QUnit.test('function exists', function(a){
@@ -385,6 +504,42 @@ QUnit.module('validateParams.isArguments() function', {}, function(){
     });
 });
 
+QUnit.module('validateParams.isPlainObject() function', {}, function(){
+    QUnit.test('function exists', function(a){
+        a.equal(typeof validateParams.isPlainObject, 'function');
+    });
+    
+    QUnit.test('function correctly detects plain objects', function(a){
+        var mustReject = dummyBasicTypesExcept('obj');
+        mustReject.push('null'); // null should also return false
+        mustReject.push('nan'); // NaN should also return false
+        mustReject.push('obj_proto'); // prototyped objects should also return false
+        a.expect(mustReject.length + 2);
+        
+        // make sure all the dummy data that should return false do return false
+        mustReject.forEach(function(tn){
+            var t = DUMMY_DATA[tn];
+            a.equal(
+                validateParams.isPlainObject(t.val),
+                false,
+                t.desc + ' is not a plain object'
+            );
+        });
+        
+        // make sure plain objects pass
+        a.equal(
+            validateParams.isPlainObject({}),
+            true,
+            'an empty object literal recognised as a plain object'
+        );
+        a.equal(
+            validateParams.isPlainObject({a: 'b'}),
+            true,
+            'an object literal recognised as a plain object'
+        );
+    });
+});
+
 QUnit.module('validateParams.asOrdinal() function', {}, function(){
     QUnit.test('function exists', function(a){
         a.equal(typeof validateParams.asOrdinal, 'function');
@@ -430,37 +585,6 @@ QUnit.module('validateParams.asOrdinal() function', {}, function(){
         a.equal(validateParams.asOrdinal(122), '122nd');
         a.equal(validateParams.asOrdinal(123), '123rd');
         a.equal(validateParams.asOrdinal(124), '124th');
-    });
-});
-
-QUnit.module('coercion', {}, function(){
-    QUnit.test('coercion on arguments object', function(a){
-        // create a function that applies a coercion
-        var testFn = function(v){
-            validateParams.assert(arguments, [
-                {
-                    meta_coerce: function(){
-                        return 4;
-                    }
-                }
-            ]);
-            return v;
-        };
-        
-        // check the coercion is applied
-        a.equal(testFn(5), 4);
-    });
-    
-    QUnit.test('coercion on Array', function(a){
-        var a1 = [5];
-        validateParams.assert(a1, [
-            {
-                meta_coerce: function(){
-                    return 4;
-                }
-            }
-        ]);
-        a.equal(a1[0], 4);
     });
 });
 

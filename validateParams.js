@@ -222,7 +222,7 @@ validateParams.apply = function(params, constraints, options){
     if(!validate.isArray(constraints)){
         throw new Error('second parameter must be an array of constraints to test against');
     }
-    if(typeof options !== 'undefined' && !(validate.isObject(options) && !validate.isArray(options))){
+    if(typeof options !== 'undefined' && !validateParams.isPlainObject(options)){
         throw new Error('if present, the third parameter must be a plain object');
     }
     
@@ -238,12 +238,7 @@ validateParams.apply = function(params, constraints, options){
     }
     
     // apply any defined coercions
-    for(i = 0; i < constraints.length; i++){
-        if(validate.isObject(constraints[i]) && validate.isFunction(constraints[i].meta_coerce)){
-            // apply the coercion
-            params[i] = constraints[i].meta_coerce(params[i]);
-        }
-    }
+    validateParams.coerce(params, constraints, options);
     
     // build the values and constraints objects
     var valdiateAttributes = {};
@@ -264,6 +259,49 @@ validateParams.apply = function(params, constraints, options){
     
     // return the errors
     return errors;
+};
+
+/**
+ * A function which applies coercions, but does not do any validation.
+ *
+ * The values in the passed parameter list will be updated according to any
+ * coercions defined in the constraint list.
+ *
+ * Since the parameter list is an array-like object, it is passed by reference,
+ * so the changes will be made directly within the list, and there is no need
+ * to return anything. However, purely for convenience, the reference is also
+ * returned.
+ *
+ * @param {Array} params - the list of parameters to be coerced.
+ * @param {Array} constraints - the list of constraints which could contain
+ * coercions to be applied.
+ * @param {Object} [options] - A plain object with options (not currently used).
+ * @returns {Array} A reference to the parameter list.
+ * @since version 1.1.1
+ */
+validateParams.coerce = function(params, constraints, options){
+    // validate parameters
+    if(!(params && (validate.isArray(params) || validateParams.isArguments(params)))){
+        throw new Error('first parameter must be an array of parameters to test, or an Arguments object');
+    }
+    if(!validate.isArray(constraints)){
+        throw new Error('second parameter must be an array of constraints to test against');
+    }
+    if(typeof options !== 'undefined' && !(validate.isObject(options) && !validate.isArray(options))){
+        throw new Error('if present, the third parameter must be a plain object');
+    }
+    if(typeof options === 'undefined') options = {}; // make sure there's always an options object
+    
+    // apply any defined coercions
+    for(var i = 0; i < constraints.length; i++){
+        if(validate.isObject(constraints[i]) && validate.isFunction(constraints[i].meta_coerce)){
+            // apply the coercion
+            params[i] = constraints[i].meta_coerce(params[i]);
+        }
+    }
+    
+    // return the parameter list
+    return params;
 };
 
 /**
@@ -439,10 +477,9 @@ validateParams.filterMetaValidators = function(constraintObject){
  * [this answer on Stack Overflow]{@link https://stackoverflow.com/a/29924715/174985}.
  *
  * @alias module:validateParams.isArguments
- * @param item - the item to test.
- * @returns {boolean} - true if the item is an Arguments object, false
+ * @param {*} item - the item to test.
+ * @returns {boolean} `true` if the item is an Arguments object, `false`
  * otherwise.
- *
  * @example
  * validateParams.isArguments(['stuff', 'thingys']); // false
  * function x(){
@@ -451,6 +488,39 @@ validateParams.filterMetaValidators = function(constraintObject){
  */
 validateParams.isArguments = function(item){
     return Object.prototype.toString.call( item ) === '[object Arguments]';
+};
+
+/**
+ * A function to test if a given item is a plain object.
+ *
+ * The criteria is that a plain object has a `typeof` of `object`, is not `null`
+ * and has `Object` at the top of its inheritance tree.
+ *
+ * @alias module:validateParams.isPlainObject
+ * @param {*} item - the item to test.
+ * @returns {boolean} `true` if the item is an plain object, `false`
+ * otherwise.
+ * @since version 1.1.1
+ * @example
+ * validateParams.isPlainObject(undefined); // false
+ * validateParams.isPlainObject(null); // false
+ * validateParams.isPlainObject(4); // false
+ * validateParams.isPlainObject(NaN); // false
+ * validateParams.isPlainObject([1, 2]); //false
+ * validateParams.isPlainObject(function(){return true;}); // false
+ * validateParams.isPlainObject(new Date()); // false
+ * validateParams.isPlainObject({}); // true
+ * validateParams.isPlainObject({a: 'b'}); // true
+ */
+validateParams.isPlainObject = function(item){
+    // if it's not an object, immediately reject
+    if(typeof item !== 'object') return false;
+    
+    // if the item is null, immediately reject
+    if(item === null) return false;
+    
+    // otherwise, return based on whether Object is at the top of the inheritance tree
+    return Object.prototype.toString.call( item ) === '[object Object]';
 };
 
 /**
@@ -479,7 +549,8 @@ validateParams._typeofStringsLookup = {
  *
  * @alias module:validateParams.isTypeofString
  * @param {*} v - the value to test
- * @returns {boolean}
+ * @returns {boolean} `true` if the item is a string returned by `typeof`,
+ * `false` otherwise.
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof}
  * @since version 0.1.1
  * @example
