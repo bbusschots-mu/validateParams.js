@@ -183,12 +183,12 @@ QUnit.module('validateParams.validate() function',
             a.expect(4);
             a.throws(
                 function(){ validateParams.validate(); },
-                Error,
+                TypeError,
                 'first argument required'
             );
             a.throws(
                 function(){ validateParams.validate([]); },
-                Error,
+                TypeError,
                 'second argument required'
             );
             a.ok((function(){ validateParams.validate([], []); return true; })(), 'third argument is not required');
@@ -203,7 +203,7 @@ QUnit.module('validateParams.validate() function',
             mustThrow.forEach(function(tn){
                 a.throws(
                     function(){ validateParams.validate(DUMMY_BASIC_TYPES[tn].val, []); },
-                    Error,
+                    TypeError,
                     'parameter list not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
                 );
             });
@@ -223,7 +223,7 @@ QUnit.module('validateParams.validate() function',
             mustThrow.forEach(function(tn){
                 a.throws(
                     function(){ validateParams.validate([], DUMMY_BASIC_TYPES[tn].val); },
-                    Error,
+                    TypeError,
                     'constraint list not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
                 );
             });
@@ -240,7 +240,7 @@ QUnit.module('validateParams.validate() function',
             mustThrow.forEach(function(tn){
                 a.throws(
                     function(){ validateParams.validate([], [], DUMMY_BASIC_TYPES[tn].val); },
-                    Error,
+                    TypeError,
                     'options not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
                 );
             });
@@ -285,7 +285,7 @@ QUnit.module('validateParams.validate() function',
             a.ok((function(){ fn('stuff', 2, 4); return true; })(), 'no error when all required params are present and valid, and an optional param is present and valid');
         });
         
-        QUnit.test('fatal mode', function(a){
+        QUnit.test('option: fatal', function(a){
             a.expect(5);
             
             // create a dummy function that validates params with options.fatal=true
@@ -319,6 +319,31 @@ QUnit.module('validateParams.validate() function',
             a.ok(errorObj instanceof validateParams.ValidationError, 'thrown error has expected prototype');
             a.ok(validate.isArray(errorObj.validationErrors), 'thrown error contains an array of validation errors');
             a.equal(errorObj.validationErrors.length, 2, 'thrown error contains the expected number of validation errors');
+        });
+        
+        QUnit.test('option: coerce', function(a){
+            a.expect(3);
+            
+            // define a constranint that contains a coercion
+            var coercingConstraint = {
+                presence: true,
+                vpopt_coerce: function(){ return 42; }
+            };
+            
+            // make sure the coercion is applied by default
+            var params1 = [1];
+            validateParams.validate(params1, [coercingConstraint]);
+            a.equal(params1[0], 42, 'coercion applied by default');
+            
+            // make sure the coercion is applied when options.coerce is explicitly set to true
+            var params2 = [2];
+            validateParams.validate(params2, [coercingConstraint], {coerce: true});
+            a.equal(params2[0], 42, 'coercion applied with options.coerce=true');
+            
+            // make sure the coercion is not applied when options.coerce is explicitly set to false
+            var params3 = [3];
+            validateParams.validate(params3, [coercingConstraint], {coerce: false});
+            a.equal(params3[0], 3, 'coercion not applied with options.coerce=false');
         });
     }
 );
@@ -397,6 +422,20 @@ QUnit.module('validateParams.coerce() function', {}, function(){
         var params = [1, 2];
         var out = validateParams.coerce(params, []);
         a.strictEqual(out, params);
+    });
+    
+    QUnit.test('options.coerce:false ignored', function(a){
+        var a1 = [5];
+        validateParams.coerce(
+            a1,
+            [{
+                vpopt_coerce: function(){
+                    return 4;
+                }
+            }],
+            {coerce: false}
+        );
+        a.equal(a1[0], 4);
     });
 });
 
@@ -495,9 +534,9 @@ QUnit.module('validateParams.validateJS() function', {}, function(){
     });
 });
 
-QUnit.module('validateParams.filterParameterOptions() function', {}, function(){
+QUnit.module('validateParams.paramConstraintsAsAttrConstraints() function', {}, function(){
     QUnit.test('function exists', function(a){
-        a.equal(typeof validateParams.filterParameterOptions, 'function');
+        a.equal(typeof validateParams.paramConstraintsAsAttrConstraints, 'function');
     });
     
     QUnit.test('invalid data passed through', function(a){
@@ -506,7 +545,7 @@ QUnit.module('validateParams.filterParameterOptions() function', {}, function(){
         mustPassUnaltered.forEach(function(tn){
             var t = DUMMY_BASIC_TYPES[tn];
             a.strictEqual(
-                validateParams.filterParameterOptions(t.val),
+                validateParams.paramConstraintsAsAttrConstraints(t.val),
                 t.val,
                 t.desc + ' passed un-altered'
             );
@@ -541,8 +580,8 @@ QUnit.module('validateParams.filterParameterOptions() function', {}, function(){
         };
         
         // filter the test constraints
-        var filteredConstraint1 = validateParams.filterParameterOptions(testConstraint1);
-        var filteredConstraint2 = validateParams.filterParameterOptions(testConstraint2);
+        var filteredConstraint1 = validateParams.paramConstraintsAsAttrConstraints(testConstraint1);
+        var filteredConstraint2 = validateParams.paramConstraintsAsAttrConstraints(testConstraint2);
         
         // make sure the validators were passed
         a.strictEqual(filteredConstraint1.presence, testConstraint1.presence, 'presence constraint passed through constraint 1');
