@@ -152,11 +152,11 @@ QUnit.module('project management', {}, function(){
     });
 });
 
-QUnit.module('validateParams.apply() function',
+QUnit.module('validateParams.validate() function',
     {
         beforeEach: function(){
             this.dummyFn = function(){
-                var result = validateParams.apply(arguments, [
+                var result = validateParams.validate(arguments, [
                     {
                         presence: true,
                     },
@@ -176,23 +176,23 @@ QUnit.module('validateParams.apply() function',
     },
     function(){
         QUnit.test('function exists', function(a){
-            a.equal(typeof validateParams.apply, 'function');
+            a.equal(typeof validateParams.validate, 'function');
         });
         
         QUnit.test('parameter number validation', function(a){
             a.expect(4);
             a.throws(
-                function(){ validateParams.apply(); },
+                function(){ validateParams.validate(); },
                 Error,
                 'first argument required'
             );
             a.throws(
-                function(){ validateParams.apply([]); },
+                function(){ validateParams.validate([]); },
                 Error,
                 'second argument required'
             );
-            a.ok((function(){ validateParams.apply([], []); return true; })(), 'third argument is not required');
-            a.ok((function(){ validateParams.apply([], [], {}); return true; })(), 'third argument is allowed');
+            a.ok((function(){ validateParams.validate([], []); return true; })(), 'third argument is not required');
+            a.ok((function(){ validateParams.validate([], [], {}); return true; })(), 'third argument is allowed');
         });
         
         QUnit.test('parameter list validation', function(a){
@@ -202,17 +202,17 @@ QUnit.module('validateParams.apply() function',
             // make sure all the basic types excep array do indeed throw
             mustThrow.forEach(function(tn){
                 a.throws(
-                    function(){ validateParams.apply(DUMMY_BASIC_TYPES[tn].val, []); },
+                    function(){ validateParams.validate(DUMMY_BASIC_TYPES[tn].val, []); },
                     Error,
                     'parameter list not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
                 );
             });
             
             // make sure an array does not throw
-            a.ok((function(){ validateParams.apply([], []); return true; })(), 'parameter list can be an array');
+            a.ok((function(){ validateParams.validate([], []); return true; })(), 'parameter list can be an array');
             
             // make sure an Arguments object does not throw
-            a.ok((function(){ validateParams.apply(arguments, []); return true; })(), 'parameter list can be an Arguments object');
+            a.ok((function(){ validateParams.validate(arguments, []); return true; })(), 'parameter list can be an Arguments object');
         });
         
         QUnit.test('constraint list validation', function(a){
@@ -222,14 +222,14 @@ QUnit.module('validateParams.apply() function',
             // make sure all the basic types excep array do indeed throw
             mustThrow.forEach(function(tn){
                 a.throws(
-                    function(){ validateParams.apply([], DUMMY_BASIC_TYPES[tn].val); },
+                    function(){ validateParams.validate([], DUMMY_BASIC_TYPES[tn].val); },
                     Error,
                     'constraint list not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
                 );
             });
             
             // make sure an array does not throw
-            a.ok((function(){ validateParams.apply([], []); return true; })(), 'constraint list can be an array');
+            a.ok((function(){ validateParams.validate([], []); return true; })(), 'constraint list can be an array');
         });
         
         QUnit.test('options validation', function(a){
@@ -239,14 +239,14 @@ QUnit.module('validateParams.apply() function',
             // make sure all the basic types excep array do indeed throw
             mustThrow.forEach(function(tn){
                 a.throws(
-                    function(){ validateParams.apply([], [], DUMMY_BASIC_TYPES[tn].val); },
+                    function(){ validateParams.validate([], [], DUMMY_BASIC_TYPES[tn].val); },
                     Error,
                     'options not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
                 );
             });
             
             // make sure an object does not throw
-            a.ok((function(){ validateParams.apply([], [], {}); return true; })(), 'options can be an object');
+            a.ok((function(){ validateParams.validate([], [], {}); return true; })(), 'options can be an object');
         });
         
         QUnit.test('basic validation', function(a){
@@ -290,7 +290,7 @@ QUnit.module('validateParams.apply() function',
             
             // create a dummy function that validates params with options.fatal=true
             var fatalFn = function(){
-                validateParams.apply(arguments,
+                validateParams.validate(arguments,
                     [
                         {
                            presence: true,
@@ -469,7 +469,7 @@ QUnit.module('validateParams.Result prototype', {}, function(){
         var paramList = [42];
         var constraintsList = [{presence: true}, {presence: true}];
         var options = {format: 'flat'};
-        var r = validateParams.apply(paramList, constraintsList, options);
+        var r = validateParams.validate(paramList, constraintsList, options);
         a.strictEqual(r.parameterList(), paramList, '.parameterList() returns correct referece');
         a.strictEqual(r.constraintList(), constraintsList, '.constraintList() returns correct referece');
         a.strictEqual(r.options(), options, '.options() returns correct referece');
