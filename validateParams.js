@@ -141,7 +141,7 @@
  * function coerceIntoRange(val){
  *     // if the value is a number or a number as a string, we might need to
  *     // coerce it
- *     if(validateParams.isNumberLike(val)){
+ *     if(validateParams.isNumeric(val)){
  *         if(val < 0) return 0;
  *         if(val > 10) return 10;
  *     }
@@ -1028,6 +1028,7 @@ validateParams.paramConstraintsAsAttrConstraints = function(constraintObject){
  * @param {*} item - the item to test.
  * @returns {boolean} `true` if the item is an Arguments object, `false`
  * otherwise.
+ * @see https://stackoverflow.com/a/29924715/174985
  * @example
  * validateParams.isArguments(['stuff', 'thingys']); // false
  * function x(){
@@ -1036,6 +1037,35 @@ validateParams.paramConstraintsAsAttrConstraints = function(constraintObject){
  */
 validateParams.isArguments = function(item){
     return Object.prototype.toString.call( item ) === '[object Arguments]';
+};
+
+/**
+ * A function to test if a give item is a numeric value, i.e. a number or a
+ * number as a string. Note that `NaN` is not considered numeric.
+ *
+ * @param {*} item - the item to test.
+ * @returns {boolean} `true` if the item is numeric, `false` otherwise
+ * @since version 1.1.1
+ * @example
+ * validateParams.isNumeric(undefined); // false
+ * validateParams.isNumeric(null); // false
+ * validateParams.isNumeric(NaN); // false
+ * validateParams.isNumeric({a: 'b'}); // false
+ * validateParams.isNumeric([1, '2']); // false
+ * validateParams.isNumeric(0); // true
+ * validateParams.isNumeric(-42); // true
+ * validateParams.isNumeric(3.1415); // true
+ * validateParams.isNumeric('-42'); // true
+ * validateParams.isNumeric('0'); // true
+ * validateParams.isNumeric('3.1415'); // true
+ */
+validateParams.isNumeric = function(item){
+    // short-circuit numbers, NaN & non-strings
+    if(typeof item === 'number' ) return isNaN(item) ? false : true;
+    if(typeof item !== 'string') return false;
+    
+    // test if the string is a string representation of a number
+    return String(Number(item)) === item;
 };
 
 /**

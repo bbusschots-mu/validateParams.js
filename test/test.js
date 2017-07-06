@@ -621,6 +621,37 @@ QUnit.module('validateParams.isArguments() function', {}, function(){
     });
 });
 
+QUnit.module('validateParams.isNumeric() function', {}, function(){
+    QUnit.test('function exists', function(a){
+        a.equal(typeof validateParams.isNumeric, 'function');
+    });
+    
+    QUnit.test('function correctly detects numeric values', function(a){
+        var mustReject = dummyBasicTypesExcept('num');
+        var mustPass = [-42, -3.1415, 0, 3.1415, 42];
+        mustReject.push('nan'); // NaN should also return false
+        mustReject.push('str_empty'); // the empty string should also return false
+        a.expect(mustReject.length + (mustPass.length * 2));
+        
+        // make sure the dumy data that should reject does
+        mustReject.forEach(function(tn){
+            var t = DUMMY_DATA[tn];
+            a.equal(
+                validateParams.isNumeric(t.val),
+                false,
+                t.desc + ' is not a plain object'
+            );
+        });
+        
+        // make sure numeric values pass as both numbers and strings
+        mustPass.forEach(function(n){
+            a.ok(validateParams.isNumeric(n), 'the number ' + n + ' is recognised as a number');
+            var sn = String(n);
+            a.ok(validateParams.isNumeric(sn), 'the string "' + sn + '" is recognised as a number');
+        });
+    });
+});
+
 QUnit.module('validateParams.isPlainObject() function', {}, function(){
     QUnit.test('function exists', function(a){
         a.equal(typeof validateParams.isPlainObject, 'function');
