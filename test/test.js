@@ -516,6 +516,79 @@ QUnit.module('validateParams.Result prototype', {}, function(){
         a.deepEqual(r.validateConstraints(), { param1: { presence: true }, param2: { presence: true } }, '.validateConstraints() returns expected data structure');
         a.deepEqual(r.errors(), [ "Param2 can't be blank" ], '.errors() returns expected value');
     });
+    
+    QUnit.test('.numErrors() method', function(a){
+        a.expect(5);
+        a.strictEqual(typeof validateParams.Result.prototype.numErrors, 'function', 'method exists');
+        
+        // create a constraints list to fail validations against
+        var cl = [
+            { defined: true },
+            {
+                presence: true,
+                numericality: {
+                    onlyInteger: true,
+                    lessThan: 100
+                },
+            }
+        ];
+        
+        // test without specifying an explicit format
+        var r = validateParams.validate([undefined, 612.4], cl);
+        a.equal(r.numErrors(), 2, 'unspecified format returns the correct count');
+        
+        // test format = flat
+        r = validateParams.validate([undefined, 612.4], cl, {format: 'flat'});
+        a.equal(r.numErrors(), 2, "format: 'flat' returns the correct count");
+        
+        // test format = grouped
+        r = validateParams.validate([undefined, 612.4], cl, {format: 'grouped'});
+        a.equal(r.numErrors(), 2, "format: 'grouped' returns the correct count");
+        
+        // test format = detailed
+        r = validateParams.validate([undefined, 612.4], cl, {format: 'detailed'});
+        a.equal(r.numErrors(), 2, "format: 'detailed' returns the correct count");
+    });
+    
+    QUnit.test('.pass() method', function(a){
+        a.expect(3);
+        a.strictEqual(typeof validateParams.Result.prototype.pass, 'function', 'method exists');
+        var cl = [{defined: true}];
+        var r = validateParams.validate([true], cl);
+        a.strictEqual(r.pass(), true, 'returns true on a successful validation');
+        r = validateParams.validate([], cl);
+        a.strictEqual(r.pass(), false, 'returns false on a failed validation');
+    });
+    
+    QUnit.test('.passed() is an alias for .pass()', function(a){
+        a.strictEqual(validateParams.Result.prototype.passed, validateParams.Result.prototype.pass);
+    });
+    
+    QUnit.test('.fail() method', function(a){
+        a.expect(3);
+        a.strictEqual(typeof validateParams.Result.prototype.fail, 'function', 'method exists');
+        var cl = [{defined: true}];
+        var r = validateParams.validate([], cl);
+        a.strictEqual(r.fail(), true, 'returns true on a failed validation');
+        r = validateParams.validate([true], cl);
+        a.strictEqual(r.fail(), false, 'returns false on a successful validation');
+    });
+    
+    QUnit.test('.failed() is an alias for .fail()', function(a){
+        a.strictEqual(validateParams.Result.prototype.failed, validateParams.Result.prototype.fail);
+    });
+    
+    QUnit.test('.asString() returns expected values', function(a){
+        a.expect(4);
+        a.strictEqual(typeof validateParams.Result.prototype.asString, 'function', 'method exists');
+        var cl = [{defined: true}, {defined: true}];
+        var r = validateParams.validate([true, true], cl);
+        a.strictEqual(r.asString(), 'passed', 'expected result on pass');
+        r = validateParams.validate([true], cl);
+        a.strictEqual(r.asString(), 'failed with 1 error', 'expected result on single error');
+        r = validateParams.validate([], cl);
+        a.strictEqual(r.asString(), 'failed with 2 errors', 'expected result on multiple errors');
+    });
 });
 
 QUnit.module('validateParams.getValidateInstance() function', {}, function(){

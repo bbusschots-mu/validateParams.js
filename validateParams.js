@@ -136,7 +136,7 @@
  * @callback CoercionCallback
  * @param {*} val - the value to be coerced.
  * @returns {*} The coerced value.
- * @see module:valdiateParams.validate
+ * @see module:validateParams.validate
  * @example
  * function coerceIntoRange(val){
  *     // if the value is a number or a number as a string, we might need to
@@ -942,6 +942,106 @@ validateParams.Result.prototype.validateConstraints = function(){
  */
 validateParams.Result.prototype.errors = function(){
     return this._errors;
+};
+
+/**
+ * Return the number of errors contained in the result.
+ *
+ * Note that if a custom error formatter was used, an educated guess will need
+ * to be made. If this happens, a warning will be written to the console. The
+ * algorithm for making an educated geuess is to return the length if the error
+ * value is an array, the number of keys if it's a plain object, or 1.
+ *
+ * @alias module:validateParams.Result#numErrors
+ * @returns {number}
+ * @since version 1.1.1
+ */
+validateParams.Result.prototype.numErrors = function(){
+    // if errors are undefined, there were none, so return 0
+    if(typeof this._errors === 'undefined') return 0;
+    
+    // if errors is empty (in the validate.js sense), assume there were no errors and return 0
+    if(validate.isEmpty(this._errors)) return 0;
+    
+    // otherwise, count the errors based on the error format
+    var efmt = 'grouped';
+    if(validate.isString(this._options.format)){
+        efmt = this._options.format;
+    }
+    if((efmt == 'flat' || efmt == 'detailed') && validate.isArray(this._errors)){
+        return this._errors.length;
+    }
+    if(efmt == 'grouped' && validate.isObject(this._errors)){
+        var count = 0;
+        var that = this;
+        Object.keys(this._errors).forEach(function(ek){
+            count += validate.isArray(that._errors[ek]) ? that._errors[ek].length : 1;
+        });
+        return count;
+    }
+    
+    // if we got here there is a non-standard formatter, so warn that we have
+    // to make an educated guess, then make an educated guess
+    validateParams._warn('non-standard error formatter used, so returning an educated guess from .numErrors() on validateParams.Result object');
+    if(validate.isArray(this._errors)) return this._errors.length;
+    if(validateParams.isPlainObject(this._errors)) return Object.keys(this._errors).length;
+    return 1;
+};
+
+/**
+ * Determine whether the result represents a successful validation or not.
+ *
+ * @alias module:validateParams.Result#pass
+ * @returns {boolean}
+ * @since version 1.1.1
+ */
+validateParams.Result.prototype.pass = function(){
+    if(typeof this._errors === 'undefined') return true;
+    return this.numErrors() === 0;
+};
+
+/**
+ * An alias for [.pass()]{@link module:validateParams.Result#pass}.
+ *
+ * @alias module:validateParams.Result#passed
+ * @see module:validateParams.Result#pass
+ * @since version 1.1.1
+ */
+validateParams.Result.prototype.passed = validateParams.Result.prototype.pass;
+
+/**
+ * Determine whether the result represents a failed validation or not.
+ *
+ * @alias module:validateParams.Result#fail
+ * @returns {boolean}
+ * @since version 1.1.1
+ */
+validateParams.Result.prototype.fail = function(){
+    if(typeof this._errors === 'undefined') return false;
+    return this.numErrors() > 0;
+};
+
+/**
+ * An alias for [.fail()]{@link module:validateParams.Result#fail}.
+ *
+ * @alias module:validateParams.Result#failed
+ * @see module:validateParams.Result#fail
+ * @since version 1.1.1
+ */
+validateParams.Result.prototype.failed = validateParams.Result.prototype.fail;
+
+/**
+ * A function to return a very short summary of the result as a string, e.g.
+ * 'passed', or 'failed with 2 errors'.
+ *
+ * @alias module:validateParams.Result#asString
+ * @returns {string}
+ * @since version 1.1.1
+ */
+validateParams.Result.prototype.asString = function(){
+    if(this.pass()) return 'passed';
+    var numErr = this.numErrors();
+    return 'failed with ' + numErr + ' error' + (numErr > 1 ? 's' : '');
 };
 
 //
