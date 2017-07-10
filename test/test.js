@@ -1166,6 +1166,32 @@ QUnit.module('custom validators', {}, function(){
         });
     });
     
+    QUnit.module('dictionary', {}, function(){
+        QUnit.test('validator exists', function(a){
+            a.equal(typeof validateParams.validators.dictionary, 'function');
+        });
+        
+        QUnit.test("'plainObjectOnly' option", function(a){
+            a.expect(6);
+            
+            a.ok(validateParams.validate([{a: 'b'}], [{dictionary: {plainObjectOnly: false}}]).pass(), 'plain object accepted with plainObjectOnly=false');
+            a.ok(validateParams.validate([arguments], [{dictionary: {plainObjectOnly: false}}]).pass(), 'arguments object accepted with plainObjectOnly=false');
+            a.ok(validateParams.validate([new Date()], [{dictionary: {plainObjectOnly: false}}]).pass(), 'instance of Date accepted with plainObjectOnly=false');
+            a.ok(validateParams.validate([{a: 'b'}], [{dictionary: {plainObjectOnly: true}}]).pass(), 'plain object accepted with plainObjectOnly=true');
+            a.notOk(validateParams.validate([arguments], [{dictionary: {plainObjectOnly: true}}]).pass(), 'arguments object rejected with plainObjectOnly=true');
+            a.notOk(validateParams.validate([new Date()], [{dictionary: {plainObjectOnly: true}}]).pass(), 'instance of Date rejected with plainObjectOnly=true');
+        });
+        
+        QUnit.test("'rejectUnspecifiedKeys' option", function(a){
+            a.expect(4);
+            
+            a.ok(validateParams.validate([{a: 'b'}], [{dictionary: {rejectUnspecifiedKeys: false}}]).pass(), 'plain object accepted with rejectUnspecifiedKeys=false and no specified keys');
+            a.ok(validateParams.validate([{a: 'b'}], [{dictionary: {rejectUnspecifiedKeys: false, keyConstraints: {a: {defined: true}}}}]).pass(), "plain object with key 'a' accepted with rejectUnspecifiedKeys=false and specified key 'a'");
+            a.ok(validateParams.validate([{a: 'b'}], [{dictionary: {rejectUnspecifiedKeys: true, keyConstraints: {a: {defined: true}}}}]).pass(), "plain object with key 'a' accepted with rejectUnspecifiedKeys=true and specified key 'a'");
+            a.notOk(validateParams.validate([{a: 'b', c: 'd'}], [{dictionary: {rejectUnspecifiedKeys: true, keyConstraints: {a: {defined: true}}}}]).pass(), "plain object with keys 'a' & 'd' rejected with rejectUnspecifiedKeys=true and specified key 'a'");
+        });
+    });
+    
     QUnit.module('validator aliases', {}, function(){
         QUnit.test('hasTypeOf maps to hasTypeof', function(a){
             a.strictEqual(validateParams.validators.hasTypeOf, validateParams.validators.hasTypeof);

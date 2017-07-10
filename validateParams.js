@@ -512,6 +512,9 @@ validateParams.validate = function(params, constraints, options){
         var paramName = 'param' + (i + 1);
         valdiateAttributes[paramName] = params[i];
         validateConstraints[paramName] = validate.isObject(constraints[i]) ? validateParams.paramConstraintsAsAttrConstraints(constraints[i]) : {};
+        
+        // deal with any possible nesting
+        validateParams._processNestedValidations(valdiateAttributes[paramName], validateConstraints[paramName], paramName + '.');
     }
     
     // do the validation
@@ -531,6 +534,70 @@ validateParams.validate = function(params, constraints, options){
     results._validateConstraints = validateConstraints;
     results._errors = errors;
     return results;
+};
+
+/**
+ * A private helper function to recursively resolve nesting for the
+ * [validateParams.validate()]{@link module:validateParams.validate} function.
+ *
+ * @alias module:validateParams._processNestedValidations
+ * @private
+ * @param {string} validateKey - the key within `validateConstraints` to process
+ * nested constraints for.
+ * @param {Object.<string, AttributeContraints>} validateConstraints - a
+ * constraints object for use with the [validate()]{@link external:validate}
+ * function from validate.js.
+ * @param {Object} attributeValue - value of the attribute being processed.
+ * @see module:validateParams.validate
+ * @see external:validate
+ * @since version 1.1.1
+ */
+validateParams._processNestedValidations = function(validateKey, validateConstraints, attributeValue){
+    // if the constraint to be processed does not have an object value, return
+    if(!validate.isObject(validateConstraints[validateKey])) return;
+    
+    // try descend if the key defines a dictionary
+    if(validate.isObject(validateConstraints[validateKey].dictionary)){
+        // if the matching attribute is not also an object, return
+        if(!validate.isObject(attributeValue)) return;
+        
+        // gather the defined key constraints (universal and key-specific)
+        var uCons = false;
+        if(validate.isObject(validateConstraints[validateKey].dictionary.universalConstraints)){
+            uCons = validateConstraints[validateKey].dictionary.universalConstraints;
+        }
+        var kCons = {};
+        if(validate.isObject(validateConstraints[validateKey].dictionary.keyConstraints)){
+            kCons = validateConstraints[validateKey].dictionary.keyConstraints;
+        }
+        
+        // add nested constraints for each key in the attribute as appropriate
+        Object.keys(attributeValue).forEach(function(objKey){
+            // build the name for the nested data within the constraints data structure for validate()
+            var nestedKeyName = validateKey + '.' + objKey;
+            
+            // calculate the appropriate constraints
+            var nestedKeyConstraints = {};
+            if(validate.isObject(kCons[objKey])){
+                // there are key-specific constraints, so add them all
+                nestedKeyConstraints = kCons[objKey];
+            }
+            if(uCons){
+                uCons.forEach(function(vn){
+                    // only add non-clashing universal constraints
+                    if(!nestedKeyConstraints[vn]){
+                        nestedKeyConstraints[vn] = uCons[vn];
+                    }
+                });
+            }
+            
+            // if there were any nested constraints, add them and recurse down
+            if(Object.keys(nestedKeyConstraints).length){
+                validateConstraints[nestedKeyName] = nestedKeyConstraints;
+                validateParams._processNestedValidations(nestedKeyName, validateConstraints, attributeValue[objKey]);
+            }
+        });
+    }
 };
 
 /**
@@ -1716,6 +1783,107 @@ validateParams.validators = {
         }
         
         // return as appropriate
+        if(errors.length > 0){
+            return config.message ? config.message : errors;
+        }
+        return undefined;
+    },
+    
+    /**
+     * A validator for key-value pairs like object literals and arguments
+     * objects. For a value to pass this validator is must evaluate to true
+     * when passed to the [validate.isObject()]{@link external:isObject}
+     * function from validate.js.
+     *
+     * This validator supports the following options in addition to the standard
+     * `message` option:
+     * * `plainObjectOnly` - must evaluate to true when passed to the
+     *   [valdiateParams.isPlainObject()]{@link module:validateParams.isPlainObject}
+     *   function. Defaults to `false`.
+     * * `rejectUnspecifiedKeys` - whether or not reject objects which contain
+     *   keys not included in the `keyConstraints` option. Defaults to `false`.
+     * * `keyConstraints` - a plain object defining constraints for keys within
+     *   the object. Defaults to an empty object. This option cannot be set
+     *   on the validator's global `options` object, and will be ignored if this
+     *   validator is directly used by the [validate()]{@link external:validate}
+     *   function from validate.js
+     * * `universalConstraints` - a plain object defining constraints to be
+     *   applied to all keys. This option cannot be set on the validator's
+     *   global `options` object, and will be ignored if this validator is
+     *   directly used by the [validate()]{@link external:validate} function
+     *   from validate.js
+     *
+     * Note that if a validator appears in both `universalConstraints` and a
+     * constraint for a specific key in `keyConstraints`, the definition in
+     * `keyConstraints` takes preference. No attempt is made to merge or
+     * reconcile the validator options.
+     *   
+     * When used in a constraint, this validator supports the following values:
+     * * A plain object specifying options.
+     * * The value `true` - a shortcut for
+     *   `{ dictionary: { plainObjectOnly: true } }`
+     *
+     * @member
+     * @type {Validator}
+     * @see external:isObject
+     * @since version 1.1.1
+     */
+    dictionary: function(value, options){
+        // NOTE - the nesting is taken care of by validateParams.validate()
+        // only the plainObjectOnly & rejectUnspecifiedKeys options need to be
+        // tested here
+        
+        // implicitly pass undefined
+        if(typeof value === 'undefined') return undefined;
+        
+        // make sure the default options object exists
+        if(typeof this.options !== 'object') this.options = {};
+        
+        // build up a base config from the pre-defined defaults
+        var config = {};
+        config.plainObjectOnly = this.options.plainObjectOnly ? true : false;
+        config.rejectUnspecifiedKeys = this.options.rejectUnspecifiedKeys ? true : false;
+        config.message = validateParams._extractCustomValidatorMessage(this, options);
+        
+        // interpret the passed value
+        if(typeof options === 'boolean'){
+            config.plainObjectOnly = true;
+        }else if(validate.isObject(options)){
+            if(options.plainObjectOnly) config.plainObjectOnly = true;
+            if(options.rejectUnspecifiedKeys) config.rejectUnspecifiedKeys = true;
+            if(validate.isString(options.message)) config.message = options.message;
+        }else{
+            throw new Error('invalid options passed - must be true or a plain object');
+        }
+        
+        // implicitly reject non-objects
+        if(!validate.isObject(value)){
+            return config.message ? config.message : 'must be an object';
+        }
+        
+        var errors = [];
+        
+        // deal with plainObjectOnly option
+        if(config.plainObjectOnly && !validateParams.isPlainObject(value)){
+            errors.push('must be a plain object');
+        }
+        
+        // deal with rejectUnspecifiedKeys option
+        if(config.rejectUnspecifiedKeys){
+            var allowedKeysLookup = {};
+            if(validate.isObject(options.keyConstraints)){
+                Object.keys(options.keyConstraints).forEach(function(sk){
+                    allowedKeysLookup[sk] = true;
+                });
+            }else{
+                validateParams._warn('dictionary validator called with only specified keys allowed but with no keys specified in keyConstraints');
+            }
+            Object.keys(value).forEach(function(vk){
+                if(!allowedKeysLookup[vk]) errors.push("key '" + vk + "' is not permitted");
+            });
+        }
+        
+        // retrun as appropraite
         if(errors.length > 0){
             return config.message ? config.message : errors;
         }

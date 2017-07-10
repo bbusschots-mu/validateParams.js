@@ -276,6 +276,193 @@ all other values will accpet any value, including <code>undefined</code>.</li>
         
             
 <div class="section-members">
+<h4 class="name" id=".dictionary"><span class="type-signature">(static) </span>dictionary<span class="type-signature"> :Validator</span></h4>
+
+
+
+
+<div class="description">
+    <p>A validator for key-value pairs like object literals and arguments
+objects. For a value to pass this validator is must evaluate to true
+when passed to the <a href="external-isObject.html">validate.isObject()</a>
+function from validate.js.</p>
+<p>This validator supports the following options in addition to the standard
+<code>message</code> option:</p>
+<ul>
+<li><code>plainObjectOnly</code> - must evaluate to true when passed to the
+<a href="module-validateParams.html#.isPlainObject">valdiateParams.isPlainObject()</a>
+function. Defaults to <code>false</code>.</li>
+<li><code>rejectUnspecifiedKeys</code> - whether or not reject objects which contain
+keys not included in the <code>keyConstraints</code> option. Defaults to <code>false</code>.</li>
+<li><code>keyConstraints</code> - a plain object defining constraints for keys within
+the object. Defaults to an empty object. This option cannot be set
+on the validator's global <code>options</code> object, and will be ignored if this
+validator is directly used by the <a href="external-validate.html">validate()</a>
+function from validate.js</li>
+<li><code>universalConstraints</code> - a plain object defining constraints to be
+applied to all keys. This option cannot be set on the validator's
+global <code>options</code> object, and will be ignored if this validator is
+directly used by the <a href="external-validate.html">validate()</a> function
+from validate.js</li>
+</ul>
+<p>Note that if a validator appears in both <code>universalConstraints</code> and a
+constraint for a specific key in <code>keyConstraints</code>, the definition in
+<code>keyConstraints</code> takes preference. No attempt is made to merge or
+reconcile the validator options.</p>
+<p>When used in a constraint, this validator supports the following values:</p>
+<ul>
+<li>A plain object specifying options.</li>
+<li>The value <code>true</code> - a shortcut for
+<code>{ dictionary: { plainObjectOnly: true } }</code></li>
+</ul>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+    <dt class="tag-since">Since:</dt>
+    <dd class="tag-since"><ul class="dummy"><li>version 1.1.1</li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="external-isObject.html">external:isObject</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>Validator</code></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</div>
+
+        
+            
+<div class="section-members">
+<h4 class="name" id=".hasTypeOf"><span class="type-signature">(static) </span>hasTypeOf<span class="type-signature"> :validator</span></h4>
+
+
+
+
+<div class="description">
+    <p>An alias for the <code>hasTypeof</code> validator.</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="module-validateParams.validators.html#.hasTypeof">module:validateParams.validators.hasTypeof</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>validator</code></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</div>
+
+        
+            
+<div class="section-members">
 <h4 class="name" id=".hasTypeof"><span class="type-signature">(static) </span>hasTypeof<span class="type-signature"> :Validator</span></h4>
 
 
@@ -386,82 +573,6 @@ must be the given string.</li>
         inverseMatch: true
     }
 }]);</code></pre>
-
-
-</div>
-
-        
-            
-<div class="section-members">
-<h4 class="name" id=".hasTypeOf"><span class="type-signature">(static) </span>hasTypeOf<span class="type-signature"> :validator</span></h4>
-
-
-
-
-<div class="description">
-    <p>An alias for the <code>hasTypeof</code> validator.</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li><a href="module-validateParams.validators.html#.hasTypeof">module:validateParams.validators.hasTypeof</a></li>
-        </ul>
-    </dd>
-    
-
-    
-</dl>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type"><code>validator</code></span>
-
-
-        </li>
-    </ul>
-
-
-
 
 
 </div>
@@ -687,7 +798,7 @@ validateParams.assert(arguments, [{
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Mon Jul 10 2017 12:39:56 GMT+0100 (IST) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Mon Jul 10 2017 17:14:20 GMT+0100 (IST) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>
