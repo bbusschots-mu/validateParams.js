@@ -388,6 +388,19 @@ QUnit.module('validateParams.validate() function',
                             }
                         }
                     };
+                    
+                    // a deep-nested dictionary constraint
+                    this.deepDictStrCons = {
+                        dictionary: {
+                            keyConstraints: {
+                                a: {
+                                    dictionary: {
+                                        universalConstraints: { hasTypeof: 'string' }
+                                    }
+                                }
+                            }
+                        }
+                    };
                 }
             },
             function(){
@@ -517,25 +530,95 @@ QUnit.module('validateParams.validate() function',
                         '2 nested constraints added when called with object with specified key and another on constraint with both universal and per-key constraints'
                     );
                 });
-            
-                QUnit.test('dictionary with universal constraints', function(a){
-                    a.expect(5);
-                    var uCons = {
-                        dictionary: {
-                            universalConstraints: {
-                                hasTypeof: 'string'
-                            }
-                        }
-                    };
-                    a.ok(validateParams.validate([{}], [uCons]).pass(),  "undefined passes universal constraint {hasTypeof: 'string'} (dictionary not required to be defined)");
-                    a.ok(validateParams.validate([{}], [uCons]).pass(),  "empty dictionary passes universal constraint {hasTypeof: 'string'}");
-                    a.ok(validateParams.validate([{a: 'b'}], [uCons]).pass(),  "dictionary with one string value passes universal constraint {hasTypeof: 'string'}");
-                    a.ok(validateParams.validate([{a: 'b', c: 'd'}], [uCons]).pass(),  "dictionary with multiple string values passes universal constraint {hasTypeof: 'string'}");
-                    var r = validateParams.validate([{a: 42}], [uCons]);
-                    console.log(r);
-                    a.notOk(r.pass(),  "dictionary with one number value fails universal constraint {hasTypeof: 'string'}");
+                
+                QUnit.test('deep nested constraints generations with dictionaries', function(a){
+                    a.expect(4);
+                    var r = validateParams.validate([], [this.deepDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        { param1: { dictionary: { keyConstraints: { a: { dictionary: { universalConstraints: { hasTypeof: 'string' } } } } } } },
+                        'no nested constraint added when param undefined'
+                    );
+                    r = validateParams.validate([{}], [this.deepDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: { dictionary: { keyConstraints: { a: { dictionary: { universalConstraints: { hasTypeof: 'string' } } } } } },
+                            'param1.a': { dictionary: { universalConstraints: { hasTypeof: 'string' } } }
+                        },
+                        'first nested constraint added when passed empty object, but not second-level nested constraint'
+                    );
+                    r = validateParams.validate([{a: {}}], [this.deepDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: { dictionary: { keyConstraints: { a: { dictionary: { universalConstraints: { hasTypeof: 'string' } } } } } },
+                            'param1.a': { dictionary: { universalConstraints: { hasTypeof: 'string' } } }
+                        },
+                        'first nested constraint added when passed object containing empty object, but not second-level nested constraint'
+                    );
+                    r = validateParams.validate([{a: {b: 'c'}}], [this.deepDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: { dictionary: { keyConstraints: { a: { dictionary: { universalConstraints: { hasTypeof: 'string' } } } } } },
+                            'param1.a': { dictionary: { universalConstraints: { hasTypeof: 'string' } } },
+                            'param1.a.b': { hasTypeof: 'string' } 
+                        },
+                        'first and second level nested constraints added when passed two-level object'
+                    );
                 });
-        });
+            
+                QUnit.test('un-nested dictionary with only universal constraints', function(a){
+                    a.expect(5);
+                    a.ok(validateParams.validate([], [this.uniDictStrCons]).pass(),  "undefined passes universal constraint {hasTypeof: 'string'} (dictionary not required to be defined)");
+                    a.ok(validateParams.validate([{}], [this.uniDictStrCons]).pass(),  "empty dictionary passes universal constraint {hasTypeof: 'string'}");
+                    a.ok(validateParams.validate([{a: 'b'}], [this.uniDictStrCons]).pass(),  "dictionary with one string value passes universal constraint {hasTypeof: 'string'}");
+                    a.ok(validateParams.validate([{a: 'b', c: 'd'}], [this.uniDictStrCons]).pass(),  "dictionary with multiple string values passes universal constraint {hasTypeof: 'string'}");
+                    a.notOk(validateParams.validate([{a: 42}], [this.uniDictStrCons]).pass(),  "dictionary with one number value fails universal constraint {hasTypeof: 'string'}");
+                });
+                
+                QUnit.test('un-nested dictionary with only key-specific constraints', function(a){
+                    a.expect(4);
+                    a.ok(validateParams.validate([], [this.pkaDictStrCons]).pass(),  "undefined passes key-specifc constraints {a: {hasTypeof: 'string', presence: true}} (dictionary not required to be defined)");
+                    a.notOk(validateParams.validate([{}], [this.pkaDictStrCons]).pass(),  "empty dictionary fails key-specifc constraints {a: {hasTypeof: 'string', presence: true}}");
+                    a.ok(validateParams.validate([{a: 'b'}], [this.pkaDictStrCons]).pass(),  "dictionary {a: 'b'} passes key-specifc constraints {a: {hasTypeof: 'string', presence: true}}");
+                    a.notOk(validateParams.validate([{a: 42}], [this.pkaDictStrCons]).pass(),  "dictionary {a: 42} fails key-specifc constraints {a: {hasTypeof: 'string', presence: true}}");
+                });
+                
+                QUnit.test("un-nested dictionary with mix of key-specific and universal constraints that dont't overlap", function(a){
+                    a.expect(7);
+                    a.ok(validateParams.validate([], [this.ukncDictStrCons]).pass(),  "undefined passes unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true}} (dictionary not required to be defined)");
+                    a.notOk(validateParams.validate([{}], [this.ukncDictStrCons]).pass(),  "empty dictionary fails unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true}}");
+                    a.notOk(validateParams.validate([{c: 'd'}], [this.ukncDictStrCons]).pass(),  "dictionary {c: 'd'} fails unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true}}");
+                    a.ok(validateParams.validate([{a: 'b'}], [this.ukncDictStrCons]).pass(),  "dictionary {a: 'b'} passes unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true}}");
+                    a.ok(validateParams.validate([{a: 'b', c: 'd'}], [this.ukncDictStrCons]).pass(),  "dictionary {a: 'b', c: 'd'} passes unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true}}");
+                    a.notOk(validateParams.validate([{a: 42, c: 'd'}], [this.ukncDictStrCons]).pass(),  "dictionary {a: 42, c: 'd'} fails unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true}}");
+                    a.notOk(validateParams.validate([{a: 'b', c: 42}], [this.ukncDictStrCons]).pass(),  "dictionary {a: 'b', c: 42} fails unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true}}");
+                });
+                
+                QUnit.test("un-nested dictionary with mix of key-specific and universal constraints that do overlap", function(a){
+                    a.expect(7);
+                    a.notOk(validateParams.validate([{}], [this.ukcDictStrCons]).pass(),  "empty dictionary fails unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true, hasTypeof: 'number'}}");
+                    a.notOk(validateParams.validate([{c: 'd'}], [this.ukcDictStrCons]).pass(),  "dictionary {c: 'd'} fails unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true, hasTypeof: 'number'}}");
+                    a.notOk(validateParams.validate([{a: 'b'}], [this.ukcDictStrCons]).pass(),  "dictionary {a: 'b'} fails unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true, hasTypeof: 'number'}}");
+                    a.ok(validateParams.validate([{a: 42}], [this.ukcDictStrCons]).pass(),  "dictionary {a: 42} passes unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true, hasTypeof: 'number'}}");
+                    a.notOk(validateParams.validate([{a: 'b', c: 'd'}], [this.ukcDictStrCons]).pass(),  "dictionary {a: 'b', c: 'd'} fails unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true, hasTypeof: 'number'}}");
+                    a.ok(validateParams.validate([{a: 42, c: 'd'}], [this.ukcDictStrCons]).pass(),  "dictionary {a: 42, c: 'd'} passes unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true, hasTypeof: 'number'}}");
+                    a.notOk(validateParams.validate([{a: 42, c: 42}], [this.ukcDictStrCons]).pass(),  "dictionary {a: 42, c: 42} fails unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true, hasTypeof: 'number'}}");
+                });
+                
+                QUnit.test('deep-nested dictionary', function(a){
+                    a.expect(6);
+                    a.ok(validateParams.validate([], [this.deepDictStrCons]).pass(),  "undefined passes deep-nested constraint {dictionary: {keyConstraints: {a: {dictionary: {universalConstraints: { hasTypeof: 'string' }}}}}");
+                    a.ok(validateParams.validate([{}], [this.deepDictStrCons]).pass(),  "empty object passes deep-nested constraint {dictionary: {keyConstraints: {a: {dictionary: {universalConstraints: { hasTypeof: 'string' }}}}}");
+                    a.notOk(validateParams.validate([{a: 'b'}], [this.deepDictStrCons]).pass(),  "{a: 'b'} fails deep-nested constraint {dictionary: {keyConstraints: {a: {dictionary: {universalConstraints: { hasTypeof: 'string' }}}}}");
+                    a.ok(validateParams.validate([{a: {}}], [this.deepDictStrCons]).pass(),  "{a: {}} passes deep-nested constraint {dictionary: {keyConstraints: {a: {dictionary: {universalConstraints: { hasTypeof: 'string' }}}}}");
+                    a.ok(validateParams.validate([{a: {b: 'c'}}], [this.deepDictStrCons]).pass(),  "{a: {b: 'c'}} passes deep-nested constraint {dictionary: {keyConstraints: {a: {dictionary: {universalConstraints: { hasTypeof: 'string' }}}}}");
+                    a.notOk(validateParams.validate([{a: {b: 42}}], [this.deepDictStrCons]).pass(),  "{a: {b: 42}} fails deep-nested constraint {dictionary: {keyConstraints: {a: {dictionary: {universalConstraints: { hasTypeof: 'string' }}}}}");
+                });
+            }    
+        );
         
         QUnit.test('nested constraints', function(a){
             a.expect(1);
