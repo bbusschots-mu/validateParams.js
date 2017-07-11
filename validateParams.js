@@ -514,7 +514,7 @@ validateParams.validate = function(params, constraints, options){
         validateConstraints[paramName] = validate.isObject(constraints[i]) ? validateParams.paramConstraintsAsAttrConstraints(constraints[i]) : {};
         
         // deal with any possible nesting
-        validateParams._processNestedValidations(valdiateAttributes[paramName], validateConstraints[paramName], paramName + '.');
+        validateParams._processNestedValidations(paramName, validateConstraints, valdiateAttributes[paramName]);
     }
     
     // do the validation
@@ -553,49 +553,79 @@ validateParams.validate = function(params, constraints, options){
  * @since version 1.1.1
  */
 validateParams._processNestedValidations = function(validateKey, validateConstraints, attributeValue){
+    // utility variables
+    var curCons = validateConstraints[validateKey]; // the constraint being processed
+    
     // if the constraint to be processed does not have an object value, return
-    if(!validate.isObject(validateConstraints[validateKey])) return;
+    if(!validate.isObject(curCons)) return;
     
     // try descend if the key defines a dictionary
-    if(validate.isObject(validateConstraints[validateKey].dictionary)){
+    if(validate.isObject(curCons.dictionary)){
+        var curDict = curCons.dictionary; // the dictionary being processed
+        
         // if the matching attribute is not also an object, return
         if(!validate.isObject(attributeValue)) return;
         
         // gather the defined key constraints (universal and key-specific)
         var uCons = false;
-        if(validate.isObject(validateConstraints[validateKey].dictionary.universalConstraints)){
-            uCons = validateConstraints[validateKey].dictionary.universalConstraints;
+        if(validate.isObject(curDict.universalConstraints)){
+            uCons = curDict.universalConstraints;
         }
+        //console.log('universal constraints', uCons);
         var kCons = {};
-        if(validate.isObject(validateConstraints[validateKey].dictionary.keyConstraints)){
-            kCons = validateConstraints[validateKey].dictionary.keyConstraints;
+        if(validate.isObject(curDict.keyConstraints)){
+            kCons = curDict.keyConstraints;
         }
+        //console.log('key constraints', kCons);
         
-        // add nested constraints for each key in the attribute as appropriate
+        // a private inner function for merging per-key and universal constraints
+        var mergeKConsUCons = function(kCons, uCons, k){
+            var nCons = {}; // the final nested constraints
+            
+            // if there are per-key constraints for k, add them all
+            if(validate.isObject(kCons[k])){
+                nCons = validateParams.extendObject({}, kCons[k]);
+            }
+            
+            // loop through each universal constraint and merge as appropraite
+            if(uCons){
+                Object.keys(uCons).forEach(function(vn){
+                    // only add non-clashing universal constraints
+                    if(!nCons[vn]){
+                        nCons[vn] = uCons[vn];
+                    }
+                });
+            }
+            
+            // return the merged constraints
+            return nCons;
+        };
+        
+        // add nested constraints for the keys in the attribute as appropriate
         Object.keys(attributeValue).forEach(function(objKey){
             // build the name for the nested data within the constraints data structure for validate()
             var nestedKeyName = validateKey + '.' + objKey;
             
             // calculate the appropriate constraints
-            var nestedKeyConstraints = {};
-            if(validate.isObject(kCons[objKey])){
-                // there are key-specific constraints, so add them all
-                nestedKeyConstraints = kCons[objKey];
-            }
-            if(uCons){
-                uCons.forEach(function(vn){
-                    // only add non-clashing universal constraints
-                    if(!nestedKeyConstraints[vn]){
-                        nestedKeyConstraints[vn] = uCons[vn];
-                    }
-                });
-            }
+            var nestedKeyConstraints = mergeKConsUCons(kCons, uCons, objKey);
             
             // if there were any nested constraints, add them and recurse down
             if(Object.keys(nestedKeyConstraints).length){
                 validateConstraints[nestedKeyName] = nestedKeyConstraints;
                 validateParams._processNestedValidations(nestedKeyName, validateConstraints, attributeValue[objKey]);
             }
+        });
+        
+        // also add nested contraints for any specified keys in the constraint that are not present in the attribute
+        // this is only needed for presence and definedness testing, but that is important none-the-less
+        Object.keys(kCons).forEach(function(k){
+            // skip any key that's present in the object - it has already been dealt with in the loop above
+            if(typeof attributeValue[k] !== 'undefined') return;
+            
+            // add the nested constraint and and recurse down
+            var nestedKeyName = validateKey + '.' + k;
+            validateConstraints[nestedKeyName] = mergeKConsUCons(kCons, uCons, k);
+            validateParams._processNestedValidations(nestedKeyName, validateConstraints, undefined);
         });
     }
 };

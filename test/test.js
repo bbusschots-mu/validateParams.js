@@ -345,6 +345,209 @@ QUnit.module('validateParams.validate() function',
             validateParams.validate(params3, [coercingConstraint], {coerce: false});
             a.equal(params3[0], 3, 'coercion not applied with options.coerce=false');
         });
+        
+        QUnit.module('nested constraints',
+            {
+                beforeEach: function(){
+                    // a universal constraint for dictionaries requiring all values to be strings
+                    this.uniDictStrCons = {
+                        dictionary: {
+                            universalConstraints: { hasTypeof: 'string' }
+                        }
+                    };
+                    
+                    //a per-key constraint requiring a string named a
+                    this.pkaDictStrCons = {
+                        dictionary: {
+                            keyConstraints: {
+                                a: {
+                                    hasTypeof: 'string',
+                                    presence: true
+                                }
+                            }
+                        }
+                    };
+                    
+                    // a mix of per-key and universal constraints with no overlap
+                    this.ukncDictStrCons = {
+                        dictionary: {
+                            universalConstraints: { hasTypeof: 'string' },
+                            keyConstraints: { a: { presence: true } }
+                        }
+                    };
+                    
+                    // a mix of per-key and universal constraints that overlap
+                    this.ukcDictStrCons = {
+                        dictionary: {
+                            universalConstraints: { hasTypeof: 'string' },
+                            keyConstraints: {
+                                a: {
+                                    presence: true,
+                                    hasTypeof: 'number'
+                                }
+                            }
+                        }
+                    };
+                }
+            },
+            function(){
+                QUnit.test('nested constraints generation on dictionary with universal constraints', function(a){
+                    a.expect(3);
+                    var r = validateParams.validate([], [this.uniDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        { param1: { dictionary: { universalConstraints: { hasTypeof: 'string' } } } },
+                        'no nested constraint added when param undefined'
+                    );
+                    r = validateParams.validate([{}], [this.uniDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        { param1: { dictionary: { universalConstraints: { hasTypeof: 'string' } } } },
+                        'no nested constraint added for empty object'
+                    );
+                    r = validateParams.validate([{a: 'b'}], [this.uniDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: {
+                                dictionary: {
+                                    universalConstraints: {
+                                        hasTypeof: 'string'
+                                    }
+                                }
+                            },
+                            'param1.a':{
+                                hasTypeof: 'string'
+                            }
+                        },
+                        'nested constraint added for single key'
+                    );
+                });
+                
+                QUnit.test('nested constraints generation on dictionary with key-specific constraints', function(a){
+                    a.expect(3);
+                    var r = validateParams.validate([], [this.pkaDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        { param1: { dictionary: { keyConstraints: { a: { hasTypeof: 'string', presence: true } } } } },
+                        'no nested constraint added when param undefined'
+                    );
+                    r = validateParams.validate([{}], [this.pkaDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: { dictionary: { keyConstraints: { a: { hasTypeof: 'string', presence: true } } } },
+                            'param1.a': { hasTypeof: 'string', presence: true }
+                        },
+                        'nested constraint added for per-key constraint even when param passed is empty object'
+                    );
+                    r = validateParams.validate([{a: 'b'}], [this.pkaDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: { dictionary: { keyConstraints: { a: { hasTypeof: 'string', presence: true } } } },
+                            'param1.a': { hasTypeof: 'string', presence: true }
+                        },
+                        'nested constraint added for per-key constraint when param passed is object with specified key'
+                    );
+                });
+                
+                QUnit.test("nested constraints generation on dictionary with key-specific & universal constraints that don't overlap", function(a){
+                    a.expect(3);
+                    var r = validateParams.validate([], [this.ukncDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        { param1: { dictionary: { keyConstraints: { a: { presence: true } }, universalConstraints: { hasTypeof: 'string' } } } },
+                        'no nested constraint added when param undefined'
+                    );
+                    r = validateParams.validate([{}], [this.ukncDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: { dictionary: { universalConstraints: { hasTypeof: 'string' }, keyConstraints: { a: { presence: true } } } },
+                            'param1.a': { hasTypeof: 'string', presence: true }
+                        },
+                        'nested constraint added for key with per-key and universal constraints even when param passed is empty object'
+                    );
+                    r = validateParams.validate([{a: 'b'}], [this.ukncDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: { dictionary: { universalConstraints: { hasTypeof: 'string' }, keyConstraints: { a: { presence: true } } } },
+                            'param1.a': { hasTypeof: 'string', presence: true }
+                        },
+                        'nested constraint added for key with per-key and universal constraints when param passed is object with specified key'
+                    );
+                });
+                
+                QUnit.test("nested constraints generation on dictionary with key-specific & universal constraints that overlap", function(a){
+                    a.expect(4);
+                    var r = validateParams.validate([], [this.ukcDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        { param1: { dictionary: { keyConstraints: { a: { presence: true, hasTypeof: 'number' } }, universalConstraints: { hasTypeof: 'string' } } } },
+                        'no nested constraint added when param undefined'
+                    );
+                    r = validateParams.validate([{}], [this.ukcDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: { dictionary: { keyConstraints: { a: { presence: true, hasTypeof: 'number' } }, universalConstraints: { hasTypeof: 'string' } } },
+                            'param1.a': { hasTypeof: 'number', presence: true }
+                        },
+                        'nested constraint added for key with per-key and universal constraints even when param passed is empty object'
+                    );
+                    r = validateParams.validate([{a: 'b'}], [this.ukcDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: { dictionary: { keyConstraints: { a: { presence: true, hasTypeof: 'number' } }, universalConstraints: { hasTypeof: 'string' } } },
+                            'param1.a': { hasTypeof: 'number', presence: true }
+                        },
+                        'nested constraint added for key with per-key and universal constraints when param passed is object with specified key'
+                    );
+                    r = validateParams.validate([{a: 'b', c: 'd'}], [this.ukcDictStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: { dictionary: { keyConstraints: { a: { presence: true, hasTypeof: 'number' } }, universalConstraints: { hasTypeof: 'string' } } },
+                            'param1.a': { hasTypeof: 'number', presence: true },
+                            'param1.c': { hasTypeof: 'string'}
+                        },
+                        '2 nested constraints added when called with object with specified key and another on constraint with both universal and per-key constraints'
+                    );
+                });
+            
+                QUnit.test('dictionary with universal constraints', function(a){
+                    a.expect(5);
+                    var uCons = {
+                        dictionary: {
+                            universalConstraints: {
+                                hasTypeof: 'string'
+                            }
+                        }
+                    };
+                    a.ok(validateParams.validate([{}], [uCons]).pass(),  "undefined passes universal constraint {hasTypeof: 'string'} (dictionary not required to be defined)");
+                    a.ok(validateParams.validate([{}], [uCons]).pass(),  "empty dictionary passes universal constraint {hasTypeof: 'string'}");
+                    a.ok(validateParams.validate([{a: 'b'}], [uCons]).pass(),  "dictionary with one string value passes universal constraint {hasTypeof: 'string'}");
+                    a.ok(validateParams.validate([{a: 'b', c: 'd'}], [uCons]).pass(),  "dictionary with multiple string values passes universal constraint {hasTypeof: 'string'}");
+                    var r = validateParams.validate([{a: 42}], [uCons]);
+                    console.log(r);
+                    a.notOk(r.pass(),  "dictionary with one number value fails universal constraint {hasTypeof: 'string'}");
+                });
+        });
+        
+        QUnit.test('nested constraints', function(a){
+            a.expect(1);
+            var r = validateParams.validate(
+                [{a: 'b'}],
+                [{
+                    defined: true,
+                    dictionary: {universalConstraints: {hasTypeof: 'string'}}
+                }]
+            );
+            a.ok(r.pass());
+        });
     }
 );
 
