@@ -1519,6 +1519,21 @@ QUnit.module('custom validators', {}, function(){
         });
     });
     
+    QUnit.module('list', {}, function(){
+        QUnit.test('validator exists', function(a){
+            a.equal(typeof validateParams.validators.list, 'function');
+        });
+        
+        QUnit.test("'arrayOnly' option", function(a){
+            a.expect(4);
+            
+            a.ok(validateParams.validate([[]], [{list: {arrayOnly: false}}]).pass(), 'empty array accepted with arrayOnly=false');
+            a.ok(validateParams.validate([arguments], [{list: {arrayOnly: false}}]).pass(), 'arguments object accepted with arrayOnly=false');
+            a.ok(validateParams.validate([['a', 'b']], [{list: {arrayOnly: true}}]).pass(), 'array literal with two elements accepted with arrayOnly=true');
+            a.notOk(validateParams.validate([arguments], [{list: {arrayOnly: true}}]).pass(), 'arguments object rejected with arrayOnly=true');
+        });
+    });
+    
     QUnit.module('validator aliases', {}, function(){
         QUnit.test('hasTypeOf maps to hasTypeof', function(a){
             a.strictEqual(validateParams.validators.hasTypeOf, validateParams.validators.hasTypeof);

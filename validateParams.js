@@ -1826,14 +1826,14 @@ validateParams.validators = {
     },
     
     /**
-     * A validator for key-value pairs like object literals and arguments
-     * objects. For a value to pass this validator is must evaluate to true
-     * when passed to the [validate.isObject()]{@link external:isObject}
-     * function from validate.js.
+     * A validator for collections of key-value pairs like object literals. For
+     * a value to pass this validator is must evaluate to `true` when passed to
+     * the [validate.isObject()]{@link external:isObject} function from
+     * validate.js.
      *
      * This validator supports the following options in addition to the standard
      * `message` option:
-     * * `plainObjectOnly` - must evaluate to true when passed to the
+     * * `plainObjectOnly` - must evaluate to `true` when passed to the
      *   [valdiateParams.isPlainObject()]{@link module:validateParams.isPlainObject}
      *   function. Defaults to `false`.
      * * `keyConstraints` - a plain object defining constraints to be applied to
@@ -1844,12 +1844,12 @@ validateParams.validators = {
      *   applied to the values in the dictionary. This option cannot be set on
      *   the validator's global `options` object, and will be ignored if this
      *   validator is directly used by the [validate()]{@link external:validate}
-     *   function from validate.js
+     *   function from validate.js.
      * * `mapConstraints` - a plain object defining constraints for specific
      *   keys within the object. Defaults to an empty object. This option cannot
      *   be set on the validator's global `options` object, and will be ignored
      *   if this validator is directly used by the
-     *   [validate()]{@link external:validate} function from validate.js
+     *   [validate()]{@link external:validate} function from validate.js.
      * * `rejectUnspecifiedKeys` - whether or not reject objects which contain
      *   keys not included in the `mapConstraints` option. Defaults to `false`.
      * * `sizeIs` - the exact number of key-value pairs the dictionary must
@@ -1876,7 +1876,7 @@ validateParams.validators = {
      * When used in a constraint, this validator supports the following values:
      * * A plain object specifying options.
      * * The value `true` - a shortcut for
-     *   `{ dictionary: { plainObjectOnly: true } }`
+     *   `{ dictionary: { plainObjectOnly: true } }`.
      *
      * @member
      * @type {Validator}
@@ -1975,13 +1975,128 @@ validateParams.validators = {
         // deal with any specified size restrictions
         var numKeys = Object.keys(value).length;
         if(!isNaN(config.sizeIs) && numKeys !== config.sizeIs){
-            errors.push('must contain ' + config.sizeIs + ' key-value pairs');
+            errors.push('must contain ' + config.sizeIs + ' key-value pairs, but contains ' + numKeys);
         }
         if(!isNaN(config.minimumSize) && numKeys < config.minimumSize){
-            errors.push('must contain at least ' + config.minimumSize + ' key-value pairs');
+            errors.push('must contain at least ' + config.minimumSize + ' key-value pairs, but only contains ' + numKeys);
         }
         if(!isNaN(config.maximumSize) && numKeys > config.maximumSize){
-            errors.push('may not contain more than ' + config.maximumSize + ' key-value pairs');
+            errors.push('may not contain more than ' + config.maximumSize + ' key-value pairs, but contains ' + numKeys);
+        }
+        
+        // retrun as appropraite
+        if(errors.length > 0){
+            return config.message ? config.message : errors;
+        }
+        return undefined;
+    },
+    
+    /**
+     * A validator for list-like collections of values, speficially, arrays and
+     * arguments objects. For a value to pass this validator is must evaluate to
+     * `true` when passed to either the
+     * [validate.isArray()]{@link external:isArray} function from validate.js,
+     * or the
+     * [validateParams.isArguments()]{@link module:validateParams.isArguments}
+     * function.
+     *
+     * This validator supports the following options in addition to the standard
+     * `message` option:
+     * * `arrayOnly` - must evaluate to `true` when passed to the
+     *   [valdiate.isArray()]{@link external:isArray} function from validate.js.
+     *   Defaults to `false`.
+     * * `valueConstraints` - a plain object defining constraints to be
+     *   applied to each of the values in the list. This option cannot be set on
+     *   the validator's global `options` object, and will be ignored if this
+     *   validator is directly used by the [validate()]{@link external:validate}
+     *   function from validate.js.
+     * * `lengthIs` - the exact length the list must be. The passed value will
+     *   be converted to a number with `parseInt()`, and if that conversion
+     *   results in `NaN`, the option will be ignored.
+     * * `minimumLength` - a minimum length for the list. The passed value will
+     *   be converted to a number with `parseInt()`, and if that conversion
+     *   results in `NaN`, the option will be ignored.
+     * * `maximumLength` - a maximum length for the list. The passed value will
+     *   be converted to a number with `parseInt()`, and if that conversion
+     *   results in `NaN`, the option willbe ignored.
+     *
+     * Note that if `maximumLength` is less than `minimumLength`, the validator
+     * will internally swap the values before checking if the length is within
+     * range.
+     *   
+     * When used in a constraint, this validator supports the following values:
+     * * A plain object specifying options.
+     * * The value `true` - a shortcut for `{ list: { arrayOnly: true } }`.
+     * 
+     * @member
+     * @type {Validator}
+     * @see external:isArray
+     * @see module:validateParams.isArguments
+     * @since version 1.1.1
+     */
+    list: function(value, options){
+        // NOTE - the nesting is taken care of by validateParams.validate()
+        // so the valueConstraints don't need to be applied here
+        
+        // implicitly pass undefined
+        if(typeof value === 'undefined') return undefined;
+        
+        // make sure the default options object exists
+        if(typeof this.options !== 'object') this.options = {};
+        
+        // build up a base config from the pre-defined defaults
+        var config = {};
+        config.arrayOnly = this.options.arrayOnly ? true : false;
+        config.lengthIs = parseInt(this.options.lengthIs); // NaN means ignore this option
+        config.minimumLength = parseInt(this.options.minimumLength); // NaN means ignore this option
+        config.maximumLength = parseInt(this.options.maximumLength); // NaN means ignore this option
+        config.message = validateParams._extractCustomValidatorMessage(this, options);
+        
+        // interpret the passed value
+        if(typeof options === 'boolean'){
+            config.arrayOnly = true;
+        }else if(validate.isObject(options)){
+            if(options.arrayOnly) config.arrayOnly = true;
+            if(!isNaN(parseInt(options.lengthIs))) config.lengthIs = parseInt(options.lengthIs);
+            if(!isNaN(parseInt(options.minimumLength))) config.minimumLength = parseInt(options.minimumLength);
+            if(!isNaN(parseInt(options.maximumLength))) config.maximumLength = parseInt(options.maximumLength);
+            if(validate.isString(options.message)) config.message = options.message;
+        }else{
+            throw new Error('invalid options passed - must be true or a plain object');
+        }
+        
+        // flip the size bounds if needed
+        if(!(isNaN(config.minimumLength) || isNaN(config.maximumLength))){
+            if(config.maximumLength < config.minimumLength){
+                var trueMin = config.maximumLength;
+                var trueMax = config.minimumLength;
+                config.maximumLength = trueMax;
+                config.minimumLength = trueMin;
+            }
+        }
+        
+        // implicitly reject non-lists
+        if(!(validate.isArray(value) || validateParams.isArguments(value))){
+            return config.message ? config.message : 'must be an array or an arguments object';
+        }
+        
+        var errors = [];
+        
+        // deal with arrayOnly option
+        if(config.arrayOnly && !validate.isArray(value)){
+            errors.push('must be an array');
+        }
+        
+        // deal with any specified size restrictions
+        var arrLen = value.length;
+        if(!isNaN(config.lengthIs) && value.length !== arrLen){
+            errors.push('must have length of ' + config.lengthIs + ', but length is ' + arrLen);
+        }
+        if(!isNaN(config.minimumLength) && arrLen < config.minimumLength){
+            errors.push('must have length of at least ' + config.minimumLength + ', but length is ' + arrLen);
+        }
+        if(!isNaN(config.maximumLength) && arrLen > config.maximumLength){
+            errors.push('cannot have length greater than ' + config.maximumLength + ', but length is ' + arrLen);
         }
         
         // retrun as appropraite
