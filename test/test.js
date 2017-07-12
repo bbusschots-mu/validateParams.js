@@ -1532,6 +1532,33 @@ QUnit.module('custom validators', {}, function(){
             a.ok(validateParams.validate([['a', 'b']], [{list: {arrayOnly: true}}]).pass(), 'array literal with two elements accepted with arrayOnly=true');
             a.notOk(validateParams.validate([arguments], [{list: {arrayOnly: true}}]).pass(), 'arguments object rejected with arrayOnly=true');
         });
+        
+        QUnit.test("'lengthIs' option", function(a){
+            a.expect(4);
+            
+            a.notOk(validateParams.validate([[]], [{list: {lengthIs: 2}}]).pass(), 'empty array rejected with lengthIs=2');
+            a.notOk(validateParams.validate([['a']], [{list: {lengthIs: 2}}]).pass(), "['a'] rejected with lengthIs=2");
+            a.ok(validateParams.validate([['a', 'b']], [{list: {lengthIs: 2}}]).pass(), "['a', 'b'] accepted with lengthIs=2");
+            a.notOk(validateParams.validate([['a', 'b', 'c']], [{list: {lengthIs: 2}}]).pass(), "['a', 'b', 'c'] rejected with lengthIs=2");
+        });
+        
+        QUnit.test("'minimumLength' option", function(a){
+            a.expect(4);
+            
+            a.notOk(validateParams.validate([[]], [{list: {minimumLength: 2}}]).pass(), 'empty array rejected with minimumLength=2');
+            a.notOk(validateParams.validate([['a']], [{list: {minimumLength: 2}}]).pass(), "['a'] rejected with minimumLength=2");
+            a.ok(validateParams.validate([['a', 'b']], [{list: {minimumLength: 2}}]).pass(), "['a', 'b'] accepted with minimumLength=2");
+            a.ok(validateParams.validate([['a', 'b', 'c']], [{list: {minimumLength: 2}}]).pass(), "['a', 'b', 'c'] accepted with minimumLength=2");
+        });
+        
+        QUnit.test("'maximumLength' option", function(a){
+            a.expect(4);
+            
+            a.ok(validateParams.validate([[]], [{list: {maximumLength: 2}}]).pass(), 'empty array accepted with maximumLength=2');
+            a.ok(validateParams.validate([['a']], [{list: {maximumLength: 2}}]).pass(), "['a'] accepted with maximumLength=2");
+            a.ok(validateParams.validate([['a', 'b']], [{list: {maximumLength: 2}}]).pass(), "['a', 'b'] accepted with maximumLength=2");
+            a.notOk(validateParams.validate([['a', 'b', 'c']], [{list: {maximumLength: 2}}]).pass(), "['a', 'b', 'c'] rejected with maximumLength=2");
+        });
     });
     
     QUnit.module('validator aliases', {}, function(){

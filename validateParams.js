@@ -2087,9 +2087,9 @@ validateParams.validators = {
             errors.push('must be an array');
         }
         
-        // deal with any specified size restrictions
+        // deal with any specified length restrictions
         var arrLen = value.length;
-        if(!isNaN(config.lengthIs) && value.length !== arrLen){
+        if(!isNaN(config.lengthIs) && arrLen !== config.lengthIs){
             errors.push('must have length of ' + config.lengthIs + ', but length is ' + arrLen);
         }
         if(!isNaN(config.minimumLength) && arrLen < config.minimumLength){
