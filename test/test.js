@@ -401,6 +401,35 @@ QUnit.module('validateParams.validate() function',
                             }
                         }
                     };
+                    
+                    // a nested list constraint
+                    this.listStrCons = {
+                        list: {
+                            valueConstraints: { hasTypeof: 'string' }
+                        }
+                    };
+                    
+                    // a deep-nested list constraint
+                    this.deepListStrCons = {
+                        list: {
+                            valueConstraints: {
+                                list: {
+                                    valueConstraints: { hasTypeof: 'string' }
+                                }
+                            }
+                        }
+                    };
+                    
+                    // a deep-nested mixture of lists and dictionaries
+                    this.deepNestedCons = {
+                        list: {
+                            valueConstraints: {
+                                dictionary: {
+                                    valueConstraints: { hasTypeof: 'string' }
+                                }
+                            }
+                        }
+                    };
                 }
             },
             function(){
@@ -568,17 +597,139 @@ QUnit.module('validateParams.validate() function',
                         'first and second level nested constraints added when passed two-level object'
                     );
                 });
+                
+                QUnit.test('nested constraints generation on list', function(a){
+                    a.expect(4);
+                    var r = validateParams.validate([], [this.listStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        { param1: { list: { valueConstraints: { hasTypeof: 'string' } } } },
+                        'no nested constraint added when param undefined'
+                    );
+                    r = validateParams.validate([[]], [this.listStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        { param1: { list: { valueConstraints: { hasTypeof: 'string' } } } },
+                        'no nested constraint added for empty array'
+                    );
+                    r = validateParams.validate([['a']], [this.listStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: {
+                                list: {
+                                    valueConstraints: {
+                                        hasTypeof: 'string'
+                                    }
+                                }
+                            },
+                            'param1.0':{
+                                hasTypeof: 'string'
+                            }
+                        },
+                        'nested constraint added for single element array'
+                    );
+                    r = validateParams.validate([['a', 'b','c']], [this.listStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: {
+                                list: {
+                                    valueConstraints: {
+                                        hasTypeof: 'string'
+                                    }
+                                }
+                            },
+                            'param1.0':{ hasTypeof: 'string' },
+                            'param1.1':{ hasTypeof: 'string' },
+                            'param1.2':{ hasTypeof: 'string' }
+                        },
+                        'nested constraints added for multi-element array'
+                    );
+                });
+                
+                QUnit.test('deep nested constraints generation with lists', function(a){
+                    a.expect(4);
+                    var r = validateParams.validate([], [this.deepListStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        { param1: { list: { valueConstraints: { list: { valueConstraints: { hasTypeof: 'string' } } } } } },
+                        'no nested constraint added when param undefined'
+                    );
+                    r = validateParams.validate([[]], [this.deepListStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        { param1: { list: { valueConstraints: { list: { valueConstraints: { hasTypeof: 'string' } } } } } },
+                        'no nested constraint added when passed empty top-level array'
+                    );
+                    r = validateParams.validate([[[]]], [this.deepListStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: { list: { valueConstraints: { list: { valueConstraints: { hasTypeof: 'string' } } } } },
+                            'param1.0': { list: { valueConstraints: { hasTypeof: 'string' } } }
+                        },
+                        'first nested constraint added when passed list containing single empty list, but no second-level nested constraints added'
+                    );
+                    r = validateParams.validate([[['a']]], [this.deepListStrCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: { list: { valueConstraints: { list: { valueConstraints: { hasTypeof: 'string' } } } } },
+                            'param1.0': { list: { valueConstraints: { hasTypeof: 'string' } } },
+                            'param1.0.0': { hasTypeof: 'string' }
+                        },
+                        'first and second level nested constraints added when passed a string in an array in an array'
+                    );
+                });
+                
+                // deepNestedCons
+                QUnit.test('deep nested constraints generation with lists and dictionaries', function(a){
+                    a.expect(4);
+                    var r = validateParams.validate([], [this.deepNestedCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        { param1: { list: { valueConstraints: { dictionary: { valueConstraints: { hasTypeof: 'string' } } } } } },
+                        'no nested constraint added when param undefined'
+                    );
+                    r = validateParams.validate([[]], [this.deepNestedCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        { param1: { list: { valueConstraints: { dictionary: { valueConstraints: { hasTypeof: 'string' } } } } } },
+                        'no nested constraint added when passed empty top-level array'
+                    );
+                    r = validateParams.validate([[{}]], [this.deepNestedCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: { list: { valueConstraints: { dictionary: { valueConstraints: { hasTypeof: 'string' } } } } },
+                            'param1.0': { dictionary: { valueConstraints: { hasTypeof: 'string' } } }
+                        },
+                        'first nested constraint added when passed list containing single empty object, but no second-level nested constraints added'
+                    );
+                    r = validateParams.validate([[{a: 'b'}]], [this.deepNestedCons]);
+                    a.deepEqual(
+                        r._validateConstraints,
+                        {
+                            param1: { list: { valueConstraints: { dictionary: { valueConstraints: { hasTypeof: 'string' } } } } },
+                            'param1.0': { dictionary: { valueConstraints: { hasTypeof: 'string' } } },
+                            'param1.0.a': { hasTypeof: 'string' }
+                        },
+                        'first and second level nested constraints added when passed a string in a plain object in an array'
+                    );
+                });
             
-                QUnit.test('un-nested dictionary with only universal constraints', function(a){
-                    a.expect(5);
+                QUnit.test('un-nested dictionary validation with only universal constraints', function(a){
+                    a.expect(6);
                     a.ok(validateParams.validate([], [this.uniDictStrCons]).pass(),  "undefined passes universal constraint {hasTypeof: 'string'} (dictionary not required to be defined)");
                     a.ok(validateParams.validate([{}], [this.uniDictStrCons]).pass(),  "empty dictionary passes universal constraint {hasTypeof: 'string'}");
                     a.ok(validateParams.validate([{a: 'b'}], [this.uniDictStrCons]).pass(),  "dictionary with one string value passes universal constraint {hasTypeof: 'string'}");
                     a.ok(validateParams.validate([{a: 'b', c: 'd'}], [this.uniDictStrCons]).pass(),  "dictionary with multiple string values passes universal constraint {hasTypeof: 'string'}");
                     a.notOk(validateParams.validate([{a: 42}], [this.uniDictStrCons]).pass(),  "dictionary with one number value fails universal constraint {hasTypeof: 'string'}");
+                    a.notOk(validateParams.validate([{a: 42, b: 'c'}], [this.uniDictStrCons]).pass(),  "dictionary with one number and one string value fails universal constraint {hasTypeof: 'string'}");
                 });
                 
-                QUnit.test('un-nested dictionary with only key-specific constraints', function(a){
+                QUnit.test('un-nested dictionary validation with only key-specific constraints', function(a){
                     a.expect(4);
                     a.ok(validateParams.validate([], [this.pkaDictStrCons]).pass(),  "undefined passes key-specifc constraints {a: {hasTypeof: 'string', presence: true}} (dictionary not required to be defined)");
                     a.notOk(validateParams.validate([{}], [this.pkaDictStrCons]).pass(),  "empty dictionary fails key-specifc constraints {a: {hasTypeof: 'string', presence: true}}");
@@ -586,7 +737,7 @@ QUnit.module('validateParams.validate() function',
                     a.notOk(validateParams.validate([{a: 42}], [this.pkaDictStrCons]).pass(),  "dictionary {a: 42} fails key-specifc constraints {a: {hasTypeof: 'string', presence: true}}");
                 });
                 
-                QUnit.test("un-nested dictionary with mix of key-specific and universal constraints that dont't overlap", function(a){
+                QUnit.test("un-nested dictionary validation with mix of key-specific and universal constraints that dont't overlap", function(a){
                     a.expect(7);
                     a.ok(validateParams.validate([], [this.ukncDictStrCons]).pass(),  "undefined passes unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true}} (dictionary not required to be defined)");
                     a.notOk(validateParams.validate([{}], [this.ukncDictStrCons]).pass(),  "empty dictionary fails unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true}}");
@@ -597,7 +748,7 @@ QUnit.module('validateParams.validate() function',
                     a.notOk(validateParams.validate([{a: 'b', c: 42}], [this.ukncDictStrCons]).pass(),  "dictionary {a: 'b', c: 42} fails unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true}}");
                 });
                 
-                QUnit.test("un-nested dictionary with mix of key-specific and universal constraints that do overlap", function(a){
+                QUnit.test("un-nested dictionary validation with mix of key-specific and universal constraints that do overlap", function(a){
                     a.expect(7);
                     a.notOk(validateParams.validate([{}], [this.ukcDictStrCons]).pass(),  "empty dictionary fails unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true, hasTypeof: 'number'}}");
                     a.notOk(validateParams.validate([{c: 'd'}], [this.ukcDictStrCons]).pass(),  "dictionary {c: 'd'} fails unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true, hasTypeof: 'number'}}");
@@ -608,7 +759,7 @@ QUnit.module('validateParams.validate() function',
                     a.notOk(validateParams.validate([{a: 42, c: 42}], [this.ukcDictStrCons]).pass(),  "dictionary {a: 42, c: 42} fails unviversal constraint {hasTypeof: 'string'} and key-specific constraint {a: {presence: true, hasTypeof: 'number'}}");
                 });
                 
-                QUnit.test('deep-nested dictionary', function(a){
+                QUnit.test('deep-nested dictionary validation', function(a){
                     a.expect(6);
                     a.ok(validateParams.validate([], [this.deepDictStrCons]).pass(),  "undefined passes deep-nested constraint {dictionary: {mapConstraints: {a: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
                     a.ok(validateParams.validate([{}], [this.deepDictStrCons]).pass(),  "empty object passes deep-nested constraint {dictionary: {mapConstraints: {a: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
@@ -616,6 +767,36 @@ QUnit.module('validateParams.validate() function',
                     a.ok(validateParams.validate([{a: {}}], [this.deepDictStrCons]).pass(),  "{a: {}} passes deep-nested constraint {dictionary: {mapConstraints: {a: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
                     a.ok(validateParams.validate([{a: {b: 'c'}}], [this.deepDictStrCons]).pass(),  "{a: {b: 'c'}} passes deep-nested constraint {dictionary: {mapConstraints: {a: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
                     a.notOk(validateParams.validate([{a: {b: 42}}], [this.deepDictStrCons]).pass(),  "{a: {b: 42}} fails deep-nested constraint {dictionary: {mapConstraints: {a: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
+                });
+                
+                QUnit.test('un-nested list validation', function(a){
+                    a.expect(6);
+                    a.ok(validateParams.validate([], [this.listStrCons]).pass(),  "undefined passes value constraint {hasTypeof: 'string'} (list not required to be defined)");
+                    a.ok(validateParams.validate([[]], [this.listStrCons]).pass(),  "empty list passes value constraint {hasTypeof: 'string'}");
+                    a.ok(validateParams.validate([['a']], [this.listStrCons]).pass(),  "list of one string value passes value constraint {hasTypeof: 'string'}");
+                    a.ok(validateParams.validate([['a', 'b']], [this.listStrCons]).pass(),  "list of multiple strings passes value constraint {hasTypeof: 'string'}");
+                    a.notOk(validateParams.validate([[42]], [this.listStrCons]).pass(),  "list of one number fails value constraint {hasTypeof: 'string'}");
+                    a.notOk(validateParams.validate([['a', 42]], [this.listStrCons]).pass(),  "list of one string and one number fails value constraint {hasTypeof: 'string'}");
+                });
+                
+                QUnit.test('deep-nested list validation', function(a){
+                    a.expect(6);
+                    a.ok(validateParams.validate([], [this.deepListStrCons]).pass(),  "undefined passes deep-nested constraint {list: {valueConstraints: {list: {valueConstraints: {hasTypeof: 'string'}}}}}");
+                    a.ok(validateParams.validate([[]], [this.deepListStrCons]).pass(),  "empty array passes deep-nested constraint {list: {valueConstraints: {list: {valueConstraints: {hasTypeof: 'string'}}}}}");
+                    a.notOk(validateParams.validate([['a']], [this.deepListStrCons]).pass(),  "['a'] fails deep-nested constraint {list: {valueConstraints: {list: {valueConstraints: {hasTypeof: 'string'}}}}}");
+                    a.ok(validateParams.validate([[[]]], [this.deepListStrCons]).pass(),  "array contianing empty array passes deep-nested constraint {list: {valueConstraints: {list: {valueConstraints: {hasTypeof: 'string'}}}}}");
+                    a.ok(validateParams.validate([[['a'], ['b', 'c']]], [this.deepListStrCons]).pass(),  "[['a'], ['b', 'c']] passes deep-nested constraint {list: {valueConstraints: {list: {valueConstraints: {hasTypeof: 'string'}}}}}");
+                    a.notOk(validateParams.validate([[['a'], ['b', 'c', 42]]], [this.deepListStrCons]).pass(),  "[['a'], ['b', 'c', 42]] fails deep-nested constraint {list: {valueConstraints: {list: {valueConstraints: {hasTypeof: 'string'}}}}}");
+                });
+            
+                QUnit.test('deep-nested list and dictionary validation', function(a){
+                    a.expect(6);
+                    a.ok(validateParams.validate([], [this.deepNestedCons]).pass(),  "undefined passes deep-nested constraint {list: {valueConstraints: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
+                    a.ok(validateParams.validate([[]], [this.deepNestedCons]).pass(),  "empty array passes deep-nested constraint {list: {valueConstraints: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
+                    a.notOk(validateParams.validate([['a']], [this.deepNestedCons]).pass(),  "['a'] fails deep-nested constraint {list: {valueConstraints: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
+                    a.ok(validateParams.validate([[{}]], [this.deepNestedCons]).pass(),  "array contianing empty plain object passes deep-nested constraint {list: {valueConstraints: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
+                    a.ok(validateParams.validate([[{a: 'b'}, {c: 'd', e: 'f'}]], [this.deepNestedCons]).pass(),  "[{a: 'b'}, {c: 'd', e: 'f'}] passes deep-nested constraint {list: {valueConstraints: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
+                    a.notOk(validateParams.validate([[{a: 'b'}, {c: 'd', e: 42}]], [this.deepNestedCons]).pass(),  "[{a: 'b'}, {c: 'd', e: 42}] fails deep-nested constraint {list: {valueConstraints: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
                 });
             }    
         );

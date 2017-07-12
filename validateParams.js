@@ -573,12 +573,11 @@ validateParams._processNestedValidations = function(validateKey, validateConstra
         // if the matching attribute is not also an object, return
         if(!validate.isObject(attributeValue)) return;
         
-        // gather the defined key constraints (universal and key-specific)
+        // gather the defined value constraints (universal and key-specific)
         var vCons = false;
         if(validate.isObject(curDict.valueConstraints)){
             vCons = curDict.valueConstraints;
         }
-        //console.log('universal constraints', vCons);
         var mCons = {};
         if(validate.isObject(curDict.mapConstraints)){
             mCons = curDict.mapConstraints;
@@ -628,11 +627,28 @@ validateParams._processNestedValidations = function(validateKey, validateConstra
             // skip any key that's present in the object - it has already been dealt with in the loop above
             if(typeof attributeValue[k] !== 'undefined') return;
             
-            // add the nested constraint and and recurse down
+            // add the nested constraints and recurse down
             var nestedKeyName = validateKey + '.' + k;
             validateConstraints[nestedKeyName] = mergeKConsUCons(mCons, vCons, k);
             validateParams._processNestedValidations(nestedKeyName, validateConstraints, undefined);
         });
+    }
+    
+    // try descend if the key defines a list
+    if(validate.isObject(curCons.list)){
+        var curList = curCons.list; // the list being processed
+        
+        // if the matching attribute is not also an array or an arguments object, return
+        if(!(validate.isArray(attributeValue) || validateParams.isArguments(attributeValue))) return;
+        
+        // if there are nested constraints, add them and recurse down
+        if(validate.isObject(curList.valueConstraints)){
+            for(var i = 0; i < attributeValue.length; i++){ // don't use a forEach, won't work on arguments objects
+                var nestedKeyName = validateKey + '.' + i;
+                validateConstraints[nestedKeyName] = validateParams.extendObject({}, curList.valueConstraints);
+                validateParams._processNestedValidations(nestedKeyName, validateConstraints, attributeValue[i]);
+            }
+        }
     }
 };
 
@@ -1834,7 +1850,7 @@ validateParams.validators = {
      * This validator supports the following options in addition to the standard
      * `message` option:
      * * `plainObjectOnly` - must evaluate to `true` when passed to the
-     *   [valdiateParams.isPlainObject()]{@link module:validateParams.isPlainObject}
+     *   [validateParams.isPlainObject()]{@link module:validateParams.isPlainObject}
      *   function. Defaults to `false`.
      * * `keyConstraints` - a plain object defining constraints to be applied to
      *   the keys in the dictionary. Each key in the dictionary will be tested
