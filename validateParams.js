@@ -567,32 +567,31 @@ validateParams._processNestedValidations = function(validateKey, validateConstra
         if(!validate.isObject(attributeValue)) return;
         
         // gather the defined key constraints (universal and key-specific)
-        var uCons = false;
-        if(validate.isObject(curDict.universalConstraints)){
-            uCons = curDict.universalConstraints;
+        var vCons = false;
+        if(validate.isObject(curDict.valueConstraints)){
+            vCons = curDict.valueConstraints;
         }
-        //console.log('universal constraints', uCons);
-        var kCons = {};
-        if(validate.isObject(curDict.keyConstraints)){
-            kCons = curDict.keyConstraints;
+        //console.log('universal constraints', vCons);
+        var mCons = {};
+        if(validate.isObject(curDict.mapConstraints)){
+            mCons = curDict.mapConstraints;
         }
-        //console.log('key constraints', kCons);
         
         // a private inner function for merging per-key and universal constraints
-        var mergeKConsUCons = function(kCons, uCons, k){
+        var mergeKConsUCons = function(mCons, vCons, k){
             var nCons = {}; // the final nested constraints
             
             // if there are per-key constraints for k, add them all
-            if(validate.isObject(kCons[k])){
-                nCons = validateParams.extendObject({}, kCons[k]);
+            if(validate.isObject(mCons[k])){
+                nCons = validateParams.extendObject({}, mCons[k]);
             }
             
             // loop through each universal constraint and merge as appropraite
-            if(uCons){
-                Object.keys(uCons).forEach(function(vn){
+            if(vCons){
+                Object.keys(vCons).forEach(function(vn){
                     // only add non-clashing universal constraints
                     if(!nCons[vn]){
-                        nCons[vn] = uCons[vn];
+                        nCons[vn] = vCons[vn];
                     }
                 });
             }
@@ -607,7 +606,7 @@ validateParams._processNestedValidations = function(validateKey, validateConstra
             var nestedKeyName = validateKey + '.' + objKey;
             
             // calculate the appropriate constraints
-            var nestedKeyConstraints = mergeKConsUCons(kCons, uCons, objKey);
+            var nestedKeyConstraints = mergeKConsUCons(mCons, vCons, objKey);
             
             // if there were any nested constraints, add them and recurse down
             if(Object.keys(nestedKeyConstraints).length){
@@ -618,13 +617,13 @@ validateParams._processNestedValidations = function(validateKey, validateConstra
         
         // also add nested contraints for any specified keys in the constraint that are not present in the attribute
         // this is only needed for presence and definedness testing, but that is important none-the-less
-        Object.keys(kCons).forEach(function(k){
+        Object.keys(mCons).forEach(function(k){
             // skip any key that's present in the object - it has already been dealt with in the loop above
             if(typeof attributeValue[k] !== 'undefined') return;
             
             // add the nested constraint and and recurse down
             var nestedKeyName = validateKey + '.' + k;
-            validateConstraints[nestedKeyName] = mergeKConsUCons(kCons, uCons, k);
+            validateConstraints[nestedKeyName] = mergeKConsUCons(mCons, vCons, k);
             validateParams._processNestedValidations(nestedKeyName, validateConstraints, undefined);
         });
     }
@@ -1831,21 +1830,21 @@ validateParams.validators = {
      *   [valdiateParams.isPlainObject()]{@link module:validateParams.isPlainObject}
      *   function. Defaults to `false`.
      * * `rejectUnspecifiedKeys` - whether or not reject objects which contain
-     *   keys not included in the `keyConstraints` option. Defaults to `false`.
-     * * `keyConstraints` - a plain object defining constraints for keys within
-     *   the object. Defaults to an empty object. This option cannot be set
-     *   on the validator's global `options` object, and will be ignored if this
+     *   keys not included in the `mapConstraints` option. Defaults to `false`.
+     * * `mapConstraints` - a plain object defining constraints for specific
+     *   keys within the object. Defaults to an empty object. This option cannot
+     *   be set on the validator's global `options` object, and will be ignored
+     *   if this validator is directly used by the
+     *   [validate()]{@link external:validate} function from validate.js
+     * * `valueConstraints` - a plain object defining constraints to be
+     *   applied to the values in the dictionary. This option cannot be set on
+     *   the validator's global `options` object, and will be ignored if this
      *   validator is directly used by the [validate()]{@link external:validate}
      *   function from validate.js
-     * * `universalConstraints` - a plain object defining constraints to be
-     *   applied to all keys. This option cannot be set on the validator's
-     *   global `options` object, and will be ignored if this validator is
-     *   directly used by the [validate()]{@link external:validate} function
-     *   from validate.js
      *
-     * Note that if a validator appears in both `universalConstraints` and a
-     * constraint for a specific key in `keyConstraints`, the definition in
-     * `keyConstraints` takes preference. No attempt is made to merge or
+     * Note that if a validator appears in both `valueConstraints` and a
+     * constraint for a specific key in `mapConstraints`, the definition in
+     * `mapConstraints` takes preference. No attempt is made to merge or
      * reconcile the validator options.
      *   
      * When used in a constraint, this validator supports the following values:
@@ -1901,12 +1900,12 @@ validateParams.validators = {
         // deal with rejectUnspecifiedKeys option
         if(config.rejectUnspecifiedKeys){
             var allowedKeysLookup = {};
-            if(validate.isObject(options.keyConstraints)){
-                Object.keys(options.keyConstraints).forEach(function(sk){
+            if(validate.isObject(options.mapConstraints)){
+                Object.keys(options.mapConstraints).forEach(function(sk){
                     allowedKeysLookup[sk] = true;
                 });
             }else{
-                validateParams._warn('dictionary validator called with only specified keys allowed but with no keys specified in keyConstraints');
+                validateParams._warn('dictionary validator called with only specified keys allowed but with no keys specified in mapConstraints');
             }
             Object.keys(value).forEach(function(vk){
                 if(!allowedKeysLookup[vk]) errors.push("key '" + vk + "' is not permitted");

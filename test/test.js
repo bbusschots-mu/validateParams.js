@@ -352,14 +352,14 @@ QUnit.module('validateParams.validate() function',
                     // a universal constraint for dictionaries requiring all values to be strings
                     this.uniDictStrCons = {
                         dictionary: {
-                            universalConstraints: { hasTypeof: 'string' }
+                            valueConstraints: { hasTypeof: 'string' }
                         }
                     };
                     
                     //a per-key constraint requiring a string named a
                     this.pkaDictStrCons = {
                         dictionary: {
-                            keyConstraints: {
+                            mapConstraints: {
                                 a: {
                                     hasTypeof: 'string',
                                     presence: true
@@ -371,16 +371,16 @@ QUnit.module('validateParams.validate() function',
                     // a mix of per-key and universal constraints with no overlap
                     this.ukncDictStrCons = {
                         dictionary: {
-                            universalConstraints: { hasTypeof: 'string' },
-                            keyConstraints: { a: { presence: true } }
+                            valueConstraints: { hasTypeof: 'string' },
+                            mapConstraints: { a: { presence: true } }
                         }
                     };
                     
                     // a mix of per-key and universal constraints that overlap
                     this.ukcDictStrCons = {
                         dictionary: {
-                            universalConstraints: { hasTypeof: 'string' },
-                            keyConstraints: {
+                            valueConstraints: { hasTypeof: 'string' },
+                            mapConstraints: {
                                 a: {
                                     presence: true,
                                     hasTypeof: 'number'
@@ -392,10 +392,10 @@ QUnit.module('validateParams.validate() function',
                     // a deep-nested dictionary constraint
                     this.deepDictStrCons = {
                         dictionary: {
-                            keyConstraints: {
+                            mapConstraints: {
                                 a: {
                                     dictionary: {
-                                        universalConstraints: { hasTypeof: 'string' }
+                                        valueConstraints: { hasTypeof: 'string' }
                                     }
                                 }
                             }
@@ -409,13 +409,13 @@ QUnit.module('validateParams.validate() function',
                     var r = validateParams.validate([], [this.uniDictStrCons]);
                     a.deepEqual(
                         r._validateConstraints,
-                        { param1: { dictionary: { universalConstraints: { hasTypeof: 'string' } } } },
+                        { param1: { dictionary: { valueConstraints: { hasTypeof: 'string' } } } },
                         'no nested constraint added when param undefined'
                     );
                     r = validateParams.validate([{}], [this.uniDictStrCons]);
                     a.deepEqual(
                         r._validateConstraints,
-                        { param1: { dictionary: { universalConstraints: { hasTypeof: 'string' } } } },
+                        { param1: { dictionary: { valueConstraints: { hasTypeof: 'string' } } } },
                         'no nested constraint added for empty object'
                     );
                     r = validateParams.validate([{a: 'b'}], [this.uniDictStrCons]);
@@ -424,7 +424,7 @@ QUnit.module('validateParams.validate() function',
                         {
                             param1: {
                                 dictionary: {
-                                    universalConstraints: {
+                                    valueConstraints: {
                                         hasTypeof: 'string'
                                     }
                                 }
@@ -442,14 +442,14 @@ QUnit.module('validateParams.validate() function',
                     var r = validateParams.validate([], [this.pkaDictStrCons]);
                     a.deepEqual(
                         r._validateConstraints,
-                        { param1: { dictionary: { keyConstraints: { a: { hasTypeof: 'string', presence: true } } } } },
+                        { param1: { dictionary: { mapConstraints: { a: { hasTypeof: 'string', presence: true } } } } },
                         'no nested constraint added when param undefined'
                     );
                     r = validateParams.validate([{}], [this.pkaDictStrCons]);
                     a.deepEqual(
                         r._validateConstraints,
                         {
-                            param1: { dictionary: { keyConstraints: { a: { hasTypeof: 'string', presence: true } } } },
+                            param1: { dictionary: { mapConstraints: { a: { hasTypeof: 'string', presence: true } } } },
                             'param1.a': { hasTypeof: 'string', presence: true }
                         },
                         'nested constraint added for per-key constraint even when param passed is empty object'
@@ -458,7 +458,7 @@ QUnit.module('validateParams.validate() function',
                     a.deepEqual(
                         r._validateConstraints,
                         {
-                            param1: { dictionary: { keyConstraints: { a: { hasTypeof: 'string', presence: true } } } },
+                            param1: { dictionary: { mapConstraints: { a: { hasTypeof: 'string', presence: true } } } },
                             'param1.a': { hasTypeof: 'string', presence: true }
                         },
                         'nested constraint added for per-key constraint when param passed is object with specified key'
@@ -470,14 +470,14 @@ QUnit.module('validateParams.validate() function',
                     var r = validateParams.validate([], [this.ukncDictStrCons]);
                     a.deepEqual(
                         r._validateConstraints,
-                        { param1: { dictionary: { keyConstraints: { a: { presence: true } }, universalConstraints: { hasTypeof: 'string' } } } },
+                        { param1: { dictionary: { mapConstraints: { a: { presence: true } }, valueConstraints: { hasTypeof: 'string' } } } },
                         'no nested constraint added when param undefined'
                     );
                     r = validateParams.validate([{}], [this.ukncDictStrCons]);
                     a.deepEqual(
                         r._validateConstraints,
                         {
-                            param1: { dictionary: { universalConstraints: { hasTypeof: 'string' }, keyConstraints: { a: { presence: true } } } },
+                            param1: { dictionary: { valueConstraints: { hasTypeof: 'string' }, mapConstraints: { a: { presence: true } } } },
                             'param1.a': { hasTypeof: 'string', presence: true }
                         },
                         'nested constraint added for key with per-key and universal constraints even when param passed is empty object'
@@ -486,7 +486,7 @@ QUnit.module('validateParams.validate() function',
                     a.deepEqual(
                         r._validateConstraints,
                         {
-                            param1: { dictionary: { universalConstraints: { hasTypeof: 'string' }, keyConstraints: { a: { presence: true } } } },
+                            param1: { dictionary: { valueConstraints: { hasTypeof: 'string' }, mapConstraints: { a: { presence: true } } } },
                             'param1.a': { hasTypeof: 'string', presence: true }
                         },
                         'nested constraint added for key with per-key and universal constraints when param passed is object with specified key'
@@ -498,14 +498,14 @@ QUnit.module('validateParams.validate() function',
                     var r = validateParams.validate([], [this.ukcDictStrCons]);
                     a.deepEqual(
                         r._validateConstraints,
-                        { param1: { dictionary: { keyConstraints: { a: { presence: true, hasTypeof: 'number' } }, universalConstraints: { hasTypeof: 'string' } } } },
+                        { param1: { dictionary: { mapConstraints: { a: { presence: true, hasTypeof: 'number' } }, valueConstraints: { hasTypeof: 'string' } } } },
                         'no nested constraint added when param undefined'
                     );
                     r = validateParams.validate([{}], [this.ukcDictStrCons]);
                     a.deepEqual(
                         r._validateConstraints,
                         {
-                            param1: { dictionary: { keyConstraints: { a: { presence: true, hasTypeof: 'number' } }, universalConstraints: { hasTypeof: 'string' } } },
+                            param1: { dictionary: { mapConstraints: { a: { presence: true, hasTypeof: 'number' } }, valueConstraints: { hasTypeof: 'string' } } },
                             'param1.a': { hasTypeof: 'number', presence: true }
                         },
                         'nested constraint added for key with per-key and universal constraints even when param passed is empty object'
@@ -514,7 +514,7 @@ QUnit.module('validateParams.validate() function',
                     a.deepEqual(
                         r._validateConstraints,
                         {
-                            param1: { dictionary: { keyConstraints: { a: { presence: true, hasTypeof: 'number' } }, universalConstraints: { hasTypeof: 'string' } } },
+                            param1: { dictionary: { mapConstraints: { a: { presence: true, hasTypeof: 'number' } }, valueConstraints: { hasTypeof: 'string' } } },
                             'param1.a': { hasTypeof: 'number', presence: true }
                         },
                         'nested constraint added for key with per-key and universal constraints when param passed is object with specified key'
@@ -523,7 +523,7 @@ QUnit.module('validateParams.validate() function',
                     a.deepEqual(
                         r._validateConstraints,
                         {
-                            param1: { dictionary: { keyConstraints: { a: { presence: true, hasTypeof: 'number' } }, universalConstraints: { hasTypeof: 'string' } } },
+                            param1: { dictionary: { mapConstraints: { a: { presence: true, hasTypeof: 'number' } }, valueConstraints: { hasTypeof: 'string' } } },
                             'param1.a': { hasTypeof: 'number', presence: true },
                             'param1.c': { hasTypeof: 'string'}
                         },
@@ -536,15 +536,15 @@ QUnit.module('validateParams.validate() function',
                     var r = validateParams.validate([], [this.deepDictStrCons]);
                     a.deepEqual(
                         r._validateConstraints,
-                        { param1: { dictionary: { keyConstraints: { a: { dictionary: { universalConstraints: { hasTypeof: 'string' } } } } } } },
+                        { param1: { dictionary: { mapConstraints: { a: { dictionary: { valueConstraints: { hasTypeof: 'string' } } } } } } },
                         'no nested constraint added when param undefined'
                     );
                     r = validateParams.validate([{}], [this.deepDictStrCons]);
                     a.deepEqual(
                         r._validateConstraints,
                         {
-                            param1: { dictionary: { keyConstraints: { a: { dictionary: { universalConstraints: { hasTypeof: 'string' } } } } } },
-                            'param1.a': { dictionary: { universalConstraints: { hasTypeof: 'string' } } }
+                            param1: { dictionary: { mapConstraints: { a: { dictionary: { valueConstraints: { hasTypeof: 'string' } } } } } },
+                            'param1.a': { dictionary: { valueConstraints: { hasTypeof: 'string' } } }
                         },
                         'first nested constraint added when passed empty object, but not second-level nested constraint'
                     );
@@ -552,8 +552,8 @@ QUnit.module('validateParams.validate() function',
                     a.deepEqual(
                         r._validateConstraints,
                         {
-                            param1: { dictionary: { keyConstraints: { a: { dictionary: { universalConstraints: { hasTypeof: 'string' } } } } } },
-                            'param1.a': { dictionary: { universalConstraints: { hasTypeof: 'string' } } }
+                            param1: { dictionary: { mapConstraints: { a: { dictionary: { valueConstraints: { hasTypeof: 'string' } } } } } },
+                            'param1.a': { dictionary: { valueConstraints: { hasTypeof: 'string' } } }
                         },
                         'first nested constraint added when passed object containing empty object, but not second-level nested constraint'
                     );
@@ -561,8 +561,8 @@ QUnit.module('validateParams.validate() function',
                     a.deepEqual(
                         r._validateConstraints,
                         {
-                            param1: { dictionary: { keyConstraints: { a: { dictionary: { universalConstraints: { hasTypeof: 'string' } } } } } },
-                            'param1.a': { dictionary: { universalConstraints: { hasTypeof: 'string' } } },
+                            param1: { dictionary: { mapConstraints: { a: { dictionary: { valueConstraints: { hasTypeof: 'string' } } } } } },
+                            'param1.a': { dictionary: { valueConstraints: { hasTypeof: 'string' } } },
                             'param1.a.b': { hasTypeof: 'string' } 
                         },
                         'first and second level nested constraints added when passed two-level object'
@@ -610,12 +610,12 @@ QUnit.module('validateParams.validate() function',
                 
                 QUnit.test('deep-nested dictionary', function(a){
                     a.expect(6);
-                    a.ok(validateParams.validate([], [this.deepDictStrCons]).pass(),  "undefined passes deep-nested constraint {dictionary: {keyConstraints: {a: {dictionary: {universalConstraints: { hasTypeof: 'string' }}}}}");
-                    a.ok(validateParams.validate([{}], [this.deepDictStrCons]).pass(),  "empty object passes deep-nested constraint {dictionary: {keyConstraints: {a: {dictionary: {universalConstraints: { hasTypeof: 'string' }}}}}");
-                    a.notOk(validateParams.validate([{a: 'b'}], [this.deepDictStrCons]).pass(),  "{a: 'b'} fails deep-nested constraint {dictionary: {keyConstraints: {a: {dictionary: {universalConstraints: { hasTypeof: 'string' }}}}}");
-                    a.ok(validateParams.validate([{a: {}}], [this.deepDictStrCons]).pass(),  "{a: {}} passes deep-nested constraint {dictionary: {keyConstraints: {a: {dictionary: {universalConstraints: { hasTypeof: 'string' }}}}}");
-                    a.ok(validateParams.validate([{a: {b: 'c'}}], [this.deepDictStrCons]).pass(),  "{a: {b: 'c'}} passes deep-nested constraint {dictionary: {keyConstraints: {a: {dictionary: {universalConstraints: { hasTypeof: 'string' }}}}}");
-                    a.notOk(validateParams.validate([{a: {b: 42}}], [this.deepDictStrCons]).pass(),  "{a: {b: 42}} fails deep-nested constraint {dictionary: {keyConstraints: {a: {dictionary: {universalConstraints: { hasTypeof: 'string' }}}}}");
+                    a.ok(validateParams.validate([], [this.deepDictStrCons]).pass(),  "undefined passes deep-nested constraint {dictionary: {mapConstraints: {a: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
+                    a.ok(validateParams.validate([{}], [this.deepDictStrCons]).pass(),  "empty object passes deep-nested constraint {dictionary: {mapConstraints: {a: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
+                    a.notOk(validateParams.validate([{a: 'b'}], [this.deepDictStrCons]).pass(),  "{a: 'b'} fails deep-nested constraint {dictionary: {mapConstraints: {a: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
+                    a.ok(validateParams.validate([{a: {}}], [this.deepDictStrCons]).pass(),  "{a: {}} passes deep-nested constraint {dictionary: {mapConstraints: {a: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
+                    a.ok(validateParams.validate([{a: {b: 'c'}}], [this.deepDictStrCons]).pass(),  "{a: {b: 'c'}} passes deep-nested constraint {dictionary: {mapConstraints: {a: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
+                    a.notOk(validateParams.validate([{a: {b: 42}}], [this.deepDictStrCons]).pass(),  "{a: {b: 42}} fails deep-nested constraint {dictionary: {mapConstraints: {a: {dictionary: {valueConstraints: { hasTypeof: 'string' }}}}}");
                 });
             }    
         );
@@ -626,7 +626,7 @@ QUnit.module('validateParams.validate() function',
                 [{a: 'b'}],
                 [{
                     defined: true,
-                    dictionary: {universalConstraints: {hasTypeof: 'string'}}
+                    dictionary: {valueConstraints: {hasTypeof: 'string'}}
                 }]
             );
             a.ok(r.pass());
@@ -1472,9 +1472,9 @@ QUnit.module('custom validators', {}, function(){
             a.expect(4);
             
             a.ok(validateParams.validate([{a: 'b'}], [{dictionary: {rejectUnspecifiedKeys: false}}]).pass(), 'plain object accepted with rejectUnspecifiedKeys=false and no specified keys');
-            a.ok(validateParams.validate([{a: 'b'}], [{dictionary: {rejectUnspecifiedKeys: false, keyConstraints: {a: {defined: true}}}}]).pass(), "plain object with key 'a' accepted with rejectUnspecifiedKeys=false and specified key 'a'");
-            a.ok(validateParams.validate([{a: 'b'}], [{dictionary: {rejectUnspecifiedKeys: true, keyConstraints: {a: {defined: true}}}}]).pass(), "plain object with key 'a' accepted with rejectUnspecifiedKeys=true and specified key 'a'");
-            a.notOk(validateParams.validate([{a: 'b', c: 'd'}], [{dictionary: {rejectUnspecifiedKeys: true, keyConstraints: {a: {defined: true}}}}]).pass(), "plain object with keys 'a' & 'd' rejected with rejectUnspecifiedKeys=true and specified key 'a'");
+            a.ok(validateParams.validate([{a: 'b'}], [{dictionary: {rejectUnspecifiedKeys: false, mapConstraints: {a: {defined: true}}}}]).pass(), "plain object with key 'a' accepted with rejectUnspecifiedKeys=false and specified key 'a'");
+            a.ok(validateParams.validate([{a: 'b'}], [{dictionary: {rejectUnspecifiedKeys: true, mapConstraints: {a: {defined: true}}}}]).pass(), "plain object with key 'a' accepted with rejectUnspecifiedKeys=true and specified key 'a'");
+            a.notOk(validateParams.validate([{a: 'b', c: 'd'}], [{dictionary: {rejectUnspecifiedKeys: true, mapConstraints: {a: {defined: true}}}}]).pass(), "plain object with keys 'a' & 'd' rejected with rejectUnspecifiedKeys=true and specified key 'a'");
         });
     });
     
