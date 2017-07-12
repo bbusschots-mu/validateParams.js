@@ -21,6 +21,13 @@
  */
 
 /**
+ * The `validate.single()` function from
+ * [validate.js]{@link http://validatejs.org/}.
+ * @external single
+ * @see {@link https://validatejs.org/#validate-single}
+ */
+
+/**
  * The `isEmpty()` function from [validate.js]{@link http://validatejs.org/}.
  * @external isEmpty
  * @see {@link https://validatejs.org/#utilities-is-empty}
@@ -1829,18 +1836,22 @@ validateParams.validators = {
      * * `plainObjectOnly` - must evaluate to true when passed to the
      *   [valdiateParams.isPlainObject()]{@link module:validateParams.isPlainObject}
      *   function. Defaults to `false`.
-     * * `rejectUnspecifiedKeys` - whether or not reject objects which contain
-     *   keys not included in the `mapConstraints` option. Defaults to `false`.
-     * * `mapConstraints` - a plain object defining constraints for specific
-     *   keys within the object. Defaults to an empty object. This option cannot
-     *   be set on the validator's global `options` object, and will be ignored
-     *   if this validator is directly used by the
-     *   [validate()]{@link external:validate} function from validate.js
+     * * `keyConstraints` - a plain object defining constraints to be applied to
+     *   the keys in the dictionary. Each key in the dictionary will be tested
+     *   against the given constraints using the
+     *   [validate.single()]{@link external:single} function from validate.js.
      * * `valueConstraints` - a plain object defining constraints to be
      *   applied to the values in the dictionary. This option cannot be set on
      *   the validator's global `options` object, and will be ignored if this
      *   validator is directly used by the [validate()]{@link external:validate}
      *   function from validate.js
+     * * `mapConstraints` - a plain object defining constraints for specific
+     *   keys within the object. Defaults to an empty object. This option cannot
+     *   be set on the validator's global `options` object, and will be ignored
+     *   if this validator is directly used by the
+     *   [validate()]{@link external:validate} function from validate.js
+     * * `rejectUnspecifiedKeys` - whether or not reject objects which contain
+     *   keys not included in the `mapConstraints` option. Defaults to `false`.
      *
      * Note that if a validator appears in both `valueConstraints` and a
      * constraint for a specific key in `mapConstraints`, the definition in
@@ -1859,8 +1870,8 @@ validateParams.validators = {
      */
     dictionary: function(value, options){
         // NOTE - the nesting is taken care of by validateParams.validate()
-        // only the plainObjectOnly & rejectUnspecifiedKeys options need to be
-        // tested here
+        // so the valueConstraints and mapConstraints options don't need to be
+        // applied here
         
         // implicitly pass undefined
         if(typeof value === 'undefined') return undefined;
@@ -1871,6 +1882,7 @@ validateParams.validators = {
         // build up a base config from the pre-defined defaults
         var config = {};
         config.plainObjectOnly = this.options.plainObjectOnly ? true : false;
+        config.keyConstraints = validateParams.extendObject({}, this.options.keyConstraints);
         config.rejectUnspecifiedKeys = this.options.rejectUnspecifiedKeys ? true : false;
         config.message = validateParams._extractCustomValidatorMessage(this, options);
         
@@ -1879,6 +1891,11 @@ validateParams.validators = {
             config.plainObjectOnly = true;
         }else if(validate.isObject(options)){
             if(options.plainObjectOnly) config.plainObjectOnly = true;
+            if(validate.isObject(options.keyConstraints)){
+                Object.keys(options.keyConstraints).forEach(function(vn){
+                    config.keyConstraints[vn] = options.keyConstraints[vn]; // overides conflicting global validations intentionally
+                });
+            }
             if(options.rejectUnspecifiedKeys) config.rejectUnspecifiedKeys = true;
             if(validate.isString(options.message)) config.message = options.message;
         }else{
@@ -1896,6 +1913,18 @@ validateParams.validators = {
         if(config.plainObjectOnly && !validateParams.isPlainObject(value)){
             errors.push('must be a plain object');
         }
+        
+        // deal with the key restrictions
+        Object.keys(value).forEach(function(k){
+            var svRes = validate.single(k, config.keyConstraints);
+            if(svRes){ // undefined means no error, so a truthy value means an error
+                if(validate.isArray(svRes) && svRes.length === 1){
+                    errors.push("key name '" + k + "' " + svRes[0]);
+                }else{
+                    errors.push("key name '" + k + "' is invalid");
+                }
+            }
+        });
         
         // deal with rejectUnspecifiedKeys option
         if(config.rejectUnspecifiedKeys){

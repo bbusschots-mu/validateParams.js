@@ -1468,6 +1468,20 @@ QUnit.module('custom validators', {}, function(){
             a.notOk(validateParams.validate([new Date()], [{dictionary: {plainObjectOnly: true}}]).pass(), 'instance of Date rejected with plainObjectOnly=true');
         });
         
+        QUnit.test("'keyConstraints' option", function(a){
+            a.expect(4);
+            
+            var keyCons = {
+                dictionary: {
+                    keyConstraints: { length: { is: 2 } }
+                }
+            };
+            a.ok(validateParams.validate([{}], [keyCons]).pass(), 'empty object passes key constraint {length: {is: 2}}');
+            a.ok(validateParams.validate([{ab: 'c'}], [keyCons]).pass(), "{ab: 'c'} passes key constraint {length: {is: 2}}");
+            a.ok(validateParams.validate([{ab: 'c', de: 42}], [keyCons]).pass(), "{ab: 'c', de: 42} passes key constraint {length: {is: 2}}");
+            a.equal(validateParams.validate([{abc: 'd', e: 42}], [keyCons]).numErrors(), 2, "{abc: 'd', e: 42} fails key constraint {length: {is: 2}} with 2 errors");
+        });
+        
         QUnit.test("'rejectUnspecifiedKeys' option", function(a){
             a.expect(4);
             
