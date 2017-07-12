@@ -1490,6 +1490,33 @@ QUnit.module('custom validators', {}, function(){
             a.ok(validateParams.validate([{a: 'b'}], [{dictionary: {rejectUnspecifiedKeys: true, mapConstraints: {a: {defined: true}}}}]).pass(), "plain object with key 'a' accepted with rejectUnspecifiedKeys=true and specified key 'a'");
             a.notOk(validateParams.validate([{a: 'b', c: 'd'}], [{dictionary: {rejectUnspecifiedKeys: true, mapConstraints: {a: {defined: true}}}}]).pass(), "plain object with keys 'a' & 'd' rejected with rejectUnspecifiedKeys=true and specified key 'a'");
         });
+        
+        QUnit.test("'sizeIs' option", function(a){
+            a.expect(4);
+            
+            a.notOk(validateParams.validate([{}], [{dictionary: {sizeIs: 2}}]).pass(), 'empty object rejected with sizeIs=2');
+            a.notOk(validateParams.validate([{a: 'b'}], [{dictionary: {sizeIs: 2}}]).pass(), "{a: 'b'} rejected with sizeIs=2");
+            a.ok(validateParams.validate([{a: 'b', c: 'd'}], [{dictionary: {sizeIs: 2}}]).pass(), "{a: 'b', c: 'd'} accepted with sizeIs=2");
+            a.notOk(validateParams.validate([{a: 'b', c: 'd', e: 'f'}], [{dictionary: {sizeIs: 2}}]).pass(), "{a: 'b', c: 'd', e: 'f'} rejected with sizeIs=2");
+        });
+        
+        QUnit.test("'minimumSize' option", function(a){
+            a.expect(4);
+            
+            a.notOk(validateParams.validate([{}], [{dictionary: {minimumSize: 2}}]).pass(), 'empty object rejected with minimumSize=2');
+            a.notOk(validateParams.validate([{a: 'b'}], [{dictionary: {minimumSize: 2}}]).pass(), "{a: 'b'} rejected with minimumSize=2");
+            a.ok(validateParams.validate([{a: 'b', c: 'd'}], [{dictionary: {minimumSize: 2}}]).pass(), "{a: 'b', c: 'd'} accepted with minimumSize=2");
+            a.ok(validateParams.validate([{a: 'b', c: 'd', e: 'f'}], [{dictionary: {minimumSize: 2}}]).pass(), "{a: 'b', c: 'd', e: 'f'} accepted with minimumSize=2");
+        });
+        
+        QUnit.test("'maximumSize' option", function(a){
+            a.expect(4);
+            
+            a.ok(validateParams.validate([{}], [{dictionary: {maximumSize: 2}}]).pass(), 'empty object accepted with maximumSize=2');
+            a.ok(validateParams.validate([{a: 'b'}], [{dictionary: {maximumSize: 2}}]).pass(), "{a: 'b'} accepted with maximumSize=2");
+            a.ok(validateParams.validate([{a: 'b', c: 'd'}], [{dictionary: {maximumSize: 2}}]).pass(), "{a: 'b', c: 'd'} accepted with maximumSize=2");
+            a.notOk(validateParams.validate([{a: 'b', c: 'd', e: 'f'}], [{dictionary: {maximumSize: 2}}]).pass(), "{a: 'b', c: 'd', e: 'f'} rejected with maximumSize=2");
+        });
     });
     
     QUnit.module('validator aliases', {}, function(){

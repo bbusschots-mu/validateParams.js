@@ -1852,11 +1852,26 @@ validateParams.validators = {
      *   [validate()]{@link external:validate} function from validate.js
      * * `rejectUnspecifiedKeys` - whether or not reject objects which contain
      *   keys not included in the `mapConstraints` option. Defaults to `false`.
+     * * `sizeIs` - the exact number of key-value pairs the dictionary must
+     *   contain. The passed value will be converted to a number with
+     *   `parseInt()`, and if that conversion results in `NaN`, the option will
+     *   be ignored.
+     * * `minimumSize` - the minimum number of key-value pairs the dictionary
+     *   may contain. The passed value will be converted to a number with
+     *   `parseInt()`, and if that conversion results in `NaN`, the option will
+     *   be ignored.
+     * * `maximumSize` - the maximum number of key-value pairs the dictionary
+     *   may contain. The passed value will be converted to a number with
+     *   `parseInt()`, and if that conversion results in `NaN`, the option will
+     *   be ignored.
      *
      * Note that if a validator appears in both `valueConstraints` and a
      * constraint for a specific key in `mapConstraints`, the definition in
-     * `mapConstraints` takes preference. No attempt is made to merge or
+     * `mapConstraints` takes precedence. No attempt is made to merge or
      * reconcile the validator options.
+     *
+     * Also note that if `maximumSize` is less than `minimumSize`, the validator
+     * will internally swap the values before checking the size is within range.
      *   
      * When used in a constraint, this validator supports the following values:
      * * A plain object specifying options.
@@ -1884,6 +1899,9 @@ validateParams.validators = {
         config.plainObjectOnly = this.options.plainObjectOnly ? true : false;
         config.keyConstraints = validateParams.extendObject({}, this.options.keyConstraints);
         config.rejectUnspecifiedKeys = this.options.rejectUnspecifiedKeys ? true : false;
+        config.sizeIs = parseInt(this.options.sizeIs); // NaN means ignore this option
+        config.minimumSize = parseInt(this.options.minimumSize); // NaN means ignore this option
+        config.maximumSize = parseInt(this.options.maximumSize); // NaN means ignore this option
         config.message = validateParams._extractCustomValidatorMessage(this, options);
         
         // interpret the passed value
@@ -1897,9 +1915,22 @@ validateParams.validators = {
                 });
             }
             if(options.rejectUnspecifiedKeys) config.rejectUnspecifiedKeys = true;
+            if(!isNaN(parseInt(options.sizeIs))) config.sizeIs = parseInt(options.sizeIs);
+            if(!isNaN(parseInt(options.minimumSize))) config.minimumSize = parseInt(options.minimumSize);
+            if(!isNaN(parseInt(options.maximumSize))) config.maximumSize = parseInt(options.maximumSize);
             if(validate.isString(options.message)) config.message = options.message;
         }else{
             throw new Error('invalid options passed - must be true or a plain object');
+        }
+        
+        // flip the size bounds if needed
+        if(!(isNaN(config.minimumSize) || isNaN(config.maximumSize))){
+            if(config.maximumSize < config.minimumSize){
+                var trueMin = config.maximumSize;
+                var trueMax = config.minimumSize;
+                config.maximumSize = trueMax;
+                config.minimumSize = trueMin;
+            }
         }
         
         // implicitly reject non-objects
@@ -1939,6 +1970,18 @@ validateParams.validators = {
             Object.keys(value).forEach(function(vk){
                 if(!allowedKeysLookup[vk]) errors.push("key '" + vk + "' is not permitted");
             });
+        }
+        
+        // deal with any specified size restrictions
+        var numKeys = Object.keys(value).length;
+        if(!isNaN(config.sizeIs) && numKeys !== config.sizeIs){
+            errors.push('must contain ' + config.sizeIs + ' key-value pairs');
+        }
+        if(!isNaN(config.minimumSize) && numKeys < config.minimumSize){
+            errors.push('must contain at least ' + config.minimumSize + ' key-value pairs');
+        }
+        if(!isNaN(config.maximumSize) && numKeys > config.maximumSize){
+            errors.push('may not contain more than ' + config.maximumSize + ' key-value pairs');
         }
         
         // retrun as appropraite
