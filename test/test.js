@@ -346,6 +346,38 @@ QUnit.module('validateParams.validate() function',
             a.equal(params3[0], 3, 'coercion not applied with options.coerce=false');
         });
         
+        QUnit.test("per-parameter option 'name'", function(a){
+            a.expect(2);
+            var r = validateParams.validate(
+                [42, 'stuff', true],
+                [
+                    {
+                        vpopt_name: 'p0',
+                        numericality: { onlyInteger: true }
+                    },
+                    {
+                        paramOptions: {name: 'p1' },
+                        length: {minimum: 1}
+                    },
+                    { hasTypeof: 'boolean' }
+                ]
+            );
+            a.deepEqual(
+                r.validateAttributes(),
+                { p0: 42, p1: 'stuff', param3: true },
+                'attributes corrently generated with custom names'
+            );
+            a.deepEqual(
+                r.validateConstraints(),
+                {
+                    p0: { numericality: { onlyInteger: true } },
+                    p1: { length: {minimum: 1} },
+                    param3: { hasTypeof: 'boolean' }
+                },
+                'constraints corrently generated with custom names'
+            );
+        });
+        
         QUnit.module('nested constraints',
             {
                 beforeEach: function(){
@@ -1074,9 +1106,9 @@ QUnit.module('validateParams.validateJS() function', {}, function(){
     });
 });
 
-QUnit.module('validateParams.paramConstraintsAsAttrConstraints() function', {}, function(){
+QUnit.module('validateParams.paramToAttrConstraints() function', {}, function(){
     QUnit.test('function exists', function(a){
-        a.equal(typeof validateParams.paramConstraintsAsAttrConstraints, 'function');
+        a.equal(typeof validateParams.paramToAttrConstraints, 'function');
     });
     
     QUnit.test('invalid data passed through', function(a){
@@ -1085,7 +1117,7 @@ QUnit.module('validateParams.paramConstraintsAsAttrConstraints() function', {}, 
         mustPassUnaltered.forEach(function(tn){
             var t = DUMMY_BASIC_TYPES[tn];
             a.strictEqual(
-                validateParams.paramConstraintsAsAttrConstraints(t.val),
+                validateParams.paramToAttrConstraints(t.val),
                 t.val,
                 t.desc + ' passed un-altered'
             );
@@ -1120,8 +1152,8 @@ QUnit.module('validateParams.paramConstraintsAsAttrConstraints() function', {}, 
         };
         
         // filter the test constraints
-        var filteredConstraint1 = validateParams.paramConstraintsAsAttrConstraints(testConstraint1);
-        var filteredConstraint2 = validateParams.paramConstraintsAsAttrConstraints(testConstraint2);
+        var filteredConstraint1 = validateParams.paramToAttrConstraints(testConstraint1);
+        var filteredConstraint2 = validateParams.paramToAttrConstraints(testConstraint2);
         
         // make sure the validators were passed
         a.strictEqual(filteredConstraint1.presence, testConstraint1.presence, 'presence constraint passed through constraint 1');

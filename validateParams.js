@@ -368,8 +368,11 @@ var validateParams = function(params, constraints, options){
  * This module adds support for a number parameter-specific options that do not
  * exist in validate.js. These options are specified within the constraint
  * objects that make up the constraint list. These options will be stripped from
- * the constraint before they are passed on to the
+ * the constraints before they are passed on to the
  * [validate()]{@link external:validate} function.
+ *
+ * Note that parameter-specific options apply to the top-level parameters only,
+ * they cannot be specified within nested validations.
  *
  * For convenience, Parameter-specific options can be specified in two ways.
  *
@@ -380,6 +383,21 @@ var validateParams = function(params, constraints, options){
  * The alternative to collecting the parameter-specific options into a single
  * plain object is to add them directly into the constraint, but with their
  * name prefixed with `vpopt_`.
+ *
+ * ##### Parameter Names (Parameter-specific option `name`)
+ *
+ * This function accepts lists of parameters and constraints, and converts them
+ * to name-value pairs as expected by the [validate()]{@link external:validate}
+ * function from validate.js. By default the first parameter is named `param1`,
+ * the second `param2`, and so on. This option allows you to specify a custom
+ * name to be used instead, though all characters other than `a-z`, `A-Z`,
+ * `0-9`, and `_` will be stripped from the provided name before its used.
+ *
+ * Both of the generated collections of name-value pairs passed to
+ * [validate()]{@link external:validate} are included in the
+ * [validateParams.Result]{@link module:validateParams.Result} objects returned
+ * by the this function, and the collection representing the data is returned by
+ * the [validateParams.assert()]{@link module:validateParams.assert} function.
  *
  * ##### Coercions (Parameter-specific option `coerce`)
  *
@@ -516,9 +534,9 @@ validateParams.validate = function(params, constraints, options){
     var valdiateAttributes = {};
     var validateConstraints = {};
     for(i = 0; i < constraints.length; i++){
-        var paramName = 'param' + (i + 1);
+        var paramName = validateParams._generateParamName(i, constraints[i]);
         valdiateAttributes[paramName] = params[i];
-        validateConstraints[paramName] = validate.isObject(constraints[i]) ? validateParams.paramConstraintsAsAttrConstraints(constraints[i]) : {};
+        validateConstraints[paramName] = validate.isObject(constraints[i]) ? validateParams.paramToAttrConstraints(constraints[i]) : {};
         
         // deal with any possible nesting
         validateParams._processNestedValidations(paramName, validateConstraints, valdiateAttributes[paramName]);
@@ -541,6 +559,51 @@ validateParams.validate = function(params, constraints, options){
     results._validateConstraints = validateConstraints;
     results._errors = errors;
     return results;
+};
+
+/**
+ * A private helper function to extract the value for a given per-parameter
+ * option from a parameter constraint.
+ *
+ * @alias module:validateParams._extractParamOption
+ * @private
+ * @param {string} optName - the name of the per-parameter option.
+ * @param {ParameterConstraints} pCons - the parameter's constraints object.
+ * @returns {*} The value for the option, or `undefined`.
+ */
+validateParams._extractParamOption = function(optName, pCons){
+    optName = String(optName); // force the option name to a string
+    var optVal = undefined; // default to undefined
+    if(optName.length > 0 && validate.isObject(pCons)){
+        // look for the vopt_ prefixed key for the option
+        var prefixedKey = 'vpopt_' + optName;
+        if(typeof pCons[prefixedKey] !== 'undefined'){
+            optVal = pCons[prefixedKey];
+        }
+            
+        // look for the option inside paramOptions
+        if(validate.isObject(pCons.paramOptions) && typeof pCons.paramOptions[optName] !== 'undefined'){
+            optVal = pCons.paramOptions[optName];
+        }
+    }
+    return optVal;
+};
+
+/**
+ * A private helper function to generate the name for a given parameter.
+ *
+ * @alias module:validateParams._generateParamName
+ * @private
+ * @param {number} i - the parameter's index in the argument list
+ * @param {ParameterConstraints} pCons - the parameter's constraints object.
+ */
+validateParams._generateParamName = function(i, pCons){
+    var customName = validateParams._extractParamOption('name', pCons);
+    if(validate.isString(customName)){
+        customName = customName.replace(/[^a-zA-Z0-9_]/g, '');
+        if(customName.length > 0) return customName;
+    }
+    return 'param' + (i + 1);
 };
 
 /**
@@ -763,22 +826,8 @@ validateParams.coerce = function(params, constraints, options){
     
     // apply any defined coercions
     for(var i = 0; i < constraints.length; i++){
-        // try find a coercion to apply
-        var coerceFn = false;
-        if(validate.isObject(constraints[i])){
-            // look for vpopt_coerce
-            if(validate.isFunction(constraints[i].vpopt_coerce)){
-                coerceFn = constraints[i].vpopt_coerce;
-            }
-            
-            // look for a coercion inside paramOptions
-            if(validate.isObject(constraints[i].paramOptions) && validate.isFunction(constraints[i].paramOptions.coerce)){
-                coerceFn = constraints[i].paramOptions.coerce;
-            }
-        }
-        
-        // if a coercion was found, apply it
-        if(coerceFn){
+        var coerceFn = validateParams._extractParamOption('coerce', constraints[i]);
+        if(validate.isFunction(coerceFn)){
             params[i] = coerceFn(params[i]);
         }
     }
@@ -1208,7 +1257,7 @@ validateParams.validateJS = validateParams.getValidateInstance;
  * This function does not throw errors, if it receives invalid input, it simply
  * returns it un-altered, but it will log a warning if it does so.
  *
- * @alias module:validateParams.paramConstraintsAsAttrConstraints
+ * @alias module:validateParams.paramToAttrConstraints
  * @param {ParameterConstraints} paramConstraints - the parameter constraints
  * object to be converted into an attribute constraints object.
  * @returns {AttributeContraints} A new object containing every key-value pair
@@ -1218,7 +1267,7 @@ validateParams.validateJS = validateParams.getValidateInstance;
  * @see external:validate
  * @since version 1.1.1
  */
-validateParams.paramConstraintsAsAttrConstraints = function(constraintObject){
+validateParams.paramToAttrConstraints = function(constraintObject){
     // return invalid data immediately
     if(typeof constraintObject !== 'object'){
         validateParams._warn('per-parameter options filter returning invalid constraint data un-changed');
