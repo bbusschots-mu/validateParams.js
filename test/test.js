@@ -321,6 +321,41 @@ QUnit.module('validateParams.validate() function',
             a.equal(errorObj.validationErrors.length, 2, 'thrown error contains the expected number of validation errors');
         });
         
+        QUnit.test('option: injectDefaults', function(a){
+            a.expect(6);
+            
+            // define a constranint that specifies both kinds of default
+            var injectingConstraint = {
+                presence: true,
+                vpopt_defaultWhenUndefined: false,
+                vpopt_defaultWhenEmpty: true
+            };
+            
+            // make sure both kinds of default are applied by default
+            var params = [];
+            validateParams.validate(params, [injectingConstraint]);
+            a.strictEqual(params[0], false, 'undefined correctly defaulted by default');
+            params = [''];
+            validateParams.validate(params, [injectingConstraint]);
+            a.strictEqual(params[0], true, 'empty string correctly defaulted by default');
+            
+            // make sure both kinds of default are applied when options.injectDefaults is explicitly set to true
+            params = [];
+            validateParams.validate(params, [injectingConstraint], {injectDefaults: true});
+            a.strictEqual(params[0], false, 'undefined correctly defaulted when options.injectDefaults explicitly set to true');
+            params = [''];
+            validateParams.validate(params, [injectingConstraint], {injectDefaults: true});
+            a.strictEqual(params[0], true, 'empty string correctly defaulted when options.injectDefaults explicitly set to true');
+            
+            // make sure neither kind of default is applied when options.injectDefaults is set to false
+            params = [];
+            validateParams.validate(params, [injectingConstraint], {injectDefaults: false});
+            a.strictEqual(typeof params[0], 'undefined', 'undefined correctly left un-changed when options.injectDefaults set to false');
+            params = [''];
+            validateParams.validate(params, [injectingConstraint], {injectDefaults: false});
+            a.strictEqual(params[0], '', 'empty string correctly left un-changed when options.injectDefaults set to false');
+        });
+        
         QUnit.test('option: coerce', function(a){
             a.expect(3);
             
@@ -847,6 +882,144 @@ QUnit.module('validateParams.validate() function',
     }
 );
 
+QUnit.module('validateParams.injectDefaults() function', {}, function(){
+    QUnit.test('function exists', function(a){
+        a.equal(typeof validateParams.injectDefaults, 'function');
+    });
+    
+    QUnit.test('parameter number validation', function(a){
+        a.expect(4);
+        a.throws(
+            function(){ validateParams.injectDefaults(); },
+            Error,
+            'first argument required'
+        );
+        a.throws(
+            function(){ validateParams.injectDefaults([]); },
+            Error,
+            'second argument required'
+        );
+        a.ok((function(){ validateParams.injectDefaults([], []); return true; })(), 'third argument is not required');
+        a.ok((function(){ validateParams.injectDefaults([], [], {}); return true; })(), 'third argument is allowed');
+    });
+    
+    QUnit.test('params validation', function(a){
+        var mustThrow = dummyBasicTypesExcept('arr');
+        a.expect(mustThrow.length + 2);
+            
+        // make sure all the basic types excep array do indeed throw
+        mustThrow.forEach(function(tn){
+            a.throws(
+                function(){ validateParams.injectDefaults(DUMMY_BASIC_TYPES[tn].val, []); },
+                Error,
+                'params not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
+            );
+        });
+            
+        // make sure an array does not throw
+        a.ok((function(){ validateParams.injectDefaults([], []); return true; })(), 'params can be an array');
+            
+        // make sure an Arguments object does not throw
+        a.ok((function(){ validateParams.injectDefaults(arguments, []); return true; })(), 'params can be an Arguments object');
+    });
+    
+    QUnit.test('constraints validation', function(a){
+        var mustThrow = dummyBasicTypesExcept('arr');
+        a.expect(mustThrow.length + 1);
+            
+        // make sure all the basic types excep array do indeed throw
+        mustThrow.forEach(function(tn){
+            a.throws(
+                function(){ validateParams.injectDefaults([], DUMMY_BASIC_TYPES[tn].val); },
+                Error,
+                'constraints not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
+            );
+        });
+            
+        // make sure an array does not throw
+        a.ok((function(){ validateParams.injectDefaults([], []); return true; })(), 'constraints can be an array');
+    });
+    
+    QUnit.test("the 'defaultWhenUndefined' per-parameter option", function(a){
+        a.expect(11);
+        var defaultObj = new Date();
+        var defaultPlainObj = {a: 'b'};
+        var defaultArr = ['a', 'b'];
+        var defaultVal = 3.1415;
+        var arrIn = [undefined, undefined, undefined, undefined, 42, '', {}, []];
+        var arrOut = validateParams.injectDefaults(
+            arrIn,
+            [
+                { vpopt_defaultWhenUndefined: defaultObj },
+                { vpopt_defaultWhenUndefined: defaultPlainObj },
+                { paramOptions: { defaultWhenUndefined: defaultArr } },
+                { paramOptions: { defaultWhenUndefined: defaultVal } },
+                { vpopt_defaultWhenUndefined: true },
+                { vpopt_defaultWhenUndefined: true },
+                { vpopt_defaultWhenUndefined: true },
+                { vpopt_defaultWhenUndefined: true }
+            ]
+        );
+        a.strictEqual(arrIn, arrOut, 'original parameter list returned');
+        a.strictEqual(arrIn[0], defaultObj, 'undefined correctly defaulted to object reference');
+        a.deepEqual(arrIn[1], defaultPlainObj, 'undefined correctly defaulted to plain object');
+        a.notStrictEqual(arrIn[1], defaultPlainObj, 'defaulted value is copy of plain object');
+        a.deepEqual(arrIn[2], defaultArr, 'undefined correctly defaulted to array');
+        a.notStrictEqual(arrIn[2], defaultArr, 'defaulted value is copy of array');
+        a.strictEqual(arrIn[3], defaultVal, 'undefined correctly defaulted to value');
+        a.strictEqual(arrIn[4], 42, 'defined value un-changed');
+        a.strictEqual(arrIn[5], '', 'empty string un-changed');
+        a.deepEqual(arrIn[6], {}, 'empty plain object un-changed');
+        a.deepEqual(arrIn[7], [], 'empty array un-changed');
+    });
+    
+    QUnit.test("the 'defaultWhenEmpty' per-parameter option", function(a){
+        a.expect(11);
+        var defaultObj = new Date();
+        var defaultPlainObj = {a: 'b'};
+        var defaultArr = ['a', 'b'];
+        var defaultVal = 3.1415;
+        var arrIn = [undefined, undefined, undefined, undefined, 42, '', {}, []];
+        var arrOut = validateParams.injectDefaults(
+            arrIn,
+            [
+                { vpopt_defaultWhenEmpty: defaultObj },
+                { vpopt_defaultWhenEmpty: defaultPlainObj },
+                { paramOptions: { defaultWhenEmpty: defaultArr } },
+                { paramOptions: { defaultWhenEmpty: defaultVal } },
+                { vpopt_defaultWhenEmpty: true },
+                { vpopt_defaultWhenEmpty: true },
+                { vpopt_defaultWhenEmpty: true },
+                { vpopt_defaultWhenEmpty: true }
+            ]
+        );
+        a.strictEqual(arrIn, arrOut, 'original parameter list returned');
+        a.strictEqual(arrIn[0], defaultObj, 'undefined correctly defaulted to object reference');
+        a.deepEqual(arrIn[1], defaultPlainObj, 'undefined correctly defaulted to plain object');
+        a.notStrictEqual(arrIn[1], defaultPlainObj, 'defaulted value is copy of plain object');
+        a.deepEqual(arrIn[2], defaultArr, 'undefined correctly defaulted to array');
+        a.notStrictEqual(arrIn[2], defaultArr, 'defaulted value is copy of array');
+        a.strictEqual(arrIn[3], defaultVal, 'undefined correctly defaulted to value');
+        a.strictEqual(arrIn[4], 42, 'defined non-empty value un-changed');
+        a.strictEqual(arrIn[5], true, 'empty string correctly changed');
+        a.strictEqual(arrIn[6], true, 'empty plain object correctly changed');
+        a.strictEqual(arrIn[7], true, 'empty array correctly changed');
+    });
+    
+    QUnit.test("the 'defaultWhenUndefined' option takes precedence over the 'defaultWhenEmpty' option", function(a){
+        a.expect(1);
+        var paramList = [];
+        validateParams.injectDefaults(
+            paramList,
+            [{
+                vpopt_defaultWhenUndefined: true,
+                vpopt_defaultWhenEmpty: false
+            }]
+        );
+        a.strictEqual(paramList[0], true);
+    });
+});
+
 QUnit.module('validateParams.coerce() function', {}, function(){
     QUnit.test('function exists', function(a){
         a.equal(typeof validateParams.coerce, 'function');
@@ -886,6 +1059,23 @@ QUnit.module('validateParams.coerce() function', {}, function(){
             
         // make sure an Arguments object does not throw
         a.ok((function(){ validateParams.coerce(arguments, []); return true; })(), 'params can be an Arguments object');
+    });
+    
+    QUnit.test('constraints validation', function(a){
+        var mustThrow = dummyBasicTypesExcept('arr');
+        a.expect(mustThrow.length + 1);
+            
+        // make sure all the basic types excep array do indeed throw
+        mustThrow.forEach(function(tn){
+            a.throws(
+                function(){ validateParams.coerce([], DUMMY_BASIC_TYPES[tn].val); },
+                Error,
+                'constraints not allowed to be ' + DUMMY_BASIC_TYPES[tn].desc
+            );
+        });
+            
+        // make sure an array does not throw
+        a.ok((function(){ validateParams.coerce([], []); return true; })(), 'constraints can be an array');
     });
     
     QUnit.test('coercion on arguments object', function(a){
@@ -1103,6 +1293,44 @@ QUnit.module('validateParams.getValidateInstance() function', {}, function(){
 QUnit.module('validateParams.validateJS() function', {}, function(){
     QUnit.test('is an alias to validateParams.getValidateInstance()', function(a){
         a.strictEqual(validateParams.validateJS, validateParams.getValidateInstance);
+    });
+});
+
+// validateParams.shallowCopy
+QUnit.module('validateParams.shallowCopy() function', {}, function(){
+    QUnit.test('function exists', function(a){
+        a.equal(typeof validateParams.shallowCopy, 'function');
+    });
+    
+    QUnit.test('invalid data passed through', function(a){
+        var mustPassUnaltered = dummyBasicTypesExcept('obj', 'arr');
+        a.expect(mustPassUnaltered.length);
+        mustPassUnaltered.forEach(function(tn){
+            var t = DUMMY_BASIC_TYPES[tn];
+            a.strictEqual(
+                validateParams.shallowCopy(t.val),
+                t.val,
+                t.desc + ' passed un-altered'
+            );
+        });
+    });
+    
+    QUnit.test('arrays shallow-coppied', function(a){
+        a.expect(3);
+        var origArr = [42, new Date()];
+        var copyArr = validateParams.shallowCopy(origArr);
+        a.notStrictEqual(origArr, copyArr, 'copy is not a reference to the original');
+        a.strictEqual(origArr[0], copyArr[0], 'value coppied correctly');
+        a.strictEqual(origArr[1], copyArr[1], 'reference coppied correctly');
+    });
+    
+    QUnit.test('plain objects shallow-coppied', function(a){
+        a.expect(3);
+        var origObj = {a: 42, b: new Date()};
+        var copyObj = validateParams.shallowCopy(origObj);
+        a.notStrictEqual(origObj, copyObj, 'copy is not a reference to the original');
+        a.strictEqual(origObj.a, copyObj.a, 'value coppied correctly');
+        a.strictEqual(origObj.b, copyObj.b, 'reference coppied correctly');
     });
 });
 

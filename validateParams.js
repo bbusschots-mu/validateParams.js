@@ -40,6 +40,12 @@
  */
 
 /**
+ * The `isArray()` function from [validate.js]{@link http://validatejs.org/}.
+ * @external isArray
+ * @see {@link https://validatejs.org/#utilities-is-array}
+ */
+
+/**
  * A validate.js compatible validator function.
  * @external Validator
  * @see {@link https://validatejs.org/#custom-validator}
@@ -399,6 +405,22 @@ var validateParams = function(params, constraints, options){
  * by the this function, and the collection representing the data is returned by
  * the [validateParams.assert()]{@link module:validateParams.assert} function.
  *
+ * ##### Parameter Defaults (Parameter-specific options `default` & `defaultWhenEmpty`)
+ *
+ * When no value is provided for a given parameter, these options allow default
+ * values to be specified. The values can be supplied in one of two ways, as
+ * raw values, or, as a callback that will be executd to generate the value. If
+ * the raw value is a plain object or an array, a shallow copy of the value
+ * will be used.
+ *
+ * The `default` parameter-specific option is used when the value for the
+ * parameter is `undefined`, while the `defaultWhenEmpty` value is used when
+ * the value for the parameter is defined, but returns `true` when passed to the
+ * [validate.isEmpty()]{@link external:isEmpty} function from validate.js.
+ *
+ * Only one default value will ever be applied to a parameter, and defaults are
+ * applied after any defined coercions have executed.
+ *
  * ##### Coercions (Parameter-specific option `coerce`)
  *
  * A coercion is a function which attempts to transform an invalid value into
@@ -430,6 +452,9 @@ var validateParams = function(params, constraints, options){
  * @param {boolean} [options.fatal=false] - whether or not to throw a
  * [validateParams.ValidationError]{@link module:validateParams.ValidationError}
  * when there is a validation error rather than returning a results object.
+ * @param {boolean} [options.injectDefaults=true] - whether or not to inject
+ * default values into the parameter list before applying coercions or
+ * validating.
  * @returns {module:validateParams.Result}
  * @throws {TypeError} A type error is thrown if the function is invoked with
  * invalid parameters.
@@ -508,6 +533,11 @@ validateParams.validate = function(params, constraints, options){
     if(typeof options === 'undefined'){
         options = {};
     }
+    if(typeof options.injectDefaults === 'undefined'){
+        options.injectDefaults = true;
+    }else{
+        options.injectDefaults = options.injectDefaults ? true : false;
+    }
     if(typeof options.coerce === 'undefined'){
         options.coerce = true;
     }else{
@@ -523,6 +553,11 @@ validateParams.validate = function(params, constraints, options){
         if(typeof options.fatal !== 'undefined'){
             delete options.fatal; // don't want to pass this key on to validate()
         }
+    }
+    
+    // inject any defined default values if appropriate
+    if(options.injectDefaults){
+        validateParams.injectDefaults(params, constraints, options);
     }
     
     // apply any defined coercions if appropriate
@@ -716,6 +751,86 @@ validateParams._processNestedValidations = function(validateKey, validateConstra
 };
 
 /**
+ * A function which injects default values, but does not do any validation.
+ *
+ * The values in the passed parameter list (`param`) will be updated according
+ * to any applicable default value specifications defined in the constraints
+ * list (`constraints`).
+ *
+ * Since the parameter list is an array-like object, it's passed by reference,
+ * so the changes will be made directly within the list, and there is no need
+ * to return anything. However, purely for convenience, a reference to the
+ * parameter list is returned.
+ *
+ * Default values are implemented as the parameter-specific options named
+ * `defaultWhenUndefined` and `defaultWhenEmpty`. There is more information on
+ * parameter-specific options available in the description of the
+ * [validateParams.validate()]{@link module:validateParams.validate} function.
+ *
+ * The `defaultWhenUndefined` parameter-specific option is used to set initial
+ * values on parameters that are undefined, while the `defaultWhenEmpty`
+ * parameter-specific option is used to replace the values of parameters that
+ * are defined, but who's value evaluates to `true` with the the
+ * [validate.isEmpty()]{@link external:isEmpty} function from validate.js.
+ *
+ * If both options are specified, and a parameter is undefined, the
+ * `defaultWhenUndefined` option takes precedence.
+ *
+ * For both of these options, if the value specified is a reference to a plain
+ * object (as determined by the
+ * [validateParams.isPlainObject()]{@link module:validateParams.isPlainObject}
+ * function) or an array (as determined by the
+ * [validate.isArray()]{@link external:isArray} function from validate.js), a
+ * shallow-copy will be created (with the
+ * [validateParams.shallowCopy()]{@link module:validateParams:shallowCopy}
+ * function) and used in place of the original reference.
+ *
+ * Note that this function will always inject defaults into the parameter list,
+ * even when `options.injectDefaults=false`.
+ *
+ * @alias module:validateParams.injectDefaults
+ * @param {(Arguments|Array)} params - an array-like object containing data to
+ * be coerced, as would be passed to the
+ * [validateParams.validate()]{@link module:validateParams.validate} function.
+ * The special `arguments` object would often be passed here.
+ * @param {ParameterConstraints[]} constraints - an array of parameter
+ * constraints, as would be passed to the
+ * [validateParams.validate()]{@link module:validateParams.validate} function.
+ * @param {Object} [options] - A plain object with options (not currently used).
+ * @returns {(Arguments|Array)} A reference to the parameter list (`params`).
+ * @since version 1.1.1
+ * @see module:validateParams.validate
+ * @see module:validateParams.shallowCopy
+ */
+validateParams.injectDefaults = function(params, constraints, options){
+    // validate parameters
+    if(!(params && (validate.isArray(params) || validateParams.isArguments(params)))){
+        throw new Error('first parameter must be an array of parameters to test, or an Arguments object');
+    }
+    if(!validate.isArray(constraints)){
+        throw new Error('second parameter must be an array of constraints to test against');
+    }
+    if(typeof options !== 'undefined' && !(validate.isObject(options) && !validate.isArray(options))){
+        throw new Error('if present, the third parameter must be a plain object');
+    }
+    if(typeof options === 'undefined') options = {}; // make sure there's always an options object
+    
+    // apply any defined defaults
+    for(var i = 0; i < constraints.length; i++){
+        var undefDefault = validateParams._extractParamOption('defaultWhenUndefined', constraints[i]);
+        var emptyDefault = validateParams._extractParamOption('defaultWhenEmpty', constraints[i]);
+        if(typeof params[i] === 'undefined' && typeof undefDefault !== 'undefined'){
+            params[i] = validateParams.shallowCopy(undefDefault);
+        }else if(validate.isEmpty(params[i]) && typeof emptyDefault !== 'undefined'){
+            params[i] = validateParams.shallowCopy(emptyDefault);
+        }
+    }
+    
+    // return the parameter list
+    return params;
+};
+
+/**
  * A function which applies coercions, but does not do any validation.
  *
  * The values in the passed parameter list (`param`) will be updated according
@@ -727,7 +842,7 @@ validateParams._processNestedValidations = function(validateKey, validateConstra
  * parameter list is returned.
  *
  * Coercions are implemented as a parameter-specific option named `coerce`.
- * There is more information on on parameter-specific options available in the
+ * There is more information on parameter-specific options available in the
  * description of the
  * [validateParams.validate()]{@link module:validateParams.validate} function.
  *
@@ -1240,6 +1355,52 @@ validateParams.getValidateInstance = function(){
  * @since version 1.1.1
  */
 validateParams.validateJS = validateParams.getValidateInstance;
+
+/**
+ * A function to create shallow coppies of plain objects and arrays.
+ *
+ * If the value passed to this function is a reference to a plain object (as
+ * per the
+ * [validateParams.isPlainObject()]{@link module:validateParams.isPlainObject}
+ * function) or an array (as per the
+ * [validate.isArray()]{@link external:isArray} function from validate.js), a
+ * new plain object or array will be created, and the keys and values coppied to
+ * the new object, a reference to which will then be returned. However, if the
+ * values themselves are also references, no attempt will be made to clone them.
+ *
+ * If the passed value is not a reference to a plain object or an array it will
+ * be returned un-changed.
+ *
+ * @alias module:validateParams.shallowCopy
+ * @param {*} item - the item to be shallow-coppied or passed through.
+ * @returns {*} the original item, or a shallow copy if the item was a referece
+ * to a plain object or an array.
+ * @since version 1.1.1
+ * @see module:validateParams.isPlainObject
+ * @see external:isArray
+ */
+validateParams.shallowCopy = function(item){
+    // shallow copy arrays and return
+    if(validate.isArray(item)){
+        var copyArray = [];
+        for(var i = 0; i < item.length; i++){
+            copyArray[i] = item[i];
+        }
+        return copyArray;
+    }
+    
+    // shallow copy objects and return
+    if(validateParams.isPlainObject(item)){
+        var copyObject = {};
+        Object.keys(item).forEach(function(ik){
+            copyObject[ik] = item[ik];
+        });
+        return copyObject;
+    }
+    
+    // pass everything else through
+    return item;
+};
 
 /**
  * A function to convert a
