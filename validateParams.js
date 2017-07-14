@@ -598,7 +598,7 @@ validateParams.validate = function(params, constraints, options){
     // build the results object and either throw or return it
     var results = new validateParams.Result(params, constraints, options, valdiateAttributes, validateConstraints, errorDetails, errors);
     if(doThrow && errors){
-        throw new validateParams.ValidationError('invalid parameters', errors);
+        throw new validateParams.ValidationError(results);
     }
     return results;
 };
@@ -1241,45 +1241,25 @@ validateParams.Result.prototype.errors = function(){
 /**
  * Return the number of errors contained in the result.
  *
- * Note that if a custom error formatter was used, an educated guess will need
- * to be made. If this happens, a warning will be written to the console. The
- * algorithm for making an educated geuess is to return the length if the error
- * value is an array, the number of keys if it's a plain object, or 1.
+ * Note that if the `errorDetails` property of the object contains an invalid
+ * value, the function will return 1 and log a warning.
  *
  * @alias module:validateParams.Result#numErrors
  * @returns {number}
  * @since version 1.1.1
  */
 validateParams.Result.prototype.numErrors = function(){
-    // if errors are undefined, there were none, so return 0
-    if(typeof this._errors === 'undefined') return 0;
+    // if errorDetails is undefined, there were no errors, so return 0
+    if(typeof this._errorDetails === 'undefined') return 0;
     
-    // if errors is empty (in the validate.js sense), assume there were no errors and return 0
-    if(validate.isEmpty(this._errors)) return 0;
-    
-    // otherwise, count the errors based on the error format
-    var efmt = 'grouped';
-    if(validate.isString(this._options.format)){
-        efmt = this._options.format;
-    }
-    if((efmt == 'flat' || efmt == 'detailed') && validate.isArray(this._errors)){
-        return this._errors.length;
-    }
-    if(efmt == 'grouped' && validate.isObject(this._errors)){
-        var count = 0;
-        var that = this;
-        Object.keys(this._errors).forEach(function(ek){
-            count += validate.isArray(that._errors[ek]) ? that._errors[ek].length : 1;
-        });
-        return count;
+    // if errorDetails is not an array, something screwy is going on
+    if(!validate.isArray(this._errorDetails)){
+        validateParams._warn('object contains invalid error details - assuming 1 error');
+        return 1;
     }
     
-    // if we got here there is a non-standard formatter, so warn that we have
-    // to make an educated guess, then make an educated guess
-    validateParams._warn('non-standard error formatter used, so returning an educated guess from .numErrors() on validateParams.Result object');
-    if(validate.isArray(this._errors)) return this._errors.length;
-    if(validateParams.isPlainObject(this._errors)) return Object.keys(this._errors).length;
-    return 1;
+    // return the count
+    return this._errorDetails.length;
 };
 
 /**
@@ -1325,6 +1305,24 @@ validateParams.Result.prototype.fail = function(){
 validateParams.Result.prototype.failed = validateParams.Result.prototype.fail;
 
 /**
+ * A function to return the errors as a list of strings, regardless of the
+ * value of the `format` option passed used during validation.
+ *
+ * @alias module:validateParams.Result#errorList
+ * @returns {Array.<string>}
+ * @since version 1.1.1
+ */
+validateParams.Result.prototype.errorList = function(){
+    var errList = [];
+    if(validate.isArray(this._errorDetails)){
+        this._errorDetails.forEach(function(ed){
+            errList.push(ed.error);
+        });
+    }
+    return errList;
+};
+
+/**
  * A function to return a very short summary of the result as a string, e.g.
  * 'passed', or 'failed with 2 errors'.
  *
@@ -1347,13 +1345,19 @@ validateParams.Result.prototype.asString = function(){
  * 
  * @constructor
  * @alias module:validateParams.ValidationError
- * @param {string} [msg=''] - an error message.
- * @param {array|object} [errors=false] - the errors messages as returned by the
- * [validate()]{@link external:validate} function from validate.js.
+ * @param {validateParams.Result} result - the validation result that triggered
+ * the error.
+ * @throws {TypeError} A type error is thrown if the `result` parameter is not
+ * passed or not an instance of the
+ * [validateParams.Result]{@link module:validateParams.Result} prototype.
  * @see {@link https://stackoverflow.com/a/17891099/174985|Based on this StackOverflow answer}
- * @see external:validate
  */
-validateParams.ValidationError = function(msg, errors){
+validateParams.ValidationError = function(result){
+    // validate args
+    if(!result instanceof validateParams.Result){
+        throw new TypeError('param1: must be an instance of validateParams.Result');
+    }
+    
     /**
      * The error name.
      * `validateParams.ValidationError`.
@@ -1366,18 +1370,19 @@ validateParams.ValidationError = function(msg, errors){
      * The error message.
      * @type {string}
      */
-    this.message = typeof msg === 'string' ? msg : '';
+    this.message = '';
     
     /**
-     * The validation errors. This value should be populated by the
-     * `validateParams()` function, and its exact contents will vary depending
-     * on the value of `options.format` passed to `validateParams()`.
-     * @type {boolean|array|object}
-     * @default false
+     * The validation result that triggered this error.
+     * @type {validateParams.Result}
      */
-    this.validationErrors = false;
-    if(typeof errors === 'object'){
-        this.validationErrors = errors;
+    this.validationResult = result;
+    
+    // build the message
+    if(this.validationResult.numErrors() == 1){
+        this.message = 'Validation failed with error: ' + this.validationResult.errorList()[0];
+    }else{
+        this.message = 'Validation failed with ' + this.validationResult.numErrors() + 'errors:\n* ' + this.validationResult.errorList().join('* ');
     }
 };
 validateParams.ValidationError.prototype = Object.create(Error.prototype, {
@@ -1387,6 +1392,30 @@ validateParams.ValidationError.prototype = Object.create(Error.prototype, {
         configurable: true
     }
 });
+
+/**
+ * A function to return the number of validation errors that triggered this
+ * error.
+ *
+ * @alias module:validateParams.ValidationError#numErrors
+ * @returns {number}
+ * @since version 1.1.1
+ */
+validateParams.ValidationError.prototype.numErrors = function(){
+    return this.validationResult.numErrors();
+};
+
+/**
+ * A function to return the validation errors that triggered this error as an
+ * array of strings.
+ *
+ * @alias module:validateParams.ValidationError#errors
+ * @returns {string[]}
+ * @since version 1.1.1
+ */
+validateParams.ValidationError.prototype.errors = function(){
+    return this.validationResult.errorList();
+};
 
 //
 //=== Public Utility Functions =================================================

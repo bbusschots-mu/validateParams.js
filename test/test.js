@@ -317,8 +317,8 @@ QUnit.module('validateParams.validate() function',
                 errorObj = err; // store the thrown error
             }
             a.ok(errorObj instanceof validateParams.ValidationError, 'thrown error has expected prototype');
-            a.ok(validate.isArray(errorObj.validationErrors), 'thrown error contains an array of validation errors');
-            a.equal(errorObj.validationErrors.length, 2, 'thrown error contains the expected number of validation errors');
+            a.ok(errorObj.validationResult instanceof validateParams.Result, 'thrown error contains a validation result object');
+            a.equal(errorObj.validationResult.numErrors(), 2, 'thrown error contains the expected number of validation errors');
         });
         
         QUnit.test('option: injectDefaults', function(a){
@@ -1165,14 +1165,30 @@ QUnit.module('validateParams.ValidationError prototype', {}, function(){
     
     QUnit.test('constructor correctly builds object', function(a){
         a.expect(5);
-        var dummyMessage = 'test error message';
-        var dummyErrors = ['some error', 'some other error'];
-        var testError = new validateParams.ValidationError(dummyMessage, dummyErrors);
+        var validationResult = validateParams.validate([], [{presence: true}]);
+        var testError = new validateParams.ValidationError(validationResult);
         a.ok(testError instanceof validateParams.ValidationError, 'is instance of validateParams.ValidationError');
         a.ok(testError instanceof Error, 'is instance of Error');
         a.equal(testError.name, 'validateParams.ValidationError', 'has expected .name property');
-        a.equal(testError.message, dummyMessage, 'has expected .message property');
-        a.deepEqual(testError.validationErrors, dummyErrors, 'has expected .validationErrors property');
+        a.equal(testError.message, "Validation failed with error: Param1 can\'t be blank", 'has expected .message property');
+        a.strictEqual(testError.validationResult, validationResult, 'has expected .validationResult property');
+    });
+    
+    QUnit.test('.numErrors() method', function(a){
+        a.expect(2);
+        a.strictEqual(typeof validateParams.ValidationError.prototype.numErrors, 'function', 'method exists');
+        var validationResult = validateParams.validate([], [{presence: true}, {presence: true}]);
+        var testError = new validateParams.ValidationError(validationResult);
+        a.strictEqual(testError.numErrors(), 2, 'the expected number of errors returned');
+    });
+    
+    QUnit.test('.errors() method', function(a){
+        a.expect(3);
+        a.strictEqual(typeof validateParams.ValidationError.prototype.errors, 'function', 'method exists');
+        var validationResult = validateParams.validate([], [{presence: true}, {presence: true}]);
+        var testError = new validateParams.ValidationError(validationResult);
+        a.ok(validate.isArray(testError.errors()), 'returns an array');
+        a.strictEqual(testError.errors().length, 2, 'returns the expected length of array');
     });
 });
 
@@ -1353,6 +1369,31 @@ QUnit.module('validateParams.Result prototype', {}, function(){
         a.strictEqual(r.asString(), 'failed with 1 error', 'expected result on single error');
         r = validateParams.validate([], cl);
         a.strictEqual(r.asString(), 'failed with 2 errors', 'expected result on multiple errors');
+    });
+    
+    QUnit.test('.errorList() method', function(a){
+        a.expect(3);
+        a.strictEqual(typeof validateParams.Result.prototype.errorList, 'function', 'method exists');
+        
+        // create a constraints list to pass and fail validations against
+        var cl = [
+            { defined: true },
+            {
+                presence: true,
+                numericality: {
+                    onlyInteger: true,
+                    lessThan: 100
+                },
+            }
+        ];
+        
+        // make sure no errors returns an empty array
+        var r = validateParams.validate(['a', 42], cl);
+        a.deepEqual(r.errorList(), [], 'result with no errors returns empty array');
+        
+        // make sure the correct number of errors are returned when there are errors
+        r = validateParams.validate([undefined, 612.4], cl);
+        a.strictEqual(r.errorList().length, 2, 'correct error list returned');
     });
 });
 
