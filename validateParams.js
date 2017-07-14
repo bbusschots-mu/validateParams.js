@@ -533,6 +533,9 @@ validateParams.validate = function(params, constraints, options){
     if(typeof options === 'undefined'){
         options = {};
     }
+    if(typeof options.format === 'undefined'){
+        options.format = 'grouped';
+    }
     if(typeof options.injectDefaults === 'undefined'){
         options.injectDefaults = true;
     }else{
@@ -550,9 +553,9 @@ validateParams.validate = function(params, constraints, options){
         if(options.fatal){
             doThrow = true;
         }
-        if(typeof options.fatal !== 'undefined'){
-            delete options.fatal; // don't want to pass this key on to validate()
-        }
+        //if(typeof options.fatal !== 'undefined'){
+        //    delete options.fatal; // don't want to pass this key on to validate()
+        //}
     }
     
     // inject any defined default values if appropriate
@@ -578,21 +581,25 @@ validateParams.validate = function(params, constraints, options){
     }
     
     // do the validation
-    var errors = validate(valdiateAttributes, validateConstraints, options);
+    var validateOptions = validateParams.extendObject({}, options);
+    validateOptions.format = 'detailed';
+    var errorDetails = validate(valdiateAttributes, validateConstraints, validateOptions);
     
-    // throw an error if we need to
-    if(doThrow && errors){
-        throw new validateParams.ValidationError('parameter validation failed with the following errors:\n' + JSON.stringify(errors), errors);
+    // format the errors
+    var errors = errorDetails;
+    if(typeof errors !== 'undefined' && options.format !== 'detailed'){
+        // check that the requested validation exists
+        if(!validate.isFunction(validate.formatters[options.format])){
+            throw new Error("undefined formatter '" + options.format + "'");
+        }
+        errors = validate.formatters[options.format](errorDetails);
     }
     
-    // build a results object and return it
-    var results = new validateParams.Result();
-    results._parameterList = params;
-    results._constraintList = constraints;
-    results._options = options;
-    results._validateAttributes = valdiateAttributes;
-    results._validateConstraints = validateConstraints;
-    results._errors = errors;
+    // build the results object and either throw or return it
+    var results = new validateParams.Result(params, constraints, options, valdiateAttributes, validateConstraints, errorDetails, errors);
+    if(doThrow && errors){
+        throw new validateParams.ValidationError('invalid parameters', errors);
+    }
     return results;
 };
 
@@ -1029,56 +1036,6 @@ validateParams.assert = function(params, constraints, options){
 };
 
 //
-//=== Custom Validation Error Prototype ========================================
-//
-
-/**
- * A custom error prototype for validaiton errors.
- * 
- * @constructor
- * @alias module:validateParams.ValidationError
- * @param {string} [msg=''] - an error message.
- * @param {array|object} [errors=false] - the errors messages as returned by the
- * [validate()]{@link external:validate} function from validate.js.
- * @see {@link https://stackoverflow.com/a/17891099/174985|Based on this StackOverflow answer}
- * @see external:validate
- */
-validateParams.ValidationError = function(msg, errors){
-    /**
-     * The error name.
-     * `validateParams.ValidationError`.
-     * @type {string}
-     * @default
-     */
-    this.name = "validateParams.ValidationError";
-    
-    /**
-     * The error message.
-     * @type {string}
-     */
-    this.message = typeof msg === 'string' ? msg : '';
-    
-    /**
-     * The validation errors. This value should be populated by the
-     * `validateParams()` function, and its exact contents will vary depending
-     * on the value of `options.format` passed to `validateParams()`.
-     * @type {boolean|array|object}
-     * @default false
-     */
-    this.validationErrors = false;
-    if(typeof errors === 'object'){
-        this.validationErrors = errors;
-    }
-};
-validateParams.ValidationError.prototype = Object.create(Error.prototype, {
-    constructor: {
-        value: validateParams.ValidationError,
-        writable: true,
-        configurable: true
-    }
-});
-
-//
 //=== Validation Result Prototype ==============================================
 //
 
@@ -1090,10 +1047,44 @@ validateParams.ValidationError.prototype = Object.create(Error.prototype, {
  *
  * @constructor
  * @alias module:validateParams.Result
+ * @param {(Arguments|Array)} parameterList - the parameter list that was validated.
+ * @param {ParameterConstraints[]} constraintsList- the parameter constraints applied by the
+ * validation
+ * @param {Object} options - the options passed to the `validate()` function
+ * from validate.js.
+ * @param {Object} validateAttributes - the attributes data structure passed to
+ * the `validate()` function from validate.js.
+ * @param {Object.<string, AttributeContraints>} validateConstraints - the
+ * constraints object passed to the `validate()` function from validate.js.
+ * @param {Object} [errorDetails] - the error details returned from the
+ * `validate()` function from validate.js with the `format` option set to
+ * `detailed`.
+ * @param {*} [errors] - the errors returned from the `validate()` function from
+ * validate.js with the requested formatting applied.
+ * @throws {TypeError} A type error is thrown if any of the parameters are
+ * missing or invalid.
  * @see module:validateParams.validate
+ * @see external:validate
  * @since version 1.1.1
  */
-validateParams.Result = function(){
+validateParams.Result = function(parameterList, constraintsList, options, validateAttributes, validateConstraints, errorDetails, errors){
+    // validate args
+    if(!(validate.isArray(parameterList) || validateParams.isArguments(parameterList))){
+        throw new TypeError('param1: invalid or missing parameter list');
+    }
+    if(!validate.isArray(constraintsList)){
+        throw new TypeError('param2: invalid or missing constraints list');
+    }
+    if(!validate.isObject(options)){
+        throw new TypeError('param3: invalid or missing options object');
+    }
+    if(!validate.isObject(validateAttributes)){
+        throw new TypeError('param4: invalid or missing attributes object');
+    }
+    if(!validate.isObject(validateConstraints)){
+        throw new TypeError('param5: invalid or missing constraints object');
+    }
+    
     /**
      * A referece to the parameter list passed to the
      * [validateParams.validate()]{@link module:validateParams.validate}
@@ -1101,7 +1092,7 @@ validateParams.Result = function(){
      * @private
      * @type {(Arguments|Array)}
      */
-    this._parameterList = [];
+    this._parameterList = parameterList;
     
     /**
      * A reference to the constraint list passed to the
@@ -1110,7 +1101,7 @@ validateParams.Result = function(){
      * @private
      * @type {ParameterConstraints[]}
      */
-    this._constraintList = [];
+    this._constraintsList = constraintsList;
     
     /**
      * A reference to the options object passed through to the
@@ -1119,7 +1110,7 @@ validateParams.Result = function(){
      * @private
      * @type {Object}
      */
-    this._options = {};
+    this._options = options;
     
     /**
      * A reference to the attributes data structure generated by
@@ -1129,7 +1120,7 @@ validateParams.Result = function(){
      * @private
      * @type {Object}
      */
-    this._validateAttributes = {};
+    this._validateAttributes = validateAttributes;
     
     /**
      * A reference to the constrains data structure generated by
@@ -1139,17 +1130,25 @@ validateParams.Result = function(){
      * @private
      * @type {Object.<string, AttributeContraints>}
      */
-    this._validateConstraints = {};
+    this._validateConstraints = validateConstraints;
     
     /**
      * A reference to the return value from the
-     * [validate()]{@link external:validate} function from validate.js, the type
-     * and structure of the returned value will be determined by the value of
-     * the `format` option.
+     * [validate()]{@link external:validate} function from validate.js, with the
+     * `format` option set to `detailed`.
      * @private
-     * @type {(Object|Array|undefined)}
+     * @type {(Object|undefined)}
      */
-    this._errors = undefined;
+    this._errorDetails = errorDetails;
+    
+    /**
+     * A reference to the return value from the
+     * [validate()]{@link external:validate} function from validate.js with the
+     * requested error formatting applied.
+     * @private
+     * @type {*}
+     */
+    this._errors = errors;
 };
 
 /**
@@ -1167,11 +1166,11 @@ validateParams.Result.prototype.parameterList = function(){
  * A read-only accessor to a reference to the constraint list used for the
  * validation.
  *
- * @alias module:validateParams.Result#constraintList
+ * @alias module:validateParams.Result#constraintsList
  * @returns {ParameterConstraints[]}
  */
-validateParams.Result.prototype.constraintList = function(){
-    return validate.isArray(this._constraintList) ? this._constraintList : [];
+validateParams.Result.prototype.constraintsList = function(){
+    return validate.isArray(this._constraintsList) ? this._constraintsList : [];
 };
 
 /**
@@ -1215,12 +1214,24 @@ validateParams.Result.prototype.validateConstraints = function(){
 
 /**
  * A read-only accessor to the value returned from the call to the
- * [validate()]{@link external:validate} function from vaidate.js. The value of
- * `options.format` passed to `valdidate()` will determin type of the returned
- * data.
+ * [validate()]{@link external:validate} function from vaidate.js with
+ * `options.format='detailed'.
+ *
+ * @alias module:validateParams.Result#errorDetails
+ * @returns {(Object|undefined)}
+ * @see external:validate
+ */
+validateParams.Result.prototype.errorDetails = function(){
+    return this._errors;
+};
+
+/**
+ * A read-only accessor to the formatted version of the value returned from the
+ * call to the [validate()]{@link external:validate} function from vaidate.js.
+ * The value of `options.format` will determin type of the returned data.
  *
  * @alias module:validateParams.Result#errors
- * @returns {(Object|Array|undefined)}
+ * @returns {*}
  * @see external:validate
  */
 validateParams.Result.prototype.errors = function(){
@@ -1326,6 +1337,56 @@ validateParams.Result.prototype.asString = function(){
     var numErr = this.numErrors();
     return 'failed with ' + numErr + ' error' + (numErr > 1 ? 's' : '');
 };
+
+//
+//=== Custom Validation Error Prototype ========================================
+//
+
+/**
+ * A custom error prototype for validaiton errors.
+ * 
+ * @constructor
+ * @alias module:validateParams.ValidationError
+ * @param {string} [msg=''] - an error message.
+ * @param {array|object} [errors=false] - the errors messages as returned by the
+ * [validate()]{@link external:validate} function from validate.js.
+ * @see {@link https://stackoverflow.com/a/17891099/174985|Based on this StackOverflow answer}
+ * @see external:validate
+ */
+validateParams.ValidationError = function(msg, errors){
+    /**
+     * The error name.
+     * `validateParams.ValidationError`.
+     * @type {string}
+     * @default
+     */
+    this.name = "validateParams.ValidationError";
+    
+    /**
+     * The error message.
+     * @type {string}
+     */
+    this.message = typeof msg === 'string' ? msg : '';
+    
+    /**
+     * The validation errors. This value should be populated by the
+     * `validateParams()` function, and its exact contents will vary depending
+     * on the value of `options.format` passed to `validateParams()`.
+     * @type {boolean|array|object}
+     * @default false
+     */
+    this.validationErrors = false;
+    if(typeof errors === 'object'){
+        this.validationErrors = errors;
+    }
+};
+validateParams.ValidationError.prototype = Object.create(Error.prototype, {
+    constructor: {
+        value: validateParams.ValidationError,
+        writable: true,
+        configurable: true
+    }
+});
 
 //
 //=== Public Utility Functions =================================================
@@ -1668,6 +1729,7 @@ validateParams._warn = function(msg){
  * This function does not throw errors, it simply ignores invalid data.
  *
  * @alias module:validateParams._extractCustomValidatorMessage
+ * @private
  * @param {function} validator - a reference to the validator to extract the
  * message from.
  * @param {object} options - the options value passed to the validator function.

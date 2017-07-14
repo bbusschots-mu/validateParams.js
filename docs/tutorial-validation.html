@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>isObject - Documentation</title>
+    <title>Validation Guide - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,105 +29,30 @@
 
 <div id="main">
     
-    <h1 class="page-title">isObject</h1>
+    <h1 class="page-title">Validation Guide</h1>
     
 
-    
-
-
-
-
-<section>
+    <section>
 
 <header>
-    
-        <h2>
-        isObject
-        </h2>
-        
     
 </header>
 
 <article>
-    <div class="container-overview">
-    
-        
-            <div class="description"><p>The <code>isObject()</code> function from <a href="http://validatejs.org/">validate.js</a>.</p></div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li><a href="https://validatejs.org/#utilities-is-object">https://validatejs.org/#utilities-is-object</a></li>
-        </ul>
-    </dd>
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-
-    
-
-    
+    <h2>The Validation Functions</h2><p>This module provides three validation functions for three different coding
+styles. Which to use will depend on the situation, and your preferences. All
+three functions take the same arguments, and perform the same validations in the
+same way, the difference is in how they behave when validation fails.</p>
+<p>As this module is a wrapper for <code>validate.js</code>, the primary validation function
+<a href="module-validateParams.html#~validateParams">validateParams()</a> responds to
+errors in the same way the <a href="external-validate.html">validate()</a> function from
+<code>validate.js</code> does - it returns <code>undefined</code> if there were no errors, or
+collection of one or more error strings if there were errors. The format of the
+returned error data is determined by the <code>format</code> option
+<a href="https://validatejs.org/#validate-error-formatting">as described in the validate.js documentation</a>.</p>
 </article>
 
 </section>
-
-
-
 
 </div>
 

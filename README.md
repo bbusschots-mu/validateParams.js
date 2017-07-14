@@ -3,27 +3,29 @@
 A wrapper around [validate.js](https://validatejs.org/) to facilitate easy
 function parameter validation in JavaScript.
 
-`Validate.js` is designed to valid web forms, so it expects the values to be
-validated as name-value pairs, and is expects the constraints to validate those
-values against to also be specified as name-value pairs. This is perfect for
-web forms where each input has a name, but the model doesn't work well for
-function parameters which take the form of lists of un-named values.
+`Validate.js` is designed to valid web forms.  HTML form data is fundamentally a
+collection of name-value pairs, so it makes sense that the validation functions
+provided by `valiate.js` expect both the data to be validated, and the
+constraints to be applied to that data to be specified as collections of
+name-value pairs (JavaScript objects).
 
-The two validation functions provided by this module expect both the
-values to be validated and the constraints to be applied as lists (Arguments
-objects or Arrays), and transform them into name-value pairs indexed by
-`param1`, `param2` etc. which they then pass to the `validate()` function from
-`validate.js`.
+Function parameters are not name-value pairs, they are lists of values. Hence,
+the validation functions provided by this module expect both the data to be
+validated, and the constraints to be applied to that data to be specified as
+lists.
 
-The main function, `validateParams()`, returns the result of the call to
-`valiate()`, while `validateParams.assert()` throws
-`validateParams.ValidationError` errors when validation fails. The
-`validateParams.assert()` function does not discard the output from the call to
-`validate()`, it adds it into the thrown error as a property named
-`validationErrors`.
+Internally, the module converts the passed parameter and constraint lists to
+collections of name-value pairs which it then validates with `validate.js`.
 
-For details on constraints and options, see the
-[valdiate.js documentation](https://validatejs.org/).
+As well as translating between lists and name-value pairs, the module also
+provides a number of other additional features which focus on parameter
+validation, including the specification of default values, support for data
+coercion, improved support for nested constraints, and a number of additional
+validators.
+
+so it needs both the data to be
+validated and the constraints to be applied to that data as collections of
+name-value pairs.  are fundamentally name-value pairs, so this
 
 ## Installation
 
@@ -52,76 +54,68 @@ var validateParam = require('@maynoothuniversity/validate-params');
 ## Synopsis:
 
 ```
-var errors = validateParams(parameterData, constraints, [options]);
+// passes through the return value from validate.js
+var errors = validateParams(parameterList, constraintList, [options]);
 ```
 
 or
 
 ```
-validateParams.assert(parameterData, constraints, [options]); // throws on error
+// returns a validateParams.Result object
+var result = validateParams.validate(parameterList, constraintList, [options]);
 ```
 
-The special `arguments` variable can be passed as `parameterData`.
+```
+// throws a validateParams.ValidationError if validation fails
+validateParams.assert(parameterList, constraintList, [options]);
+```
 
-The optional `options` associative array is passed through to the `validate()`
-function from `validate.js`.
+The `parameterList` can be an array, or, JavaScript's special `arguments`
+variable.
 
-## Example Usages
+The `constraintList` is an array of object literals, each defining one or more
+`validate.js` compatible constraints.
+
+The optional `options` parameter should be an object literal, and can be used
+to specify options that alter both the behaviour of the validation functions
+provided by this module, and the validation functions from `validate.js` used to
+perform the actual validations.
+
+## Example
 
 ```
-// a function with a required and an optional argument
-function exclaim(msg, n){
-    // validate the parameters
-    var errors = validateParams(arguments, [
-        { presence: true }, // first parameter
-        { numericality: { onlyInteger: true, greaterThan: 0 } } // second
-    ]); // returns value from validate.js valiate() function
-    
-    // respond to a validation problem with the required first parameter
-    if(errors && errors.param1){
-        throw new Error('first parameter is required');
-    }
-    
-    // deal with the optional second parameter
-    var numExlamations = 1;
-    if(errors && errors.param2){
-        console.log('invalid number of exclamations - using default value of 1');
-    }else if(n){
-        numExlamations = n;
-    }
-    
-    // do some work
-    var ans = msg;
-    while(numExlamations > 0){
-        ans += '!';
-        numExlamations--;
-    }
-    
-    // return the result
-    return numExlamations;
-}
-
-// a function that always throws an error on invalid args
-function repeatStr(s, n){
-    // validate parameters
-    validateParams.assert(arguments, [
-        { // first parameter
-            presence: true
-        },
-        { // second
+// An implementation of the Factorial function
+// The first argument must be present, an integer, and >= 0
+function fact(n){
+    // validate the parameter
+    validateParams.assert(
+        arguments,
+        [{
             presence: true,
-            numericality: { onlyInteger: true, greaterThan: 1 }
+            numericality: {
+                onlyInteger: true,
+                greaterThanOrEqualTo: 0
+            }
         }
-    ]); // will throw validateParams.ValidationError on invalid args
+    ]); // will throw validateParams.ValidationError on invalid params
     
-    // do some work
-    var ans = '';
+    // do the calculation
+    var ans = 1;
     while(n > 0){
-        ans += s;
+        ans *= n;
         n--;
     }
     
     // return the result
     return ans;
 }
+
+var x = fact(4); // x=24
+var y = fact('4'); // x=24
+var z = fact('stuff'); // throws validateParams.ValidationError
 ```
+
+## Documentation
+
+* API Documentation for validateParams.js: [bbusschots-mu.github.io/...](https://bbusschots-mu.github.io/validateParams.js/)
+* API Documentation for validate.js: [validatejs.org/...](https://validatejs.org/)

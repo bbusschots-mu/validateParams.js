@@ -1181,15 +1181,91 @@ QUnit.module('validateParams.Result prototype', {}, function(){
         a.equal(typeof validateParams.Result, 'function');
     });
     
-    QUnit.test('constructor successfully builds empty object', function(a){
-        a.expect(6);
-        var r = new validateParams.Result();
+    // test that the constructor constructs correctly
+    QUnit.test('constructor correctly builds object', function(a){
+        a.expect(8);
+        var paramList = [ 'a' ];
+        var consList = [ { presence: true } ];
+        var options = {};
+        var dummyAttrs = { param1: 'a' };
+        var dummyCons = { param1: { presence: true } };
+        var dummyErrorDetails = {};
+        var dummyErrors = [];
+        var r = new validateParams.Result(paramList, consList, options, dummyAttrs, dummyCons, dummyErrorDetails, dummyErrors);
         a.ok(r instanceof validateParams.Result, 'is instance of validateParams.Result');
-        a.ok(validate.isArray(r._parameterList), 'parameter list is an array');
-        a.ok(validate.isArray(r._constraintList), 'constraint list is an array');
-        a.ok(validate.isObject(r._options), 'options is an object');
-        a.ok(validate.isObject(r._validateAttributes), 'validate attributes is an object');
-        a.ok(validate.isObject(r._validateConstraints), 'validate constraints is an object');
+        a.strictEqual(r._parameterList, paramList, 'parameter list stored correctly');
+        a.strictEqual(r._constraintsList, consList, 'constraints list stored correctly');
+        a.strictEqual(r._options, options, 'options stored correctly');
+        a.strictEqual(r._validateAttributes, dummyAttrs, 'attributes object stored correctly');
+        a.strictEqual(r._validateConstraints, dummyCons, 'constraints object stored correctly');
+        a.strictEqual(r._errorDetails, dummyErrorDetails, 'error details stored correctly');
+        a.strictEqual(r._errors, dummyErrors, 'errors stored correctly');
+    });
+    
+    QUnit.test('constructor parameter validation', function(a){
+        var mustThrowArray = dummyBasicTypesExcept('arr');
+        var mustThrowObject = dummyBasicTypesExcept('obj', 'arr', 'fn');
+        a.expect((mustThrowArray.length * 2) + (mustThrowObject.length * 3) + 2);
+        
+        var paramList = [ 'a' ];
+        var consList = [ { presence: true } ];
+        var dummyAttrs = { param1: 'a' };
+        var dummyCons = { param1: { presence: true } };
+        
+        // make sure all valid values accept
+        a.ok(
+            new validateParams.Result(paramList, consList, {}, dummyAttrs, dummyCons),
+            'valid values accepted for all parameters'
+        );
+        
+        // make sure the array-like parameters throws appropraitely
+        mustThrowArray.forEach(function(tn){
+            var t = DUMMY_BASIC_TYPES[tn];
+            a.throws(
+                function(){
+                    new validateParams.Result(t.val, consList, {}, dummyAttrs, dummyCons);
+                },
+                TypeError,
+                "parameter list can't be " + t.desc
+            );
+            a.throws(
+                function(){
+                    new validateParams.Result(paramList, t.val, {}, dummyAttrs, dummyCons);
+                },
+                TypeError,
+                "constraints list can't be " + t.desc
+            );
+        });
+        a.ok(
+            new validateParams.Result(arguments, consList, {}, dummyAttrs, dummyCons),
+            'parameter list can be an Arguments object'
+        );
+        
+        // make sure the object parameters throw appropraitely
+        mustThrowObject.forEach(function(tn){
+            var t = DUMMY_BASIC_TYPES[tn];
+            a.throws(
+                function(){
+                    new validateParams.Result(paramList, consList, t.val, dummyAttrs, dummyCons);
+                },
+                TypeError,
+                "options can't be " + t.desc
+            );
+            a.throws(
+                function(){
+                    new validateParams.Result(paramList, consList, {}, t.val, dummyCons);
+                },
+                TypeError,
+                "attributes can't be " + t.desc
+            );
+            a.throws(
+                function(){
+                    new validateParams.Result(paramList, consList, {}, dummyAttrs, t.val);
+                },
+                TypeError,
+                "constraints object can't be " + t.desc
+            );
+        });
     });
     
     QUnit.test('read-only accessors correctly access data', function(a){
@@ -1199,7 +1275,7 @@ QUnit.module('validateParams.Result prototype', {}, function(){
         var options = {format: 'flat'};
         var r = validateParams.validate(paramList, constraintsList, options);
         a.strictEqual(r.parameterList(), paramList, '.parameterList() returns correct referece');
-        a.strictEqual(r.constraintList(), constraintsList, '.constraintList() returns correct referece');
+        a.strictEqual(r.constraintsList(), constraintsList, '.constraintsList() returns correct referece');
         a.strictEqual(r.options(), options, '.options() returns correct referece');
         a.deepEqual(r.validateAttributes(), { param1: 42, param2: undefined }, '.validateAttributes() returns expected data structure');
         a.deepEqual(r.validateConstraints(), { param1: { presence: true }, param2: { presence: true } }, '.validateConstraints() returns expected data structure');
