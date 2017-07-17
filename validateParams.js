@@ -148,6 +148,8 @@
  * 
  * @callback CoercionCallback
  * @param {*} val - the value to be coerced.
+ * @param {Object} options - any specified coercion options, or, an empty object
+ * literal.
  * @returns {*} The coerced value.
  * @see module:validateParams.validate
  * @example
@@ -947,10 +949,29 @@ validateParams.coerce = function(params, constraints, options){
     if(typeof options === 'undefined') options = {}; // make sure there's always an options object
     
     // apply any defined coercions
+    var coerceFn;
+    var coerceVal;
+    var coerceOpts;
     for(var i = 0; i < constraints.length; i++){
-        var coerceFn = validateParams._extractParamOption('coerce', constraints[i]);
+        // try gather coercion details for the current parameter
+        coerceOpts = {};
+        coerceFn = undefined;
+        coerceVal = validateParams._extractParamOption('coerce', constraints[i]);
+        if(validate.isFunction(coerceVal)){
+            coerceFn = coerceVal;
+        }else if(validate.isObject(coerceVal)){
+            if(validate.isFunction(coerceVal.fn)){
+                coerceFn = coerceVal.fn;
+            }
+            if(validate.isObject(coerceVal.options)){
+                coerceOpts = coerceVal.options;
+            }
+        }
+        
+        // if a coercion was found, apply it
         if(validate.isFunction(coerceFn)){
-            params[i] = coerceFn(params[i]);
+            params[i] = coerceFn(params[i], coerceOpts);
+            
         }
     }
     
@@ -1535,7 +1556,22 @@ validateParams.paramToAttrConstraints = function(constraintObject){
     
     // return the new object
     return filteredConstraint;
-}
+};
+
+/**
+ * A function to test if a given value is a JavaScript primitive, i.e a boolean,
+ * number, or string.
+ *
+ * @alias module:validateParams.isPrimitive
+ * @param {*} item - the item to test.
+ * @returns {boolean} `true` if the item is a boolean, string, or number, `fase`
+ * otherwise.
+ * @since version 1.1.1
+ */
+validateParams.isPrimitive = function(item){
+    var typeVal = typeof item;
+    return typeVal === 'boolean' || typeVal === 'number' || typeVal === 'string' ? true : false;
+};
 
 /**
  * A function to test if a given item is an Arguments object.
@@ -2443,6 +2479,113 @@ validateParams.validators.hasTypeOf = validateParams.validators.hasTypeof;
 validateParams.validators.isInstanceOf = validateParams.validators.isInstanceof;
 
 validateParams.registerValidators(); // register all the defined validators
+
+//
+//=== Pre-defined Coercions ====================================================
+//
+
+/**
+ * A collection of pre-defined coercions that may prove useful.
+ *
+ * When adding a coercion as a per-parameter option, these coercions can be
+ * specified by name (as a string).
+ *
+ * @alias module:validateParams.coercions
+ * @namespace
+ * @since version 1.1.1
+ */
+validateParams.coercions = {
+    /**
+     * A coercion for converting any arbitrary value to a boolean.
+     *
+     * By default, and value that is either natively falsey, like `0`, or that's
+     * considered empty by the [validate.isEmpty()]{@link external:isEmpty}
+     * function from validate.js will be coerced to `false`. Setting the
+     * coersion option `nativeTruthinessOnly` to a truthy value will cause the
+     * coercion to use only JavaScript's native casting to boolean.
+     *
+     * By default `undefined` is coerced to `false`, but this behaviour can be
+     * suppressed by setting the coercion option `ignoreUndefined` to a truthy
+     * value. Doing so will result in `undefined` being passed through the
+     * coercion un-altered. Note that setting both `nativeTruthiness=true` and
+     * `ignoreUndefined` will still result in `undefined` being passed
+     * unaltered.
+     *
+     * @member
+     * @type {CoercionCallback}
+     */
+    toBoolean: function(value, options){
+        if(!validate.isObject(options)) options = {};
+        
+        // deal with undefined
+        if(options.ignoreUndefined && typeof value === 'undefined'){
+            return undefined;
+        }
+        
+        // cast to boolean as appropriate
+        if(options.nativeTruthinessOnly){
+            return Boolean(value);
+        }
+        return Boolean(value) && !validate.isEmpty(value) ? true : false;
+    },
+    
+    /**
+     * A coercion for converting any arbitrary value to a string.
+     *
+     * Empty values, as per the [validate.isEmpty()]{@link external:isEmpty}
+     * function from validate.js will be coerced to an empty string, other
+     * values will be cast to a string using JavaScript's `String()` function.
+     *
+     * It's possible to ristrict the coercion to primitive types only by setting
+     * the coercion option `onlyCoercePrimitives` to a truthy value. In this
+     * case, all vales with a `typeof` other than `string`, `boolean` or
+     * `number` will be passed through un-altered.
+     *
+     * @member
+     * @type {CoercionCallback}
+     */
+    toString: function(value, options){
+        if(validate.isObject(options) && options.onlyCoercePrimitives && !validateParams.isPrimitive(value)){
+            return value;
+        }
+        if(validate.isEmpty(value)) return '';
+        return String(value);
+    },
+    
+    /**
+     * A coercion for converting any arbitrary value to a number.
+     *
+     * If a given value already is a number it is passed un-altered. Otherwise,
+     * if it has a `typeof` of `string` or `boolean` an attempt will be made
+     * to convert the value to a number with JavaScript's `Number()` function.
+     * Other values are converted to `NaN`.
+     * 
+     * If the coercion option `NaNToZero` is set to a truthy value, then `0`
+     * will be returned instead of `NaN` if the returned value would otherwise
+     * be `NaN`.
+     *
+     * @member
+     * @type {CoercionCallback}
+     */
+    toNumber: function(value, options){
+        var typeVal = typeof value;
+        
+        // if we already have a number that's not NaN, return it unaltered
+        if(typeVal === 'number' && !isNaN(value)) return value;
+        
+        // otherwise, try do a conversion
+        var numVal = NaN;
+        if(typeVal === 'string' || typeVal === 'boolean'){
+            numVal = Number(value);
+        }
+        
+        // return as appropriate, perhaps converting NaN to zero
+        if(validate.isObject(options) && options.NaNToZero && isNaN(numVal)){
+            return 0;
+        }
+        return numVal;
+    }
+};
 
 //
 //=== Export the Module ========================================================

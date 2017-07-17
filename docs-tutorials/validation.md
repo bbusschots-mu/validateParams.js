@@ -29,11 +29,31 @@ The following three validation functions are provided by this module:
   `validate.js`. Specifically, `undefined` if there were no validation errors,
   or the errors generated during validation if there were. The structure of the
   returned errors is determined by the `format` option.
+  
+  ```
+  var errs = validateParams(arguments, [{ presence: true, hasTypeof: 'number' }]);
+  if(errs){
+    console.log('invalid data!', errs);
+  }
+  ```
+  
 * [validateParams.validate()]{@link module:validateParams.validate} - returns a
   [validateParams.Result]{@link module:validateParams.Result} object.
+  
+  ```
+  var res = validateParams.validate(arguments, [{ presence: true, hasTypeof: 'number' }]);
+  if(res.failed()){
+    console.log('invalid data!', res.errorList());
+  }
+  ```
+  
 * [validateParams.assert()]{@link module:validateParams.assert} - throws a
   [validateParams.ValidationError]{@link module:validateParams.ValidationError}
   if the data does not pass the constraints.
+  
+  ```
+  validateParams.assert(arguments, [{ presence: true, hasTypeof: 'number' }]);
+  ```
 
 The validation functions all expect the same three parameters - the list of data
 to validate, the list of constraints to validate the data against, and
@@ -81,7 +101,7 @@ to the first parameter, and two to the second:
 ]
 ```
 
-### Options Object
+### Validation Options
 
 All three validation functions can optionally accept a collection of options as
 a third parameter. This object can contain options that control the behaviour of
@@ -107,7 +127,7 @@ The validation functions provided by this module support the following options:
   `false`, except when validating with the
   [validateParams.assert()]{@link module:validateParams.assert} function, which
   forces the option to `true` regardless of the value specified in the options.
-  
+
 ## Constraints and Validators
 
 Constraints are built up by specifying validators and the options those
@@ -149,9 +169,54 @@ must be defined:
 ]
 ```
 
-### Worked Validation Examples
+### Per-Parameter Options
 
-#### Basic Factorial Example
+A number of speical per-parameter options can be specified within the
+constraints list. These options only effect the behaviour of the validation
+functions provided by this module, and, they are not passed on to the validation
+functions from `validate.js`.
+
+Per-parameter options are name-value pairs, and there are two ways to include
+them in constraints within a constraints list.
+
+#### The Pre-fix Syntax
+
+This syntax is most suited to adding single per-parameter option. The option is
+added directly into the constraints object with its name pre-fixed with `vpopt_`
+(short for validateParams Option). E.g.:
+
+```
+{
+  defined: true,
+  vpopt_name: 'someName'
+}
+```
+
+#### The paramOptions Syntax
+
+This syntax is most suited to adding multiple per-parameter options. The options
+are not added directly to the contrainst, but inside an object named
+`paramOptions` which is included in the constraint. E.g.:
+
+```
+{
+  defined: true,
+  hasTypeof: 'boolean',
+  paramOptions: {
+    name: 'someName',
+    coerce: function(v){ return v ? true : false; }
+  }
+}
+```
+
+The following per-parameter options are supported:
+
+* `name` - for altering the names parameters are given in the generated
+  attributes and constraints objects - see {@tutorial paramNames}.
+* `defaultWhenEmpty` & `defaultWhenUndefined` - for setting default values for
+  parameters that are undefined or empty - see {@tutorial defaultValues}.
+
+### Worked Example - Factorial Function
 
 The factorial of a number is the product of that number and all other numbers
 between it and one. So, the factorial of `4` is `4 * 3 * 2`, or `24`. The

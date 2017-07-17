@@ -47,9 +47,21 @@ QUnit.testStart(function() {
             desc: 'a boolean',
             val: true
         },
+        bool_true: {
+            desc: 'true',
+            val: true
+        },
+        bool_false: {
+            desc: 'false',
+            val: false
+        },
         num: {
             desc: 'a number',
             val: 42,
+        },
+        num_zero: {
+            desc: 'the number zero',
+            val: 0,
         },
         str_empty: {
             desc: 'an empty string',
@@ -60,7 +72,7 @@ QUnit.testStart(function() {
             val: 'boogers!'
         },
         arr_empty: {
-            desc: 'an emptyy array',
+            desc: 'an empty array',
             val: [],
         },
         arr: {
@@ -356,29 +368,47 @@ QUnit.module('validateParams.validate() function',
             a.strictEqual(params[0], '', 'empty string correctly left un-changed when options.injectDefaults set to false');
         });
         
-        QUnit.test('option: coerce', function(a){
-            a.expect(3);
+        QUnit.module('option: coerce', {}, function(){
+            QUnit.test('basic operation', function(a){
+                a.expect(3);
             
-            // define a constranint that contains a coercion
-            var coercingConstraint = {
-                presence: true,
-                vpopt_coerce: function(){ return 42; }
-            };
+                // define a constranint that contains a coercion
+                var coercingConstraint = {
+                    presence: true,
+                    vpopt_coerce: function(){ return 42; }
+                };
             
-            // make sure the coercion is applied by default
-            var params1 = [1];
-            validateParams.validate(params1, [coercingConstraint]);
-            a.equal(params1[0], 42, 'coercion applied by default');
+                // make sure the coercion is applied by default
+                var params1 = [1];
+                validateParams.validate(params1, [coercingConstraint]);
+                a.equal(params1[0], 42, 'coercion applied by default');
             
-            // make sure the coercion is applied when options.coerce is explicitly set to true
-            var params2 = [2];
-            validateParams.validate(params2, [coercingConstraint], {coerce: true});
-            a.equal(params2[0], 42, 'coercion applied with options.coerce=true');
+                // make sure the coercion is applied when options.coerce is explicitly set to true
+                var params2 = [2];
+                validateParams.validate(params2, [coercingConstraint], {coerce: true});
+                a.equal(params2[0], 42, 'coercion applied with options.coerce=true');
             
-            // make sure the coercion is not applied when options.coerce is explicitly set to false
-            var params3 = [3];
-            validateParams.validate(params3, [coercingConstraint], {coerce: false});
-            a.equal(params3[0], 3, 'coercion not applied with options.coerce=false');
+                // make sure the coercion is not applied when options.coerce is explicitly set to false
+                var params3 = [3];
+                validateParams.validate(params3, [coercingConstraint], {coerce: false});
+                a.equal(params3[0], 3, 'coercion not applied with options.coerce=false');
+            });
+            
+            QUnit.test('coercion with options', function(a){
+                a.expect(1);
+                  
+                // define a constranint that contains a coercion with options
+                var coercingConstraint = {
+                    presence: true,
+                    vpopt_coerce: {
+                        fn: function(v, opts){ return opts.testOption; },
+                        options: { testOption: 42 }
+                    }
+                };
+                var params = [1];
+                validateParams.validate(params, [coercingConstraint]);
+                a.equal(params[0], 42, 'options passed to coercion');
+            });
         });
         
         QUnit.test("per-parameter option 'name'", function(a){
@@ -1512,6 +1542,30 @@ QUnit.module('validateParams.paramToAttrConstraints() function', {}, function(){
     });
 });
 
+QUnit.module('validateParams.isPrimitive() function', {}, function(){
+    QUnit.test('function exists', function(a){
+        a.equal(typeof validateParams.isPrimitive, 'function');
+    });
+    
+    QUnit.test('function correctly detects primitive', function(a){
+        var mustBeTrue = ['bool', 'num', 'str'];
+        var mustBeFalse =dummyBasicTypesExcept('bool', 'num', 'str');
+        a.expect(mustBeTrue.length + mustBeFalse.length);
+        
+        // make sure all primitives return true
+        mustBeTrue.forEach(function(tn){
+            var t = DUMMY_BASIC_TYPES[tn];
+            a.strictEqual(validateParams.isPrimitive(t.val), true, t.desc + ' returns true');
+        });
+        
+        // make sure everything else returns false
+        mustBeFalse.forEach(function(tn){
+            var t = DUMMY_BASIC_TYPES[tn];
+            a.strictEqual(validateParams.isPrimitive(t.val), false, t.desc + ' returns false');
+        });
+    });
+});
+
 QUnit.module('validateParams.isArguments() function', {}, function(){
     QUnit.test('function exists', function(a){
         a.equal(typeof validateParams.isArguments, 'function');
@@ -2129,3 +2183,104 @@ QUnit.module('custom validators', {}, function(){
         });
     });
 });
+
+QUnit.module('Built-in Coercion Functions',
+    {
+        before: function(){
+            this.c = validateParams.coercions;
+        }
+    },
+    function(){
+        QUnit.test('toBoolean', function(a){
+            var mustProdTrue = dummyBasicTypesExcept('undef');
+            var mustProdFalse = ['null', 'str_empty', 'arr_empty', 'obj_empty', 'num_zero', 'bool_false'];
+            a.expect(mustProdTrue.length + mustProdFalse.length + 6);
+            
+            var cfn = this.c.toBoolean;
+            
+            // make sure the coercion exists
+            a.strictEqual(typeof cfn, 'function', 'coercion exists');
+            
+            // make sure truthy values pass
+            mustProdTrue.forEach(function(tn){
+                var t = DUMMY_BASIC_TYPES[tn];
+                a.strictEqual(cfn(t.val), true, t.desc + ' coerces to true');
+            });
+            
+            // make sure empty values fail
+            mustProdFalse.forEach(function(tn){
+                var t = DUMMY_DATA[tn];
+                a.strictEqual(cfn(t.val), false, t.desc + ' coerces to false');
+            });
+            
+            // test the nativeTruthinessOnly option
+            a.strictEqual(cfn([], {nativeTruthinessOnly: true}), true, 'empty array coerced to true with nativeTruthinessOnly=true');
+            a.strictEqual(cfn({}, {nativeTruthinessOnly: true}), true, 'empty object coerced to true with nativeTruthinessOnly=true');
+            a.strictEqual(cfn('  ', {nativeTruthinessOnly: true}), true, 'string with only white space coerced to true with nativeTruthinessOnly=true');
+            
+            // make sure undefined is dealt with properly
+            a.strictEqual(cfn(), false, 'undefined coerced to false by default');
+            a.strictEqual(cfn(undefined, {ignoreUndefined: true}), undefined, 'undefined passed un-altered with ignoreUndefined=true');
+        });
+        
+        QUnit.test('toString', function(a){
+            var mustProdEmptyStr = ['undef', 'str_empty', 'arr_empty', 'obj_empty', 'null'];
+            var nonPrimitives = dummyBasicTypesExcept('undef', 'bool', 'num', 'str');
+            a.expect(mustProdEmptyStr.length + nonPrimitives.length + 7);
+            
+            var cfn = this.c.toString;
+            
+            // make sure the coercion exists
+            a.strictEqual(typeof cfn, 'function', 'coercion exists');
+            
+            // make sure empty values coerce to the empty string
+            mustProdEmptyStr.forEach(function(tn){
+                var t = DUMMY_DATA[tn];
+                a.strictEqual(cfn(t.val), '', t.desc + ' coerces to empty string');
+            });
+            
+            // make sure other values coerce as expected
+            a.strictEqual(cfn('stuff'), 'stuff', ' non-empty string passes un-changed');
+            a.strictEqual(cfn(42), '42', ' number converted to string as expected');
+            a.strictEqual(cfn(false), 'false', ' boolean converted to string as expected');
+            a.strictEqual(typeof cfn({a: 'b'}), 'string', ' non-empty object literal converted to string as expected');
+            a.strictEqual(typeof cfn(['a', 'b']), 'string', ' non-empty array converted to string as expected');
+            a.strictEqual(typeof cfn(new Date()), 'string', ' prototyped object converted to string as expected');
+            
+            // test the onlyCoercePrimitives option
+            nonPrimitives.forEach(function(tn){
+                var t = DUMMY_DATA[tn];
+                a.strictEqual(cfn(t.val, {onlyCoercePrimitives: true}), t.val, t.desc + ' passed un-altered with onlyCoercePrimitives=true');
+            });
+        });
+        
+        QUnit.test('toNumber', function(a){
+            var mustProdNaN = dummyBasicTypesExcept('num', 'bool');
+            a.expect((mustProdNaN.length * 2) + 6);
+            
+            var cfn = this.c.toNumber;
+            
+            // make sure the coercion exists
+            a.strictEqual(typeof cfn, 'function', 'coercion exists');
+            
+            // make sure invalid values coerce to NaN
+            mustProdNaN.forEach(function(tn){
+                var t = DUMMY_DATA[tn];
+                a.ok(isNaN(cfn(t.val)), t.desc + ' coerces to NaN');
+            });
+            
+            // make sure other values coerce as expected
+            a.strictEqual(cfn(42), 42, ' number un-changed');
+            a.strictEqual(cfn('42'), 42, ' numric string converted to number as expected');
+            a.strictEqual(cfn(false), 0, ' false converted to 0 as expected');
+            a.strictEqual(cfn(true), 1, ' true converted to 1 as expected');
+            
+            // make sure the NaNToZero option works as expected
+            a.strictEqual(cfn(NaN, {NaNToZero: true}), 0, 'NaN coerces to 0 with NaNToZero=true');
+            mustProdNaN.forEach(function(tn){
+                var t = DUMMY_DATA[tn];
+                a.strictEqual(cfn(t.val, {NaNToZero: true}), 0, t.desc + ' coerces to 0 with NaNToZero=true');
+            });
+        });
+    }
+);
