@@ -7,7 +7,13 @@
             },
             "defaultValues" : {
                 "title" : "Default Values"
+            },
+            "coercions" : {
+                "title" : "Parameter Coercion"
+            },
+            "argumentsNote" : {
+                "title" : "Note on `arguments`"
             }
         }
-    },
+    }
 }

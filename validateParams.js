@@ -150,15 +150,19 @@
  * @param {*} val - the value to be coerced.
  * @param {Object} options - any specified coercion options, or, an empty object
  * literal.
+ * @param {Object} coercions - a reference to the
+ * [validate.coercions]{@link module:validateParams:coercions} namespace for
+ * convenient access to the built-in coercions.
  * @returns {*} The coerced value.
  * @see module:validateParams.validate
  * @example
- * function coerceIntoRange(val){
+ * function coerceIntoRange(val, opts, c){
  *     // if the value is a number or a number as a string, we might need to
  *     // coerce it
  *     if(validateParams.isNumeric(val)){
  *         if(val < 0) return 0;
  *         if(val > 10) return 10;
+ *         return c.toNumber(val); // coerce to number with built-in coercion
  *     }
  *
  *     // always return the original value if we have not returned already
@@ -948,6 +952,19 @@ validateParams.coerce = function(params, constraints, options){
     }
     if(typeof options === 'undefined') options = {}; // make sure there's always an options object
     
+    // local function for resolving coersion names to functions
+    var resolveCoersion = function(cName){
+        if(validate.isEmpty(cName)){
+            validateParams._warn('ignoring invalid coercion name: ' + cName);
+        }
+        if(validate.isFunction(validateParams.coercions[cName])){
+            return validateParams.coercions[cName];
+        }else{
+            validateParams._warn("no coercion named '" + cName + "' defined - ignoring");
+        }
+        return undefined;
+    };
+    
     // apply any defined coercions
     var coerceFn;
     var coerceVal;
@@ -959,9 +976,13 @@ validateParams.coerce = function(params, constraints, options){
         coerceVal = validateParams._extractParamOption('coerce', constraints[i]);
         if(validate.isFunction(coerceVal)){
             coerceFn = coerceVal;
+        }else if(validate.isString(coerceVal)){
+            coerceFn = resolveCoersion(coerceVal);
         }else if(validate.isObject(coerceVal)){
             if(validate.isFunction(coerceVal.fn)){
                 coerceFn = coerceVal.fn;
+            }else if(validate.isString(coerceVal.fn)){
+                coerceFn = resolveCoersion(coerceVal.fn);
             }
             if(validate.isObject(coerceVal.options)){
                 coerceOpts = coerceVal.options;
@@ -970,7 +991,7 @@ validateParams.coerce = function(params, constraints, options){
         
         // if a coercion was found, apply it
         if(validate.isFunction(coerceFn)){
-            params[i] = coerceFn(params[i], coerceOpts);
+            params[i] = coerceFn(params[i], coerceOpts, validateParams.coercions);
             
         }
     }

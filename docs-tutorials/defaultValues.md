@@ -10,52 +10,8 @@ Default values are injected before any defined coercions are applied, and before
 validation. Default values will get validated, so be sure to specify a valid
 default!
 
-## A Note One the `arguments` Variable
-
-The special `arguments` variable JavaScript provides within functions is an
-array-like object, so it is passed by value, and default values can be injected
-into it. However, when the values inside the `arguments` object are altered, the
-values associated with the corresponding parameter names do not. This can be
-very confusing, as illustrated by the following sample function:
-
-```
-function huh(x){
-  validateParams.assert(arguments, [{vpopt_defaultWhenEmpty: 'changed!'}]);
-  return [x, arguments[0]];
-}
-console.log(huh('')); // logs ['', 'changed!']
-```
-
-Combining the fact that the
-[validateParams.assert()]{@link module:validateParams.assert} function returns a
-reference to the generated attributes data structure passed to the
-[validate()]{@link external:validate} function from `validate.js` with the
-`name` per-parameter option produces a useful design pattern:
-
-```
-function raiseTo(){
-  var args = validateParams.assert(arguments, [
-    { vpopt_name: 'base', numericality: true, presence: true },
-    {
-      paramOptions: {
-        name: 'exponent',
-        defaultWhenEmpty: 2
-      },
-      numericality: { onlyInteger: true, greaterThanOrEqualTo: 0 }
-    }
-  ]);
-  
-  var ans = args.base;
-  while(args.exponent > 1){
-    ans *= args.base;
-    args.exponent--;
-  }
-  return ans;
-}
-console.log(raiseTo()); // throws validation error
-console.log(raiseTo(2)); // logs '4'
-console.log(raiseTo(2, 4)); // logs '16'
-```
+#If you plan on injecting default values into JavaScript's special `arguments`
+variable, please read {@tutorial argumentsNote}.
 
 ## Suppressing Injection of Defaults
 
@@ -83,4 +39,7 @@ function printTLA(){
 function isTLA(){
   return validateParams.validate(arguments, [tlaCons], { injectDefaults: false }).passed();
 }
+
+printTLA(''); // logs '???'
+console.log(isTLA('')); // logs 'false' 
 ```

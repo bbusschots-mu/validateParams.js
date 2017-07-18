@@ -1137,10 +1137,44 @@ QUnit.module('validateParams.coerce() function', {}, function(){
         a.equal(a1[0], 4);
     });
     
+    QUnit.test('built-in coercions can be specified by name', function(a){
+        a.expect(3);
+        var params1 = [1];
+        validateParams.validate(params1, [{ vpopt_coerce: 'toString' }]);
+        a.strictEqual(params1[0], '1', 'named coercion via vpopt_coerce successfully applied');
+        var params2 = [2];
+        validateParams.validate(params2, [{ paramOptions: { coerce: 'toString' } }]);
+        a.strictEqual(params2[0], '2', 'named coercion via paramOptions.coerce successfully applied');
+        var params3 = [3];
+        validateParams.validate(params3, [{ paramOptions: { coerce: { fn: 'toString' } } }]);
+        a.strictEqual(params3[0], '3', 'named coercion via paramOptions.coerce.fn successfully applied');
+    });
+    
     QUnit.test('returns reference to parameter list', function(a){
         var params = [1, 2];
         var out = validateParams.coerce(params, []);
         a.strictEqual(out, params);
+    });
+    
+    QUnit.test('options passed to callback', function(a){
+        a.expect(1);
+        var params = [];
+        validateParams.validate(params, [{
+            vpopt_coerce: {
+                fn: function(v, o){ return o; },
+                options: {a: 'b'}
+            }
+        }]);
+        a.deepEqual(params[0], {a: 'b'});
+    });
+    
+    QUnit.test('reference to validateParams.coercions passed to callback', function(a){
+        a.expect(1);
+        var params = [];
+        validateParams.validate(params, [{
+            vpopt_coerce: function(v, o, c){ return c; },
+        }]);
+        a.strictEqual(params[0], validateParams.coercions);
     });
     
     QUnit.test('options.coerce:false ignored', function(a){
