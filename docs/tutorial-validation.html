@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Validation Overview - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Tutorials</li><li class="nav-item"><a href="tutorial-argumentsNote.html">Note on `arguments`</a></li><li class="nav-item"><a href="tutorial-coercions.html">Parameter Value Coercion</a></li><li class="nav-item"><a href="tutorial-defaultValues.html">Default Value Injection</a></li><li class="nav-item"><a href="tutorial-nestedValidation.html">Nested Validation</a></li><li class="nav-item"><a href="tutorial-paramNames.html">Parameter Naming</a></li><li class="nav-item"><a href="tutorial-validation.html">Validation Overview</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-validateParams.Result.html">validateParams.Result</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#asString">asString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#constraintsList">constraintsList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#errorDetails">errorDetails</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#errorList">errorList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#errors">errors</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#fail">fail</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#numErrors">numErrors</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#options">options</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#parameterList">parameterList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#pass">pass</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#validateAttributes">validateAttributes</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#validateConstraints">validateConstraints</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-validateParams.ValidationError.html">validateParams.ValidationError</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.ValidationError.html#errors">errors</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.ValidationError.html#numErrors">numErrors</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-validateParams.html">validateParams</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.asOrdinal">asOrdinal</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.assert">assert</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.coerce">coerce</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.extendObject">extendObject</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.getValidateInstance">getValidateInstance</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.injectDefaults">injectDefaults</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isArguments">isArguments</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isPlainObject">isPlainObject</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isPrimitive">isPrimitive</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isTypeofString">isTypeofString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.paramToAttrConstraints">paramToAttrConstraints</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.shallowCopy">shallowCopy</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.validate">validate</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.validateJS">validateJS</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#~validateParams">validateParams</a></span></li><li class="nav-heading">Externals</li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isArray.html">external:isArray</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isEmpty.html">external:isEmpty</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isObject.html">external:isObject</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-single.html">external:single</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-validate.html">external:validate</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-Validator.html">external:Validator</a></span></li><li class="nav-heading">Namespaces</li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="module-validateParams.coercions.html">validateParams.coercions</a></span></li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="module-validateParams.validators.html">validateParams.validators</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">Validation Overview</h1>
+    
+
+    <section>
+
+<header>
+    
+</header>
+
+<article>
+    <h2>The Validation Functions</h2><p>This module provides three validation functions for three different coding
+styles. Which to use will depend on the situation, and your preferences. All
+three functions take the same arguments, and perform the same validations in the
+same way, the difference is in how they behave when validation fails.</p>
+<p>As this module is a wrapper for <code>validate.js</code>, the primary validation function
+<a href="module-validateParams.html#~validateParams">validateParams()</a> responds to
+errors in the same way the <a href="external-validate.html">validate()</a> function from
+<code>validate.js</code> does - it returns <code>undefined</code> if there were no errors, or a
+collection of one or more error strings if there were errors. The format of the
+returned error data is determined by the <code>format</code> option
+<a href="https://validatejs.org/#validate-error-formatting">as described in the validate.js documentation</a>.</p>
+<p>Because HTML forms fundamentally consist of name-value pairs, and <code>validate.js</code>
+was designed to validate web forms, the validation functions provided by that
+module expect the data to be validated and the constraints to be applied to be
+passed as name-value pairs.</p>
+<p>Function parameters on the other hand are lists, not name-value pairs, so the
+validation functions provided by this module expect both the data to be
+validated and the constraints to be applied to be specified as lists.</p>
+<p>The following three validation functions are provided by this module:</p>
+<ul>
+<li><p><a href="module-validateParams.html#~validateParams">validateParams()</a> - returns the
+same values as the <a href="external-validate.html">validate()</a> function from
+<code>validate.js</code>. Specifically, <code>undefined</code> if there were no validation errors,
+or the errors generated during validation if there were. The structure of the
+returned errors is determined by the <code>format</code> option.</p>
+<pre class="prettyprint source"><code>var errs = validateParams(arguments, [{ presence: true, hasTypeof: 'number' }]);
+if(errs){
+  console.log('invalid data!', errs);
+}</code></pre></li>
+<li><p><a href="module-validateParams.html#.validate">validateParams.validate()</a> - returns a
+<a href="module-validateParams.Result.html">validateParams.Result</a> object.</p>
+<pre class="prettyprint source"><code>var res = validateParams.validate(arguments, [{ presence: true, hasTypeof: 'number' }]);
+if(res.failed()){
+  console.log('invalid data!', res.errorList());
+}</code></pre></li>
+<li><p><a href="module-validateParams.html#.assert">validateParams.assert()</a> - throws a
+<a href="module-validateParams.ValidationError.html">validateParams.ValidationError</a>
+if the data does not pass the constraints.</p>
+<pre class="prettyprint source"><code>validateParams.assert(arguments, [{ presence: true, hasTypeof: 'number' }]);</code></pre></li>
+</ul>
+<p>The validation functions all expect the same three parameters - the list of data
+to validate, the list of constraints to validate the data against, and
+optionally, an object literal of options.</p>
+<h3>Paramter List</h3><p>The first parameter expected by all three of the validation functions is the
+parameter list. This should be an array, or, JavaScript's special <code>arguments</code>
+variable.</p>
+<h3>Constraints List</h3><p>The second parameter expected by all three of the validation functions is the
+constraints list. This should be an array of object literals, where each
+object literal defines the constraints to be applied to the matching entry in
+the parameter list. The constraints defined in the first entry in the
+costraints list will be applied to the value in the first entry of the parameter
+list, the constraints in the second entry of the constraints list to the value
+in the second entry of the parameter list, and so on.</p>
+<p>The constraints should be in the format expected by <code>validate.js</code>, that is:</p>
+<pre class="prettyprint source"><code>{
+  &lt;VALIDATOR_NAME>: {
+     &lt;VALIDATOR_VALUE>
+  }
+  ...
+}</code></pre><p>For example, the following constraints list defines one constraint to be applied
+to the first parameter, and two to the second:</p>
+<pre class="prettyprint source"><code>[
+  { // constraint for the first parameter
+    defined: true, // the value for the first parameter cannot be undefined
+  },
+  { // constraints for the second parameter
+    defined: true, // the value for the second parameter cannot be undefined
+    hasTypeof: 'function' // the value must be a callback
+  }
+]</code></pre><h3>Validation Options</h3><p>All three validation functions can optionally accept a collection of options as
+a third parameter. This object can contain options that control the behaviour of
+both the validation functions provided this module, and, the valdiation
+functions from <code>validate.js</code> that this module uses to perform the validation.</p>
+<p>For example, the error formatting can be altered from the default grouped
+formatting to a flat formatting by passing <code>{format: 'flat'}</code> as the third
+parameter.</p>
+<p>For details on the options supported by <code>validate.js</code>, see the
+<a href="https://validatejs.org/#overview">validate.js documentation</a>.</p>
+<p>The validation functions provided by this module support the following options:</p>
+<ul>
+<li><code>coerce</code> - a truthy value enables the coercion feature, a falsy value disables
+it. This option defaults to <code>true</code>.</li>
+<li><code>injectDefaults</code> - a truthy value enables the default value injection feature,
+and a falsy value disables it. This option defaults to <code>true</code>.</li>
+<li><code>fatal</code> - a truthy value will cause the validation function to throw a
+<a href="module-validateParams.ValidationError.html">validateParams.ValidationError</a>
+if all data does not pass all constraints. This option genereally defaults to
+<code>false</code>, except when validating with the
+<a href="module-validateParams.html#.assert">validateParams.assert()</a> function, which
+forces the option to <code>true</code> regardless of the value specified in the options.</li>
+</ul>
+<h2>Constraints and Validators</h2><p>Constraints are built up by specifying validators and the options those
+validators should obey when validating the data. Each validator defines its own
+rules for the options it supports.</p>
+<p>All the validators that ship with <code>validate.js</code> are available through this
+module, and this module provides a number of additional validators. You can also
+create your own custom validators for use with this module.</p>
+<p>For more information about how validators work, see the
+<a href="https://validatejs.org/#validators">Validators section of the validate.js documentation</a>.</p>
+<h3>Required Parameters &amp; Presence -v- Defined</h3><p>The standard validations provided by <code>validate.js</code> all implicitly pass values
+that evaluate to true via the <a href="external-isEmpty.html">validate.isEmpty()</a>
+function. Similarly, the validations provided by this module all implicitly pass
+<code>undefined</code>.</p>
+<p>To make a parameter required, you need to add one of two special validators:</p>
+<ul>
+<li>The <a href="https://validatejs.org/#validators-presence">Presence Validator</a> from
+<code>validate.js</code>. This validator not only forces the value to be defined, but
+also to be non-empty. <code>null</code>, empty strings, empty arrays, and object literals
+with no defined attributes all fail this validator.</li>
+<li>The <a href="module-validateParams.validators.html#.defined">Defined Validator</a>
+provided by this module. This validator is more liberal than the Presence
+Validator, only rejecting <code>undefined</code>.</li>
+</ul>
+<p>For example, the following constraints list defines constraints for two
+parameters, the first of which must be defined and not empty, while the second
+must be defined:</p>
+<pre class="prettyprint source"><code>[
+  { presence: true }, // the first constraint
+  { defined: true } // the second constraint
+]</code></pre><h3>Per-Parameter Options</h3><p>A number of speical per-parameter options can be specified within the
+constraints list. These options only effect the behaviour of the validation
+functions provided by this module, and, they are not passed on to the validation
+functions from <code>validate.js</code>.</p>
+<p>Per-parameter options are name-value pairs, and there are two ways to include
+them in constraints within a constraints list.</p>
+<h4>The Pre-fix Syntax</h4><p>This syntax is most suited to adding single per-parameter option. The option is
+added directly into the constraints object with its name pre-fixed with <code>vpopt_</code>
+(short for validateParams Option). E.g.:</p>
+<pre class="prettyprint source"><code>{
+  defined: true,
+  vpopt_name: 'someName'
+}</code></pre><h4>The paramOptions Syntax</h4><p>This syntax is most suited to adding multiple per-parameter options. The options
+are not added directly to the contrainst, but inside an object named
+<code>paramOptions</code> which is included in the constraint. E.g.:</p>
+<pre class="prettyprint source"><code>{
+  defined: true,
+  hasTypeof: 'boolean',
+  paramOptions: {
+    name: 'someName',
+    coerce: function(v){ return v ? true : false; }
+  }
+}</code></pre><p>The following per-parameter options are supported:</p>
+<ul>
+<li><code>name</code> - for altering the names parameters are given in the generated
+attributes and constraints objects - see <a href="tutorial-paramNames.html">Parameter Naming</a>.</li>
+<li><code>defaultWhenEmpty</code> &amp; <code>defaultWhenUndefined</code> - for setting default values for
+parameters that are undefined or empty - see <a href="tutorial-defaultValues.html">Default Value Injection</a>.</li>
+</ul>
+<h3>Worked Example - Factorial Function</h3><p>The factorial of a number is the product of that number and all other numbers
+between it and one. So, the factorial of <code>4</code> is <code>4 * 3 * 2</code>, or <code>24</code>. The
+input to the factorial function must be am integer number, and it must be
+greater than or equal to zero.</p>
+<p>This function only requires one parameter, so we only need to build one
+constraints object.</p>
+<p>In this case, the one parameter is not optional, so our constraints object
+should include the
+<a href="https://validatejs.org/#validators-presence">Presence Validator</a> from
+<code>validate.js</code>. This is a very simple validator, it simply expects to be passed
+the value <code>true</code>.</p>
+<pre class="prettyprint source"><code>presence: true</code></pre><p>The one parameter must also be a number, so we'll also need to use the
+<a href="https://validatejs.org/#validators-numericality">Numericality Validator</a> from
+<code>validate.js</code>. This is a more complex validator, supporting multiple options.
+In this case, the value we need to specify is not simply <code>true</code>, but an object
+literal that specifies the needed options to limit the number to being an
+integer with a value greater than or equal to zero.</p>
+<pre class="prettyprint source"><code>numericality: {
+  onlyInteger: true,
+  greaterThanOrEqualTo: 0
+}</code></pre><p>Putting it all together we get the following constraints list:</p>
+<pre class="prettyprint source"><code>[{
+  presence: true,
+  numericality: {
+    onlyInteger: true,
+    greaterThanOrEqualTo: 0
+  }
+}]</code></pre><p>Armed with this contraints list we can now write our function:</p>
+<pre class="prettyprint source"><code>function factorial(n){
+  validateParams.assert(
+    arguments, // validate the arguments passed to the function
+    [{ // the constraints list
+      presence: true,
+      numericality: {
+        onlyInteger: true,
+        greaterThanOrEqualTo: 0
+      }
+    }]
+  ); // throws an error if validation fails
+
+  var fact = 1;
+  while(n > 1){
+    fact *= n;
+    n--;
+  }
+  return fact;
+}</code></pre><p>When we try use our function, the following happens:</p>
+<pre class="prettyprint source"><code>var x = factorial(4); // x=24
+var y = factorial('4'); // y=24
+var e1 = factorial(); // throws error - argument not present
+var e3 = factorial('stuff'); // throws error - argument is not a number
+var e2 = factorial(3.14); // throws error - argument is not an integer
+var e3 = factorial(-4); // throws error - argument is not >= 0</code></pre>
+</article>
+
+</section>
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Jul 18 2017 16:41:41 GMT+0100 (IST) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

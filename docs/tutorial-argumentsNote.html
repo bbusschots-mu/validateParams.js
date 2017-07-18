@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Home - Documentation</title>
+    <title>Note on `arguments` - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,208 +29,71 @@
 
 <div id="main">
     
-
+    <h1 class="page-title">Note on `arguments`</h1>
     
 
-
-
-    
-
-
-
-
-
-
-
-
-
-    
-
-
-    <section class="readme">
-        <article><h1>validateParams.js (@maynoothuniversity/validate-params)</h1><p>A wrapper around <a href="https://validatejs.org/">validate.js</a> to facilitate easy
-function parameter validation in JavaScript.</p>
-<p><code>Validate.js</code> is designed to valid web forms.  HTML form data is fundamentally a
-collection of name-value pairs, so it makes sense that the validation functions
-provided by <code>valiate.js</code> expect both the data to be validated, and the
-constraints to be applied to that data to be specified as collections of
-name-value pairs (JavaScript objects).</p>
-<p>Function parameters are not name-value pairs, they are lists of values. Hence,
-the validation functions provided by this module expect both the data to be
-validated, and the constraints to be applied to that data to be specified as
-lists.</p>
-<p>Internally, the module converts the passed parameter and constraint lists to
-collections of name-value pairs which it then validates with <code>validate.js</code>.</p>
-<p>As well as translating between lists and name-value pairs, the module also
-provides a number of other additional features which focus on parameter
-validation, including the specification of default values, support for data
-coercion, improved support for nested constraints, and a number of additional
-validators.</p>
-<p>so it needs both the data to be
-validated and the constraints to be applied to that data as collections of
-name-value pairs.  are fundamentally name-value pairs, so this</p>
-<h2>Installation</h2><h3>NodeJS</h3><p>Install the module and its dependencies:</p>
-<pre class="prettyprint source"><code>npm install '@maynoothuniversity/validate-params' --save</code></pre><p>Load the module:</p>
-<pre class="prettyprint source"><code>var validateParam = require('@maynoothuniversity/validate-params');</code></pre><h3>Browser (CDN)</h3><pre class="prettyprint source"><code>&lt;!-- Import validate.js then validateParams.js -->
-&lt;script type=&quot;text/javascript&quot; src=&quot;//cdnjs.cloudflare.com/ajax/libs/validate.js/0.11.1/validate.min.js&quot;>&lt;/script>
-&lt;script type=&quot;text/javascript&quot; src=&quot;https://cdn.rawgit.com/bbusschots-mu/validateParams.js/master/validateParams.js&quot; >&lt;/script></code></pre><h2>Synopsis:</h2><pre class="prettyprint source"><code>// passes through the return value from validate.js
-var errors = validateParams(parameterList, constraintList, [options]);</code></pre><p>or</p>
-<pre class="prettyprint source"><code>// returns a validateParams.Result object
-var result = validateParams.validate(parameterList, constraintList, [options]);</code></pre><pre class="prettyprint source"><code>// throws a validateParams.ValidationError if validation fails
-validateParams.assert(parameterList, constraintList, [options]);</code></pre><p>The <code>parameterList</code> can be an array, or, JavaScript's special <code>arguments</code>
-variable.</p>
-<p>The <code>constraintList</code> is an array of object literals, each defining one or more
-<code>validate.js</code> compatible constraints.</p>
-<p>The optional <code>options</code> parameter should be an object literal, and can be used
-to specify options that alter both the behaviour of the validation functions
-provided by this module, and the validation functions from <code>validate.js</code> used to
-perform the actual validations.</p>
-<h2>Example</h2><pre class="prettyprint source"><code>// An implementation of the Factorial function
-// The first argument must be present, an integer, and >= 0
-function fact(n){
-    // validate the parameter
-    validateParams.assert(
-        arguments,
-        [{
-            presence: true,
-            numericality: {
-                onlyInteger: true,
-                greaterThanOrEqualTo: 0
-            }
-        }
-    ]); // will throw validateParams.ValidationError on invalid params
-
-    // do the calculation
-    var ans = 1;
-    while(n > 0){
-        ans *= n;
-        n--;
-    }
-
-    // return the result
-    return ans;
-}
-
-var x = fact(4); // x=24
-var y = fact('4'); // x=24
-var z = fact('stuff'); // throws validateParams.ValidationError</code></pre><h2>Documentation</h2><ul>
-<li>API Documentation for validateParams.js: <a href="https://bbusschots-mu.github.io/validateParams.js/">bbusschots-mu.github.io/...</a></li>
-<li>API Documentation for validate.js: <a href="https://validatejs.org/">validatejs.org/...</a></li>
-</ul></article>
-    </section>
-
-
-
-
-
-
-
-
-
-<section>
+    <section>
 
 <header>
-    
-        <h2>
-        validateParams.js
-        </h2>
-        
     
 </header>
 
 <article>
-    <div class="container-overview">
-    
-        
-            <div class="description"><p>Provides the <a href="module-validateParams.html">validateParams</a> module.</p></div>
-        
+    <p>The special <code>arguments</code> variable JavaScript provides within functions is an
+array-like object, so it's passed by value. This means default values can be
+injected into it with the per-parameter options <code>defaultWhenUndefined</code> and
+<code>defaultWhenEmpty</code>, and the values it does contain can be coerced with the
+<code>coerce</code> per-parameter option. However, when the values inside the <code>arguments</code>
+object are altered, the values associated with the corresponding parameter names
+do not get reliably updated. This can be very confusing, as illustrated by the
+following sample function:</p>
+<pre class="prettyprint source"><code>function huh(x){
+  validateParams.assert(arguments, [{vpopt_coerce: function(){ return 'changed!'; }}]);
+  return [x, arguments[0]];
+}
+console.log(huh('')); // may log in some browsers ['', 'changed!'], or ['changed!', 'changed!'] in others</code></pre><p>Combining the fact that the
+<a href="module-validateParams.html#.assert">validateParams.assert()</a> function returns a
+reference to the generated attributes data structure passed to the
+<a href="external-validate.html">validate()</a> function from <code>validate.js</code> with the
+per-parameter option <code>name</code> produces a useful design pattern for working around
+this inconsistent behaviour - don't name the parameters in the function
+definition, name them in the parameter list so they will get those names in the
+generated attributes list, and save that to a conveniently named variable for
+easy access. This design pattern is illustrated in the example below:</p>
+<pre class="prettyprint source"><code>function raiseTo(){
+  var args = validateParams.assert(arguments, [
+    {
+      paramOptions: {
+        name: 'base',
+        coerce: 'toNumber'
+      },
+      numericality: true,
+      presence: true
+    },
+    {
+      paramOptions: {
+        name: 'exponent',
+        defaultWhenEmpty: 2,
+        coerce: 'toNumber'
+      },
+      numericality: { onlyInteger: true, greaterThanOrEqualTo: 0 }
+    }
+  ]);
 
-        
-
-
-<dl class="details">
-
-    
-    <dt class="tag-version">Version:</dt>
-    <dd class="tag-version"><ul class="dummy"><li>1.1.1</li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-author">Author:</dt>
-    <dd class="tag-author">
-        <ul>
-            <li><a href="mailto:bart.busschots@mu.ie">Bart Busschots</a></li>
-        </ul>
-    </dd>
-    
-
-    
-
-    
-    <dt class="tag-license">License:</dt>
-    <dd class="tag-license"><ul class="dummy"><li>MIT</li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li><a href="https://github.com/bbusschots-mu/validateParams.js">https://github.com/bbusschots-mu/validateParams.js</a></li>
-        </ul>
-    </dd>
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-
-    
-
-    
+  var ans = args.base;
+  while(args.exponent > 1){
+    ans *= args.base;
+    args.exponent--;
+  }
+  return ans;
+}
+console.log(raiseTo()); // throws validation error
+console.log(raiseTo(2)); // logs '4'
+console.log(raiseTo(2, 4)); // logs '16'
+console.log(raiseTo('2', '5')); // logs '32'</code></pre>
 </article>
 
 </section>
-
-
-
 
 </div>
 
