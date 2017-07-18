@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Home - Documentation</title>
+    <title>Parameter Value Coercion - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,215 +29,77 @@
 
 <div id="main">
     
-
+    <h1 class="page-title">Parameter Value Coercion</h1>
     
 
-
-
-    
-
-
-
-
-
-
-
-
-
-    
-
-
-    <section class="readme">
-        <article><h1>validateParams.js (@maynoothuniversity/validate-params)</h1><p>A wrapper around <a href="https://validatejs.org/">validate.js</a> to facilitate easy
-function parameter validation in JavaScript.</p>
-<p><code>Validate.js</code> is designed to valid web forms.  HTML form data is fundamentally a
-collection of name-value pairs, so it makes sense that the validation functions
-provided by <code>valiate.js</code> expect both the data to be validated, and the
-constraints to be applied to that data to be specified as collections of
-name-value pairs (JavaScript objects).</p>
-<p>Function parameters are not name-value pairs, they are lists of values. Hence,
-the validation functions provided by this module expect both the data to be
-validated, and the constraints to be applied to that data to be specified as
-lists.</p>
-<p>Internally, the module converts the passed parameter and constraint lists to
-collections of name-value pairs which it then validates with <code>validate.js</code>.</p>
-<p>As well as translating between lists and name-value pairs, the module also
-provides a number of other additional features which focus on parameter
-validation, including the specification of default values, support for data
-coercion, improved support for nested constraints, and a number of additional
-validators.</p>
-<p>so it needs both the data to be
-validated and the constraints to be applied to that data as collections of
-name-value pairs.  are fundamentally name-value pairs, so this</p>
-<h2>Installation</h2><h3>NodeJS</h3><p>Install the module and its dependencies:</p>
-<pre class="prettyprint source"><code>npm install '@maynoothuniversity/validate-params' --save</code></pre><p>Load the module:</p>
-<pre class="prettyprint source"><code>var validateParam = require('@maynoothuniversity/validate-params');</code></pre><h3>Browser (CDN)</h3><pre class="prettyprint source"><code>&lt;!-- Import validate.js then validateParams.js -->
-&lt;script type=&quot;text/javascript&quot; src=&quot;//cdnjs.cloudflare.com/ajax/libs/validate.js/0.11.1/validate.min.js&quot;>&lt;/script>
-&lt;script type=&quot;text/javascript&quot; src=&quot;https://cdn.rawgit.com/bbusschots-mu/validateParams.js/master/validateParams.js&quot; >&lt;/script></code></pre><h2>Synopsis:</h2><pre class="prettyprint source"><code>// passes through the return value from validate.js
-var errors = validateParams(parameterList, constraintList, [options]);</code></pre><p>or</p>
-<pre class="prettyprint source"><code>// returns a validateParams.Result object
-var result = validateParams.validate(parameterList, constraintList, [options]);</code></pre><pre class="prettyprint source"><code>// throws a validateParams.ValidationError if validation fails
-validateParams.assert(parameterList, constraintList, [options]);</code></pre><p>The <code>parameterList</code> can be an array, or, JavaScript's special <code>arguments</code>
-variable.</p>
-<p>The <code>constraintList</code> is an array of object literals, each defining one or more
-<code>validate.js</code> compatible constraints.</p>
-<p>The optional <code>options</code> parameter should be an object literal, and can be used
-to specify options that alter both the behaviour of the validation functions
-provided by this module, and the validation functions from <code>validate.js</code> used to
-perform the actual validations.</p>
-<h2>Example</h2><pre class="prettyprint source"><code>// An implementation of the Factorial function
-// The first argument must be present, an integer, and >= 0
-function fact(n){
-    // validate the parameter
-    validateParams.assert(
-        arguments,
-        [{
-            presence: true,
-            numericality: {
-                onlyInteger: true,
-                greaterThanOrEqualTo: 0
-            }
-        }
-    ]); // will throw validateParams.ValidationError on invalid params
-
-    // do the calculation
-    var ans = 1;
-    while(n > 0){
-        ans *= n;
-        n--;
-    }
-
-    // return the result
-    return ans;
-}
-
-var x = fact(4); // x=24
-var y = fact('4'); // x=24
-var z = fact('stuff'); // throws validateParams.ValidationError</code></pre><h2>Documentation</h2><ul>
-<li>API Documentation for validateParams.js: <a href="https://bbusschots-mu.github.io/validateParams.js/">bbusschots-mu.github.io/...</a></li>
-<li>API Documentation for validate.js: <a href="https://validatejs.org/">validatejs.org/...</a></li>
-</ul></article>
-    </section>
-
-
-
-
-
-
-
-
-
-<section>
+    <section>
 
 <header>
-    
-        <h2>
-        validateParams.js
-        </h2>
-        
     
 </header>
 
 <article>
-    <div class="container-overview">
-    
-        
-            <div class="description"><p>Provides the <a href="module-validateParams.html">validateParams</a> module.</p></div>
-        
+    <p>A coercion is a function which transforms a value who's meaning is clear, but
+is somehow in and undesirable format into the desired format. For exaple, the
+number <code>0</code> could be coerced to <code>false</code> if a boolean value was desired.</p>
+<p>This module provides support for parameter coercion functions through the
+parameter-specific option <code>coerce</code>. Custom coercions can be specied using
+callbacks (see <a href="global.html#CoercionCallback">CoercionCallback</a>), and the module provides a small
+collection built-in coercions which can be specified by name (see the
+<a href="module-validateParams.coercions.html">validateParams.coercions</a> name space).</p>
+<p>The coercion per-parameter option understands three possible values:</p>
+<ol>
+<li>A string - will be interpreted as the name of a built-in coercion.</li>
+<li>A callback.</li>
+<li>An object indexed by:<ul>
+<li><code>fn</code> - a string or a callback interpreted as above</li>
+<li><code>options</code> - an object which will be passed to the coercion function as the
+second parameter.</li>
+</ul>
+</li>
+</ol>
+<p>Like default values, coercions are applied directly to the parameter list, not
+to coppies of the values in the parameter list:</p>
+<pre class="prettyprint source"><code>var l = [42];
+validateParams(l, [{vpopt_coerce: 'toString'}]);
+console.log(l[0], typeof l[0]); // logs: 42 string</code></pre><p>If you plan on applying coercions to JavaScript's special <code>arguments</code> variable,
+please read <a href="tutorial-argumentsNote.html">Note on `arguments`</a>.</p>
+<h2>Suppressing Coercions</h2><p>Coercions can be suppressed by setting the validation option <code>coerce</code> to
+<code>false</code>. This can be useful if you wish to re-use the same constraint in
+multiple validations, and don't always wish to apply coercions:</p>
+<pre class="prettyprint source"><code>var tlaCons = {
+  paramOptions: {
+    name: 'tla',
+    coerce: function(v, opts, c){ return c.toString(v).toUpperCase(); }
+  },
+  length: { is: 3 },
+  hasTypeof: 'string',
+  format: /[A-Z]{3}/
+};
 
-        
+// A function which validates with coercions
+function printTLA(){
+  var args = validateParams.assert(arguments, [tlaCons]);
+  console.log(args.tla);
+}
 
+// a function which validates without coercions
+function isTLA(){
+  return validateParams.validate(arguments, [tlaCons], { coerce: false }).passed();
+}
 
-<dl class="details">
-
-    
-    <dt class="tag-version">Version:</dt>
-    <dd class="tag-version"><ul class="dummy"><li>1.1.1</li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-author">Author:</dt>
-    <dd class="tag-author">
-        <ul>
-            <li><a href="mailto:bart.busschots@mu.ie">Bart Busschots</a></li>
-        </ul>
-    </dd>
-    
-
-    
-
-    
-    <dt class="tag-license">License:</dt>
-    <dd class="tag-license"><ul class="dummy"><li>MIT</li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li><a href="https://github.com/bbusschots-mu/validateParams.js">https://github.com/bbusschots-mu/validateParams.js</a></li>
-        </ul>
-    </dd>
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-
-    
-
-    
+printTLA('lol'); // logs 'LOL'
+console.log(isTLA('lol')); // logs 'false'</code></pre>
 </article>
 
 </section>
-
-
-
 
 </div>
 
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Jul 18 2017 16:41:40 GMT+0100 (IST) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Jul 18 2017 16:41:41 GMT+0100 (IST) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>

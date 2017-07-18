@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Home - Documentation</title>
+    <title>Nested Validation - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,215 +29,146 @@
 
 <div id="main">
     
-
+    <h1 class="page-title">Nested Validation</h1>
     
 
-
-
-    
-
-
-
-
-
-
-
-
-
-    
-
-
-    <section class="readme">
-        <article><h1>validateParams.js (@maynoothuniversity/validate-params)</h1><p>A wrapper around <a href="https://validatejs.org/">validate.js</a> to facilitate easy
-function parameter validation in JavaScript.</p>
-<p><code>Validate.js</code> is designed to valid web forms.  HTML form data is fundamentally a
-collection of name-value pairs, so it makes sense that the validation functions
-provided by <code>valiate.js</code> expect both the data to be validated, and the
-constraints to be applied to that data to be specified as collections of
-name-value pairs (JavaScript objects).</p>
-<p>Function parameters are not name-value pairs, they are lists of values. Hence,
-the validation functions provided by this module expect both the data to be
-validated, and the constraints to be applied to that data to be specified as
-lists.</p>
-<p>Internally, the module converts the passed parameter and constraint lists to
-collections of name-value pairs which it then validates with <code>validate.js</code>.</p>
-<p>As well as translating between lists and name-value pairs, the module also
-provides a number of other additional features which focus on parameter
-validation, including the specification of default values, support for data
-coercion, improved support for nested constraints, and a number of additional
-validators.</p>
-<p>so it needs both the data to be
-validated and the constraints to be applied to that data as collections of
-name-value pairs.  are fundamentally name-value pairs, so this</p>
-<h2>Installation</h2><h3>NodeJS</h3><p>Install the module and its dependencies:</p>
-<pre class="prettyprint source"><code>npm install '@maynoothuniversity/validate-params' --save</code></pre><p>Load the module:</p>
-<pre class="prettyprint source"><code>var validateParam = require('@maynoothuniversity/validate-params');</code></pre><h3>Browser (CDN)</h3><pre class="prettyprint source"><code>&lt;!-- Import validate.js then validateParams.js -->
-&lt;script type=&quot;text/javascript&quot; src=&quot;//cdnjs.cloudflare.com/ajax/libs/validate.js/0.11.1/validate.min.js&quot;>&lt;/script>
-&lt;script type=&quot;text/javascript&quot; src=&quot;https://cdn.rawgit.com/bbusschots-mu/validateParams.js/master/validateParams.js&quot; >&lt;/script></code></pre><h2>Synopsis:</h2><pre class="prettyprint source"><code>// passes through the return value from validate.js
-var errors = validateParams(parameterList, constraintList, [options]);</code></pre><p>or</p>
-<pre class="prettyprint source"><code>// returns a validateParams.Result object
-var result = validateParams.validate(parameterList, constraintList, [options]);</code></pre><pre class="prettyprint source"><code>// throws a validateParams.ValidationError if validation fails
-validateParams.assert(parameterList, constraintList, [options]);</code></pre><p>The <code>parameterList</code> can be an array, or, JavaScript's special <code>arguments</code>
-variable.</p>
-<p>The <code>constraintList</code> is an array of object literals, each defining one or more
-<code>validate.js</code> compatible constraints.</p>
-<p>The optional <code>options</code> parameter should be an object literal, and can be used
-to specify options that alter both the behaviour of the validation functions
-provided by this module, and the validation functions from <code>validate.js</code> used to
-perform the actual validations.</p>
-<h2>Example</h2><pre class="prettyprint source"><code>// An implementation of the Factorial function
-// The first argument must be present, an integer, and >= 0
-function fact(n){
-    // validate the parameter
-    validateParams.assert(
-        arguments,
-        [{
-            presence: true,
-            numericality: {
-                onlyInteger: true,
-                greaterThanOrEqualTo: 0
-            }
-        }
-    ]); // will throw validateParams.ValidationError on invalid params
-
-    // do the calculation
-    var ans = 1;
-    while(n > 0){
-        ans *= n;
-        n--;
-    }
-
-    // return the result
-    return ans;
-}
-
-var x = fact(4); // x=24
-var y = fact('4'); // x=24
-var z = fact('stuff'); // throws validateParams.ValidationError</code></pre><h2>Documentation</h2><ul>
-<li>API Documentation for validateParams.js: <a href="https://bbusschots-mu.github.io/validateParams.js/">bbusschots-mu.github.io/...</a></li>
-<li>API Documentation for validate.js: <a href="https://validatejs.org/">validatejs.org/...</a></li>
-</ul></article>
-    </section>
-
-
-
-
-
-
-
-
-
-<section>
+    <section>
 
 <header>
-    
-        <h2>
-        validateParams.js
-        </h2>
-        
     
 </header>
 
 <article>
-    <div class="container-overview">
-    
-        
-            <div class="description"><p>Provides the <a href="module-validateParams.html">validateParams</a> module.</p></div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-    <dt class="tag-version">Version:</dt>
-    <dd class="tag-version"><ul class="dummy"><li>1.1.1</li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-author">Author:</dt>
-    <dd class="tag-author">
-        <ul>
-            <li><a href="mailto:bart.busschots@mu.ie">Bart Busschots</a></li>
-        </ul>
-    </dd>
-    
-
-    
-
-    
-    <dt class="tag-license">License:</dt>
-    <dd class="tag-license"><ul class="dummy"><li>MIT</li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li><a href="https://github.com/bbusschots-mu/validateParams.js">https://github.com/bbusschots-mu/validateParams.js</a></li>
-        </ul>
-    </dd>
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-
-    
-
-    
+    <p>When a parameter is a list or a dictionary, constraints can be specified on the
+members of that list or dictionary as well as on the parameter itself. Nesting
+is supported arbitarily far down, so you can specify that you wany a 2D array
+of objects each indexed by two-letter keys, and each mapping to a number.</p>
+<p>Support for nesting is provided via validator options supported on two build-in
+validators, <code>list</code> and <code>dictionary</code> - see the
+<a href="module-validateParams.validators.html">validateParams.validators</a> namespace.</p>
+<h2>Validating Every Element in a List or Dictionary</h2><p>The simplest nested constraints are those which specify that all items within
+a list or a dictionary pass a given set of validation. For example, require an
+array if numbers, or an object who's values are all strings. This is what the
+<code>valueConstraints</code> option provides.</p>
+<p>For example, the following function requires the first parameter be an array
+of numbers:</p>
+<pre class="prettyprint source"><code>function sumList(nums){
+  validateParams.assert(arguments, [{
+    defined: true,
+    list: {
+      valueConstraints: { hasTypeof: 'number' }
+    }
+  }]);
+  var ans = 0;
+  nums.forEach(function(n){
+    ans += n;
+  });
+  return ans;
+}</code></pre><p>Similarly, the following function requires the first argument to be a plain
+object containing only instances of the <code>Date</code> prototype:</p>
+<pre class="prettyprint source"><code>function printDates(dates){
+  validateParams.assert(arguments, [{
+    defined: true,
+    dictionary: {
+      valueConstraints: { isInstanceof: [Date] }
+    }
+  }]);
+  Object.keys(dates).forEach(function(dateName){
+    console.log(dateName + ': ' + dates[dateName].toString());
+  });
+}</code></pre><h2>Validating the Keys in a Dictionary</h2><p>Since dictionaries are key-value pairs, it makes sense to be able to validate
+they keys as well as the values. This functionality is provided via the
+<code>dictionary</code> validator's <code>keyConstraints</code> option.</p>
+<p>For example, the following function requires that the first parameter be a
+dictionary which maps three-letter acronyms to strings:</p>
+<pre class="prettyprint source"><code>function printTLAs(TLAs){
+  validateParams.assert(arguments, [{
+    defined: true,
+    dictionary: {
+      keyConstraints: { format: /[A-Z]{3}/ },
+      valueConstraints: {
+        length: { minimum: 1 },
+        hasTypeof: 'string'
+      }
+    }
+  }]);
+  Object.keys(TLAs).forEach(function(TLA){
+    console.log(TLA + ': ' + TLAs[TLA]);
+  });
+}</code></pre><h2>Validating Specific Name-Value Pairs in a Dictionary</h2><p>When dictionaries are used for things like passing options to a function, then
+different constraints will need to be applied to different keys, and some keys
+may not be optional.</p>
+<p>Support for specifying separate constraints on different keys is provided via
+<code>dictionary</code> validator's <code>mapConstraints</code> option. Keys can be marked as required
+using either the <code>presence</code> or <code>defined</code> validators. The <code>rejectUnspecifiedKeys</code>
+option can be used to allow only keys for which a definition exists in the
+<code>mapConstraints</code> option.</p>
+<p>For example, the following function requires it be passed an object of numbers
+indexed by x and y, and allows an optional z key, but no other keys:</p>
+<pre class="prettyprint source"><code>function renderCoord(c){
+  validateParams.assert(arguments, [{
+    defined: true,
+    dictionary: {
+      valueConstraints: { numericality: true }, // all the values should be numbers
+      mapConstraints: {
+        x: { presence: true }, // required
+        y: { presence: true }, // required
+        z: {} // permitted but no constraints beyond the valueConstraints
+      },
+      rejectUnspecifiedKeys: true // do not allow keys other than x, y, or z
+    }
+  }]);
+  var ans = '(' + c.x + ', ' + c.y;
+  if(validateParams.isNumeric(c.z)){
+    ans += ', ' + c.z;
+  }
+  ans += ')';
+  return ans;
+}</code></pre><p>Note the <code>valueConstraints</code> are applied to all the values as well as the
+key-specific constraints specified in the <code>mapConstraints</code> option. If the same
+validator is used in both <code>valueConstraints</code> and <code>mapConstraints</code>, the value
+from <code>mapConstraints</code> takes precedence.</p>
+<h2>Deep Nesting Example</h2><p>The constraints within any of the <code>valueConstraints</code>, <code>keyConstraints</code> or
+<code>mapConstraints</code> options to either of the <code>list</code> or <code>dictionary</code> validators can
+contain <code>list</code> or <code>dictionary</code> validators which themselves specify any of the
+<code>valueConstraints</code>, <code>keyConstraints</code> or <code>mapConstraints</code> options. This allows
+arbitarily deep nesting of constraints.</p>
+<p>For example, the following function requires a list of coordinates, where each
+coordinate is a plain object of numbers indexed by x, y, and optionally z:</p>
+<pre class="prettyprint source"><code>function renderCoordList(coordArray){
+  validateParams.assert(arguments, [{
+    defined: true,
+    list: {
+      valueConstraints: {
+        dictionary: {
+          valueConstraints: { numericality: true },
+          mapConstraints: {
+            x: { presence: true },
+            y: { presence: true },
+            z: {}
+          },
+          rejectUnspecifiedKeys: true
+        }
+      }
+    }
+  }]);
+  var ans = '';
+  coordArray.forEach(function(c, i){
+    if(i > 0) ans += ', ';
+    ans += renderCoord(c); // call function from previous example
+  });
+  return ans;
+}</code></pre>
 </article>
 
 </section>
-
-
-
 
 </div>
 
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Jul 18 2017 16:41:40 GMT+0100 (IST) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Jul 18 2017 16:41:41 GMT+0100 (IST) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>

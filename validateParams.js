@@ -177,37 +177,13 @@
 /**
  * A wrapper around [validate.js]{@link http://validatejs.org/} designed to
  * facilitate its use for function parameter validation.
- *
- * Since validate.js was designed for valdiating web forms, it's designed to
- * validate named data attributes, however, function parameter lists are flat
- * array-like structures of values. This module is designed to bridge that
- * gap in a developer-friendly way, and, to add extra functionality that makes
- * working with function parameters easier, such as additional
- * validate.js-compatible
- * [custom validators]{@link module:validateParams.validators}, and support for
- * data coercion.
- *
- * This module exports its functionality as a single main function,
- * [validateParams()]{@link module:validateParams~validateParams}, which
- * contains further helper functions as properties. This is the same design
- * pattern implemented by validate.js.
- *
- * The module's core functionality is implemented by the function
- * [validateParams.validate()]{@link module:validateParams.validate}, so that
- * function's description is a great starting point for getting to grips with
- * this module, however, in your code you will probably chose to use one of
- * two wrappers around this function:
- *
- * * [validateParams()]{@link module:validateParams~validateParams} - returns
- *   lists of errors or `undefined` in the same way the `validate()` function
- *   from validate.js does.
- * * [validateParams.assert()]{@link module:validateParams.assert} - throws
- *   [validateParams.ValidationError]{@link module:validateParams.ValidationError}
- *   errors rather than returning lists of errors.
  * 
  * @module validateParams
  * @requires module:validate.js
+ * @requires module:humanJoin.js
+ * @tutorial validation
  * @see [validate.js Documentation]{@link https://validatejs.org/}
+ * @see [humanJoin.js]{@link https://github.com/bbusschots-mu/humanJoin.js}
  */
 
 //
@@ -261,13 +237,11 @@ humanJoin.optionDefaults.conjunction = ", or ";
  * parameters fail to validate and `options.fatal=true`.
  * @see module:validateParams.validate
  * @see external:validate
+ * @tutorial validation
  * @example
  * function repeatString(s, n){
  *     var errors = validateParams(arguments, [
- *         {
- *             presence: true
- *             
- *         },
+ *         { presence: true },
  *         {
  *             presence: true,
  *             numericality: {
@@ -375,67 +349,6 @@ var validateParams = function(params, constraints, options){
  * [validate()]{@link external:validate} function from validate.js as well as
  * options understood by this function.
  *
- * ##### Parameter-specific Options
- *
- * This module adds support for a number parameter-specific options that do not
- * exist in validate.js. These options are specified within the constraint
- * objects that make up the constraint list. These options will be stripped from
- * the constraints before they are passed on to the
- * [validate()]{@link external:validate} function.
- *
- * Note that parameter-specific options apply to the top-level parameters only,
- * they cannot be specified within nested validations.
- *
- * For convenience, Parameter-specific options can be specified in two ways.
- *
- * Options can be collected into a single plain object and included into a
- * parameter constraint with the name `paramOptions`. This works well when you
- * need to specify multiple options on a single parameter.
- *
- * The alternative to collecting the parameter-specific options into a single
- * plain object is to add them directly into the constraint, but with their
- * name prefixed with `vpopt_`.
- *
- * ##### Parameter Names (Parameter-specific option `name`)
- *
- * This function accepts lists of parameters and constraints, and converts them
- * to name-value pairs as expected by the [validate()]{@link external:validate}
- * function from validate.js. By default the first parameter is named `param1`,
- * the second `param2`, and so on. This option allows you to specify a custom
- * name to be used instead, though all characters other than `a-z`, `A-Z`,
- * `0-9`, and `_` will be stripped from the provided name before its used.
- *
- * Both of the generated collections of name-value pairs passed to
- * [validate()]{@link external:validate} are included in the
- * [validateParams.Result]{@link module:validateParams.Result} objects returned
- * by the this function, and the collection representing the data is returned by
- * the [validateParams.assert()]{@link module:validateParams.assert} function.
- *
- * ##### Parameter Defaults (Parameter-specific options `default` & `defaultWhenEmpty`)
- *
- * When no value is provided for a given parameter, these options allow default
- * values to be specified. The values can be supplied in one of two ways, as
- * raw values, or, as a callback that will be executd to generate the value. If
- * the raw value is a plain object or an array, a shallow copy of the value
- * will be used.
- *
- * The `default` parameter-specific option is used when the value for the
- * parameter is `undefined`, while the `defaultWhenEmpty` value is used when
- * the value for the parameter is defined, but returns `true` when passed to the
- * [validate.isEmpty()]{@link external:isEmpty} function from validate.js.
- *
- * Only one default value will ever be applied to a parameter, and defaults are
- * applied after any defined coercions have executed.
- *
- * ##### Coercions (Parameter-specific option `coerce`)
- *
- * A coercion is a function which attempts to transform an invalid value into
- * a valid one before validation is performed. Coercions alter the values stored
- * in the parameter list.
- *
- * More detailed information and examples are provided as part of the
- * [validateParams.coerce()]{@link module:validateParams.coerce} function.
- *
  * @alias module:validateParams.validate
  * @param {(Arguments|Array)} params - an array-like object containing data to
  * be validated, often a function's special `arguments` object.
@@ -470,9 +383,10 @@ var validateParams = function(params, constraints, options){
  * @since version 1.1.1
  * @see external:validate
  * @see module:validateParams.coerce
+ * @tutorial validation
  * @example <caption>Basic Usage - A factorial function</caption>
  * function factorial(n){
- *     var validationResult = validateParams(arguments, [{
+ *     var validationResult = validateParams.validate(arguments, [{
  *         presence: true,
  *         numericality: {
  *             onlyInteger: true,
@@ -487,21 +401,50 @@ var validateParams = function(params, constraints, options){
  *     }
  *     return n * factorial(n - 1);
  * }
- * @example <caption>Coercion - A String Repeater</caption>
- * function repeatString(){
- *     validateParams(
+ * @example <caption>Default Value Injection - A Power Function</caption>
+ * function raiseTo(){
+ *     validateParams.validate(
  *         arguments,
  *         [
  *             { // first parameter
  *                 presence: true,
- *                 vpopt_coerce: function(val){ return String(val) }
+ *                 numericality: true
+ *             },
+ *             { // second parameter
+ *                 numericality: {
+ *                     onlyInteger: true,
+ *                     greaterThanOrEqualTo: 0
+ *                 },
+ *                 vpopt_defaultWhenUndefined: 2 // default to squaring
+ *             }
+ *         ],
+ *         {fatal: true} // global option to throw error if validation fails
+ *     );
+ *     var base = arguments[0];
+ *     var exponent = arguments[1]; // possibly defaulted to 2
+ *     
+ *     var ans = base;
+ *     while(exponent > 1){
+ *       ans *= base;
+ *       exponent--;
+ *     }
+ *     return ans;
+ * }
+ * @example <caption>Coercion - A String Repeater</caption>
+ * function repeatString(){
+ *     validateParams.validate(
+ *         arguments,
+ *         [
+ *             { // first parameter
+ *                 presence: true,
+ *                 vpopt_coerce: 'toString' // named built-in coercion
  *             },
  *             { // second parameter
  *                 numericality: {
  *                     onlyInteger: true,
  *                     greaterThan: 0
- *                 }
- *                 vpopt_coerce: function(val){
+ *                 },
+ *                 vpopt_coerce: function(val){ // custom coercion
  *                     if(!validateParams.isNumeric(val)) return 1;
  *                     if(val < 1) return 1;
  *                     return parseInt(val);
@@ -621,7 +564,7 @@ validateParams.validate = function(params, constraints, options){
  */
 validateParams._extractParamOption = function(optName, pCons){
     optName = String(optName); // force the option name to a string
-    var optVal = undefined; // default to undefined
+    var optVal;
     if(optName.length > 0 && validate.isObject(pCons)){
         // look for the vopt_ prefixed key for the option
         var prefixedKey = 'vpopt_' + optName;
@@ -764,7 +707,8 @@ validateParams._processNestedValidations = function(validateKey, validateConstra
 };
 
 /**
- * A function which injects default values, but does not do any validation.
+ * A function which injects default values, but does not perform any
+ * validations.
  *
  * The values in the passed parameter list (`param`) will be updated according
  * to any applicable default value specifications defined in the constraints
@@ -775,28 +719,8 @@ validateParams._processNestedValidations = function(validateKey, validateConstra
  * to return anything. However, purely for convenience, a reference to the
  * parameter list is returned.
  *
- * Default values are implemented as the parameter-specific options named
- * `defaultWhenUndefined` and `defaultWhenEmpty`. There is more information on
- * parameter-specific options available in the description of the
- * [validateParams.validate()]{@link module:validateParams.validate} function.
- *
- * The `defaultWhenUndefined` parameter-specific option is used to set initial
- * values on parameters that are undefined, while the `defaultWhenEmpty`
- * parameter-specific option is used to replace the values of parameters that
- * are defined, but who's value evaluates to `true` with the the
- * [validate.isEmpty()]{@link external:isEmpty} function from validate.js.
- *
- * If both options are specified, and a parameter is undefined, the
- * `defaultWhenUndefined` option takes precedence.
- *
- * For both of these options, if the value specified is a reference to a plain
- * object (as determined by the
- * [validateParams.isPlainObject()]{@link module:validateParams.isPlainObject}
- * function) or an array (as determined by the
- * [validate.isArray()]{@link external:isArray} function from validate.js), a
- * shallow-copy will be created (with the
- * [validateParams.shallowCopy()]{@link module:validateParams:shallowCopy}
- * function) and used in place of the original reference.
+ * Default value injection is implemented via the `defaultWhenUndefined` and
+ * `defaultWhenEmpty` parameter-specific options.
  *
  * Note that this function will always inject defaults into the parameter list,
  * even when `options.injectDefaults=false`.
@@ -812,6 +736,7 @@ validateParams._processNestedValidations = function(validateKey, validateConstra
  * @param {Object} [options] - A plain object with options (not currently used).
  * @returns {(Arguments|Array)} A reference to the parameter list (`params`).
  * @since version 1.1.1
+ * @tutorial defaultValues
  * @see module:validateParams.validate
  * @see module:validateParams.shallowCopy
  */
@@ -877,14 +802,14 @@ validateParams.injectDefaults = function(params, constraints, options){
  *             onlyInteger: true,
  *             greaterThanOrEqualTo: 0,
  *             lessThanOrEqualTo: 10
- *         }
+ *         },
  *         vpopt_coerce: function(n){
  *             if(n < 0) return 0;
  *             if(n > 10) return 10;
  *             return n;
  *         }
  *     }]);
- *     return (x, arguments[0]);
+ *     return [x, arguments[0]];
  * }
  *
  * demoFn(40); // returns [40, 10] because arguments[0] was coerced, but not x
@@ -905,6 +830,7 @@ validateParams.injectDefaults = function(params, constraints, options){
  * @returns {(Arguments|Array)} A reference to the parameter list (`params`).
  * @since version 1.1.1
  * @see module:validateParams.validate
+ * @tutorial coerions
  * @example <caption>A coercion specified using the `vpopt_coerce` per-parameter option</caption>
  * var numConstraint = {
  *     presence: true,
@@ -1003,10 +929,10 @@ validateParams.coerce = function(params, constraints, options){
 /**
  * A wrapper for the
  * [validateParams.validate()]{@link module:validateParams.validate} function
- * that passes all arguments through, but sets `options.fatal` to true, ensuring
- * validation errors trigger the throwing of a
+ * that passes all arguments through, but sets `options.fatal` to `true`,
+ * ensuring validation errors trigger the throwing of a
  * [validateParams.ValidationError]{@link module:validateParams.ValidationError}
- * error, and returns a reference to the Attributes data structure generated by
+ * error, and returns a reference to the attributes data structure generated by
  * `validateParams.validate()` and passed to the
  * [validate()]{@link external:validate} function from validate.js via
  * [validateParams.Result.validateAttributes()]{@link module:validateParams.Result#validateAttributes}.
@@ -1032,6 +958,7 @@ validateParams.coerce = function(params, constraints, options){
  * @see module:validateParams.validate
  * @see module:validateParams.Result#validateAttributes
  * @see external:validate
+ * @tutorial validation
  * @example <caption>Basic example - 2 required parameters</caption>
  * function repeatString(s, n){
  *     validateParams.assert(arguments, [
@@ -1053,20 +980,39 @@ validateParams.coerce = function(params, constraints, options){
  *     }
  *     return ans;
  * }
- * @example <caption>Advanced Example with Coercion</caption>
- * function getAPIURL(baseURL){
- *     validateParams.assert(arguments, [{
- *         presence: true,
- *         url: {
- *             schemes: ['http', 'https'],
- *             allowLocal: true
- *         },
- *         vpopt_coerce: function(v){
- *            // append a trailing / if needed
- *            return typeof v === 'string' && !v.match(/\/$/) ? v + '/' : v;
- *         }
- *     }]);
- *     return baseURL + 'api.php';
+ * @example <caption>Advanced Example with Coercion, Default Value Injection & Parameter Naming</caption>
+ * function prettyPrintArray(){
+ *     var args = validateParams.assert(
+ *         arguments,
+ *         [
+ *             { // param 1 - the array
+ *                 defined: true,
+ *                 isInstanceof: [Array],
+ *                 paramOptions: {
+ *                     name: 'items',
+ *                     coerce: function(val, opts, c){
+ *                         if(validateParams.validateJS().isArray(val)){
+ *                             // apply the standard toString coercion to all
+ *                             // elements in the array
+ *                             return val.map(c.toString);
+ *                         }
+ *                         return val; // return the value un-altered
+ *                     }
+ *                 }
+ *             },
+ *             { // param 2 - the bullet character to use
+ *                 hasTypeof: 'string',
+ *                 length: {is: 1},
+ *                 paramOptions: {
+ *                     name: 'bullet',
+ *                     coerce: 'toString',
+ *                     defaultWhenEmpty: '*'
+ *                 }
+ *             }
+ *         ]
+ *     );
+ *     if(args.items.length === 0) return '';
+ *     return args.bullet + ' ' + args.items.join('\n' + args.bullet + ' ');
  * }
  */
 validateParams.assert = function(params, constraints, options){
@@ -1424,7 +1370,7 @@ validateParams.ValidationError = function(result){
     if(this.validationResult.numErrors() == 1){
         this.message = 'Validation failed with error: ' + this.validationResult.errorList()[0];
     }else{
-        this.message = 'Validation failed with ' + this.validationResult.numErrors() + 'errors:\n* ' + this.validationResult.errorList().join('* ');
+        this.message = 'Validation failed with ' + this.validationResult.numErrors() + ' errors:\n* ' + this.validationResult.errorList().join('\n* ');
     }
 };
 validateParams.ValidationError.prototype = Object.create(Error.prototype, {
