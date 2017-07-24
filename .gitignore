@@ -5,4 +5,4 @@ node_modules/
 *.komodoproject
 
 # Generated docs
-docs-dev/
+docs-*/
