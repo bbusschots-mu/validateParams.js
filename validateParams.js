@@ -1516,6 +1516,7 @@ validateParams.paramToAttrConstraints = function(constraintObject){
  * @param {string} optName - the name of the per-parameter option.
  * @param {ParameterConstraints} pCons - the parameter's constraints object.
  * @returns {*} The value for the option, or `undefined`.
+ * @since version 1.2.1
  * @example
  * var pCons = {
  *   vpopt_name: 'count',
@@ -1564,6 +1565,7 @@ validateParams.extractParamOption = function(optName, pCons){
  * @param {object} options - the options value passed to the validator function.
  * @returns {string} - if a custom message is found, it is returned, if not, an
  * empty string is returned.
+ * @since version 1.2.1
  */
 validateParams.extractValidatorMessage = function(validator, options){
     var ans = '';
