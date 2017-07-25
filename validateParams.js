@@ -553,34 +553,6 @@ validateParams.validate = function(params, constraints, options){
 };
 
 /**
- * A private helper function to extract the value for a given per-parameter
- * option from a parameter constraint.
- *
- * @alias module:validateParams._extractParamOption
- * @private
- * @param {string} optName - the name of the per-parameter option.
- * @param {ParameterConstraints} pCons - the parameter's constraints object.
- * @returns {*} The value for the option, or `undefined`.
- */
-validateParams._extractParamOption = function(optName, pCons){
-    optName = String(optName); // force the option name to a string
-    var optVal;
-    if(optName.length > 0 && validate.isObject(pCons)){
-        // look for the vopt_ prefixed key for the option
-        var prefixedKey = 'vpopt_' + optName;
-        if(typeof pCons[prefixedKey] !== 'undefined'){
-            optVal = pCons[prefixedKey];
-        }
-            
-        // look for the option inside paramOptions
-        if(validate.isObject(pCons.paramOptions) && typeof pCons.paramOptions[optName] !== 'undefined'){
-            optVal = pCons.paramOptions[optName];
-        }
-    }
-    return optVal;
-};
-
-/**
  * A private helper function to generate the name for a given parameter.
  *
  * @alias module:validateParams._generateParamName
@@ -589,7 +561,7 @@ validateParams._extractParamOption = function(optName, pCons){
  * @param {ParameterConstraints} pCons - the parameter's constraints object.
  */
 validateParams._generateParamName = function(i, pCons){
-    var customName = validateParams._extractParamOption('name', pCons);
+    var customName = validateParams.extractParamOption('name', pCons);
     if(validate.isString(customName)){
         customName = customName.replace(/[^a-zA-Z0-9_]/g, '');
         if(customName.length > 0) return customName;
@@ -755,8 +727,8 @@ validateParams.injectDefaults = function(params, constraints, options){
     
     // apply any defined defaults
     for(var i = 0; i < constraints.length; i++){
-        var undefDefault = validateParams._extractParamOption('defaultWhenUndefined', constraints[i]);
-        var emptyDefault = validateParams._extractParamOption('defaultWhenEmpty', constraints[i]);
+        var undefDefault = validateParams.extractParamOption('defaultWhenUndefined', constraints[i]);
+        var emptyDefault = validateParams.extractParamOption('defaultWhenEmpty', constraints[i]);
         if(typeof params[i] === 'undefined' && typeof undefDefault !== 'undefined'){
             params[i] = validateParams.shallowCopy(undefDefault);
         }else if(validate.isEmpty(params[i]) && typeof emptyDefault !== 'undefined'){
@@ -899,7 +871,7 @@ validateParams.coerce = function(params, constraints, options){
         // try gather coercion details for the current parameter
         coerceOpts = {};
         coerceFn = undefined;
-        coerceVal = validateParams._extractParamOption('coerce', constraints[i]);
+        coerceVal = validateParams.extractParamOption('coerce', constraints[i]);
         if(validate.isFunction(coerceVal)){
             coerceFn = coerceVal;
         }else if(validate.isString(coerceVal)){
@@ -1534,6 +1506,45 @@ validateParams.paramToAttrConstraints = function(constraintObject){
     
     // return the new object
     return filteredConstraint;
+};
+
+/**
+ * A helper function to extract the value for a given per-parameter option from
+ * a parameter constraint.
+ *
+ * @alias module:validateParams.extractParamOption
+ * @param {string} optName - the name of the per-parameter option.
+ * @param {ParameterConstraints} pCons - the parameter's constraints object.
+ * @returns {*} The value for the option, or `undefined`.
+ * @example
+ * var pCons = {
+ *   vpopt_name: 'count',
+ *   presence: true,
+ *   numericality: { onlyInteger: true, greaterThanOrEqualTo: 0 },
+ *   paramOptions: {
+ *     defaultWhenUndefined: 0,
+ *     coerce: validateParams.coercions.toNumber
+ *   }
+ * };
+ * validateParams.extractParamOption('name', pCons); // returns 'count'
+ * validateParams.extractParamOption('defaultWhenUndefined', pCons); // returns 0
+ */
+validateParams.extractParamOption = function(optName, pCons){
+    optName = String(optName); // force the option name to a string
+    var optVal;
+    if(optName.length > 0 && validate.isObject(pCons)){
+        // look for the vopt_ prefixed key for the option
+        var prefixedKey = 'vpopt_' + optName;
+        if(typeof pCons[prefixedKey] !== 'undefined'){
+            optVal = pCons[prefixedKey];
+        }
+            
+        // look for the option inside paramOptions
+        if(validate.isObject(pCons.paramOptions) && typeof pCons.paramOptions[optName] !== 'undefined'){
+            optVal = pCons.paramOptions[optName];
+        }
+    }
+    return optVal;
 };
 
 /**

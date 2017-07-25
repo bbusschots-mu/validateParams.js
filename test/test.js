@@ -1521,6 +1521,36 @@ QUnit.module('validateParams.shallowCopy() function', {}, function(){
     });
 });
 
+QUnit.module('validateParams.extractParamOption() function', {}, function(){
+    QUnit.test('function exists', function(a){
+        a.equal(typeof validateParams.extractParamOption, 'function');
+    });
+    
+    QUnit.test('option extracted correctly', function(a){
+        a.expect(4);
+        a.strictEqual(
+            validateParams.extractParamOption('name', {}),
+            undefined,
+            'returns undefined when option not present in param constraints'
+        );
+        a.strictEqual(
+            validateParams.extractParamOption('name', { vpopt_name: 'NAME_PRE' }),
+            'NAME_PRE',
+            'returns correct value via vpot_ prefix'
+        );
+        a.strictEqual(
+            validateParams.extractParamOption('name', { paramOptions: { name: 'NAME_OPT' } }),
+            'NAME_OPT',
+            'returns correct value via paramOptions'
+        );
+        a.strictEqual(
+            validateParams.extractParamOption('name', { vpopt_name: 'NAME_PRE', paramOptions: { name: 'NAME_OPT' } }),
+            'NAME_OPT',
+            'paramOptions takes precedence over vpopt_ prefixed values'
+        );
+    });
+});
+
 QUnit.module('validateParams.paramToAttrConstraints() function', {}, function(){
     QUnit.test('function exists', function(a){
         a.equal(typeof validateParams.paramToAttrConstraints, 'function');
