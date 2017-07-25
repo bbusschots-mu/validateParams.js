@@ -1551,6 +1551,36 @@ QUnit.module('validateParams.extractParamOption() function', {}, function(){
     });
 });
 
+QUnit.module('validateParams.extractValidatorMessage()',
+    {
+        beforeEach: function(){
+            this.fn = validateParams.extractValidatorMessage; // for convenience
+            this.dummyValidator = function(){ return undefined; };
+        }
+    },
+    function(){
+        QUnit.test('function exists', function(a){
+            a.strictEqual(typeof validateParams.extractValidatorMessage, 'function');
+        });
+    
+        QUnit.test('fails gracefully with invalid arguments', function(a){
+            a.expect(3);
+            a.strictEqual(this.fn(), '', 'fails gracefully with no arguments');
+            a.strictEqual(this.fn(42, {}), '', 'fails gracefully with invalid first argument');
+            a.strictEqual(this.fn(this.dummyValidator, 42), '', 'fails gracefully with invalid second argument');
+        });
+        
+        QUnit.test('correct precedence rules applied', function(a){
+            a.expect(4);
+            a.strictEqual(this.fn(this.dummyValidator, {}), '', 'when no messages are specified, empty string is returned');
+            this.dummyValidator.options = {message: 'v.o.m'};
+            a.strictEqual(this.fn(this.dummyValidator, {}), 'v.o.m', 'when only validator.options.message is specified, it is returned');
+            this.dummyValidator.message = 'v.m';
+            a.strictEqual(this.fn(this.dummyValidator, {}), 'v.m', 'validator.message takes precedence over validator.options.message');
+            a.strictEqual(this.fn(this.dummyValidator, {message: 'o.m'}), 'o.m', 'options.message take precedence over validator.message & validator.options.message');
+        });
+});
+
 QUnit.module('validateParams.paramToAttrConstraints() function', {}, function(){
     QUnit.test('function exists', function(a){
         a.equal(typeof validateParams.paramToAttrConstraints, 'function');
@@ -1780,38 +1810,6 @@ QUnit.module('validateParams.asOrdinal() function', {}, function(){
 QUnit.module('validateParams.extendObject() function', {}, function(){
     QUnit.test('is an alias to validate.extend()', function(a){
         a.strictEqual(validateParams.extendObject, validate.extend);
-    });
-});
-
-QUnit.module('private helper functions', {}, function(){
-    QUnit.module('validateParams._extractCustomValidatorMessage()',
-        {
-            beforeEach: function(){
-                this.fn = validateParams._extractCustomValidatorMessage; // for convenience
-                this.dummyValidator = function(){ return undefined; };
-            }
-        },
-        function(){
-            QUnit.test('function exists', function(a){
-                a.strictEqual(typeof validateParams._extractCustomValidatorMessage, 'function');
-            });
-        
-            QUnit.test('fails gracefully with invalid arguments', function(a){
-                a.expect(3);
-                a.strictEqual(this.fn(), '', 'fails gracefully with no arguments');
-                a.strictEqual(this.fn(42, {}), '', 'fails gracefully with invalid first argument');
-                a.strictEqual(this.fn(this.dummyValidator, 42), '', 'fails gracefully with invalid second argument');
-            });
-            
-            QUnit.test('correct precedence rules applied', function(a){
-                a.expect(4);
-                a.strictEqual(this.fn(this.dummyValidator, {}), '', 'when no messages are specified, empty string is returned');
-                this.dummyValidator.options = {message: 'v.o.m'};
-                a.strictEqual(this.fn(this.dummyValidator, {}), 'v.o.m', 'when only validator.options.message is specified, it is returned');
-                this.dummyValidator.message = 'v.m';
-                a.strictEqual(this.fn(this.dummyValidator, {}), 'v.m', 'validator.message takes precedence over validator.options.message');
-                a.strictEqual(this.fn(this.dummyValidator, {message: 'o.m'}), 'o.m', 'options.message take precedence over validator.message & validator.options.message');
-            });
     });
 });
 

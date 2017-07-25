@@ -1548,6 +1548,40 @@ validateParams.extractParamOption = function(optName, pCons){
 };
 
 /**
+ * A helper function to find the custom message with the highest priority for a
+ * given validator.
+ *
+ * The highest priority is given to a message passed via the options, next,
+ * a message defined in the validator's `message` property, and finally, a
+ * message defined in the validator's `options` object.
+ *
+ * This function does not throw errors, it simply ignores invalid data and
+ * returns an empty string.
+ *
+ * @alias module:validateParams.extractValidatorMessage
+ * @param {function} validator - a reference to the validator to extract the
+ * message from.
+ * @param {object} options - the options value passed to the validator function.
+ * @returns {string} - if a custom message is found, it is returned, if not, an
+ * empty string is returned.
+ */
+validateParams.extractValidatorMessage = function(validator, options){
+    var ans = '';
+    if(validate.isObject(validator)){
+        if(validate.isObject(validator.options) && validate.isString(validator.options.message)){
+            ans = validator.options.message;
+        }
+        if(validate.isString(validator.message)){
+            ans = validator.message;
+        }
+    }
+    if(validate.isObject(options) && validate.isString(options.message)){
+        ans = options.message;
+    }
+    return ans;
+}
+
+/**
  * A function to test if a given value is a JavaScript primitive, i.e a boolean,
  * number, or string.
  *
@@ -1773,40 +1807,6 @@ validateParams._warn = function(msg){
     }
 };
 
-/**
- * A helper function to find the custom message with the highest priority for a
- * validator.
- *
- * The highest priority is given to a message passed via the options, next,
- * a message defined in the validator's `message` property, and finally, a
- * message defined in the validator's `options` object.
- *
- * This function does not throw errors, it simply ignores invalid data.
- *
- * @alias module:validateParams._extractCustomValidatorMessage
- * @private
- * @param {function} validator - a reference to the validator to extract the
- * message from.
- * @param {object} options - the options value passed to the validator function.
- * @returns {string} - if a custom message is found, it is returned, if not, an
- * empty string is returned.
- */
-validateParams._extractCustomValidatorMessage = function(validator, options){
-    var ans = '';
-    if(validate.isObject(validator)){
-        if(validate.isObject(validator.options) && validate.isString(validator.options.message)){
-            ans = validator.options.message;
-        }
-        if(validate.isString(validator.message)){
-            ans = validator.message;
-        }
-    }
-    if(validate.isObject(options) && validate.isString(options.message)){
-        ans = options.message;
-    }
-    return ans;
-}
-
 //
 //=== Custom Validators ========================================================
 //
@@ -1920,7 +1920,7 @@ validateParams.validators = {
         
         // build up a base config from the pre-defined defaults
         var config = { rejectUndefined: true };
-        config.message = validateParams._extractCustomValidatorMessage(this, options);
+        config.message = validateParams.extractValidatorMessage(this, options);
         
         // interpret the passed value
         if(typeof options === 'boolean'){
@@ -1996,7 +1996,7 @@ validateParams.validators = {
         var config = {};
         config.types = validate.isArray(this.options.types) ? this.options.types : [];
         config.inverseMatch = this.options.inverseMatch ? true : false;
-        config.message = validateParams._extractCustomValidatorMessage(this, options);
+        config.message = validateParams.extractValidatorMessage(this, options);
         
         // interpret the passed value
         if(typeof options === 'string'){
@@ -2108,7 +2108,7 @@ validateParams.validators = {
         var config = {};
         config.prototypes = validate.isArray(this.options.prototypes) ? this.options.prototypes : [];
         config.inverseMatch = this.options.inverseMatch ? true : false;
-        config.message = validateParams._extractCustomValidatorMessage(this, options);
+        config.message = validateParams.extractValidatorMessage(this, options);
         
         // interpret the passed value
         if(typeof options === 'boolean'){
@@ -2245,7 +2245,7 @@ validateParams.validators = {
         config.sizeIs = parseInt(this.options.sizeIs); // NaN means ignore this option
         config.minimumSize = parseInt(this.options.minimumSize); // NaN means ignore this option
         config.maximumSize = parseInt(this.options.maximumSize); // NaN means ignore this option
-        config.message = validateParams._extractCustomValidatorMessage(this, options);
+        config.message = validateParams.extractValidatorMessage(this, options);
         
         // interpret the passed value
         if(typeof options === 'boolean'){
@@ -2393,7 +2393,7 @@ validateParams.validators = {
         config.lengthIs = parseInt(this.options.lengthIs); // NaN means ignore this option
         config.minimumLength = parseInt(this.options.minimumLength); // NaN means ignore this option
         config.maximumLength = parseInt(this.options.maximumLength); // NaN means ignore this option
-        config.message = validateParams._extractCustomValidatorMessage(this, options);
+        config.message = validateParams.extractValidatorMessage(this, options);
         
         // interpret the passed value
         if(typeof options === 'boolean'){
