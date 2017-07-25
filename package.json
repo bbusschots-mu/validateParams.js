@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/bbusschots-mu/validateParams.js#readme",
   "devDependencies": {
-    "@bbusschots/minami-bartificer": "^1.2.3",
+    "@bbusschots/minami-bartificer": "^1.2.4-bartificer.2",
     "jsdoc": "^3.4.3",
     "qunitjs": "^2.3.3",
     "shelljs": "^0.7.8"

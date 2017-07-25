@@ -6,7 +6,7 @@
 			"paramNames"       : { "title" : "Parameter Naming" },
 			"defaultValues"    : { "title" : "Default Value Injection" },
 			"coercions"        : { "title" : "Parameter Value Coercion" },
-			"nestedConstraints" : { "title" : "Nested Constraints" },
+			"nestedConstraints" : { "title" : "Nested Constraints" }
 		}
 	},
     "argumentsNote"    : { "title" : "Note on the 'arguments' Variable" }
