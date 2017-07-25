@@ -1701,6 +1701,7 @@ validateParams.extendObject = validate.extend;
  * {@link module:validateParams.validators} into an instance of the
  * [validate()]{@link external:validate} function.
  *
+ * @alias module:validateParams.registerValidators
  * @param {function} [v] - the instance of the
  * [validate()]{@link external:validate} function to registe the custom
  * validators into. Defaults to the instance of `validate()` used within this
