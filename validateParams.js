@@ -1,6 +1,6 @@
 /**
  * @file Provides the [validateParams]{@link module:validateParams} module.
- * @version 1.1.1
+ * @version 1.2.1
  * @author Bart Busschots <bart.busschots@mu.ie>
  * @license MIT
  * @see https://github.com/bbusschots-mu/validateParams.js
@@ -1433,6 +1433,17 @@ validateParams.getValidateInstance = function(){
  * @since version 1.1.1
  */
 validateParams.validateJS = validateParams.getValidateInstance;
+
+/**
+ * An alias for
+ * [validateParams.getValidateInstance()]{@link module:validateParams.getValidateInstance}.
+ *
+ * @alias module:validateParams.v
+ * @function
+ * @see module:validateParams.getValidateInstance
+ * @since version 1.2.1
+ */
+validateParams.v = validateParams.getValidateInstance;
 
 /**
  * A function to create shallow coppies of plain objects and arrays.

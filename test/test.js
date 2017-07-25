@@ -1477,6 +1477,12 @@ QUnit.module('validateParams.validateJS() function', {}, function(){
     });
 });
 
+QUnit.module('validateParams.v() function', {}, function(){
+    QUnit.test('is an alias to validateParams.getValidateInstance()', function(a){
+        a.strictEqual(validateParams.v, validateParams.getValidateInstance);
+    });
+});
+
 // validateParams.shallowCopy
 QUnit.module('validateParams.shallowCopy() function', {}, function(){
     QUnit.test('function exists', function(a){
