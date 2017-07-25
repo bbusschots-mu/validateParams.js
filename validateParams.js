@@ -1,6 +1,10 @@
 /**
  * @file Provides the [validateParams]{@link module:validateParams} module.
+<<<<<<< HEAD
  * @version 1.1.2
+=======
+ * @version 1.2.1
+>>>>>>> v1.2.1-wip
  * @author Bart Busschots <bart.busschots@mu.ie>
  * @license MIT
  * @see https://github.com/bbusschots-mu/validateParams.js
@@ -553,34 +557,6 @@ validateParams.validate = function(params, constraints, options){
 };
 
 /**
- * A private helper function to extract the value for a given per-parameter
- * option from a parameter constraint.
- *
- * @alias module:validateParams._extractParamOption
- * @private
- * @param {string} optName - the name of the per-parameter option.
- * @param {ParameterConstraints} pCons - the parameter's constraints object.
- * @returns {*} The value for the option, or `undefined`.
- */
-validateParams._extractParamOption = function(optName, pCons){
-    optName = String(optName); // force the option name to a string
-    var optVal;
-    if(optName.length > 0 && validate.isObject(pCons)){
-        // look for the vopt_ prefixed key for the option
-        var prefixedKey = 'vpopt_' + optName;
-        if(typeof pCons[prefixedKey] !== 'undefined'){
-            optVal = pCons[prefixedKey];
-        }
-            
-        // look for the option inside paramOptions
-        if(validate.isObject(pCons.paramOptions) && typeof pCons.paramOptions[optName] !== 'undefined'){
-            optVal = pCons.paramOptions[optName];
-        }
-    }
-    return optVal;
-};
-
-/**
  * A private helper function to generate the name for a given parameter.
  *
  * @alias module:validateParams._generateParamName
@@ -589,7 +565,7 @@ validateParams._extractParamOption = function(optName, pCons){
  * @param {ParameterConstraints} pCons - the parameter's constraints object.
  */
 validateParams._generateParamName = function(i, pCons){
-    var customName = validateParams._extractParamOption('name', pCons);
+    var customName = validateParams.extractParamOption('name', pCons);
     if(validate.isString(customName)){
         customName = customName.replace(/[^a-zA-Z0-9_]/g, '');
         if(customName.length > 0) return customName;
@@ -755,8 +731,8 @@ validateParams.injectDefaults = function(params, constraints, options){
     
     // apply any defined defaults
     for(var i = 0; i < constraints.length; i++){
-        var undefDefault = validateParams._extractParamOption('defaultWhenUndefined', constraints[i]);
-        var emptyDefault = validateParams._extractParamOption('defaultWhenEmpty', constraints[i]);
+        var undefDefault = validateParams.extractParamOption('defaultWhenUndefined', constraints[i]);
+        var emptyDefault = validateParams.extractParamOption('defaultWhenEmpty', constraints[i]);
         if(typeof params[i] === 'undefined' && typeof undefDefault !== 'undefined'){
             params[i] = validateParams.shallowCopy(undefDefault);
         }else if(validate.isEmpty(params[i]) && typeof emptyDefault !== 'undefined'){
@@ -899,7 +875,7 @@ validateParams.coerce = function(params, constraints, options){
         // try gather coercion details for the current parameter
         coerceOpts = {};
         coerceFn = undefined;
-        coerceVal = validateParams._extractParamOption('coerce', constraints[i]);
+        coerceVal = validateParams.extractParamOption('coerce', constraints[i]);
         if(validate.isFunction(coerceVal)){
             coerceFn = coerceVal;
         }else if(validate.isString(coerceVal)){
@@ -1435,6 +1411,17 @@ validateParams.getValidateInstance = function(){
 validateParams.validateJS = validateParams.getValidateInstance;
 
 /**
+ * An alias for
+ * [validateParams.getValidateInstance()]{@link module:validateParams.getValidateInstance}.
+ *
+ * @alias module:validateParams.v
+ * @function
+ * @see module:validateParams.getValidateInstance
+ * @since version 1.2.1
+ */
+validateParams.v = validateParams.getValidateInstance;
+
+/**
  * A function to create shallow coppies of plain objects and arrays.
  *
  * If the value passed to this function is a reference to a plain object (as
@@ -1524,6 +1511,81 @@ validateParams.paramToAttrConstraints = function(constraintObject){
     // return the new object
     return filteredConstraint;
 };
+
+/**
+ * A helper function to extract the value for a given per-parameter option from
+ * a parameter constraint.
+ *
+ * @alias module:validateParams.extractParamOption
+ * @param {string} optName - the name of the per-parameter option.
+ * @param {ParameterConstraints} pCons - the parameter's constraints object.
+ * @returns {*} The value for the option, or `undefined`.
+ * @since version 1.2.1
+ * @example
+ * var pCons = {
+ *   vpopt_name: 'count',
+ *   presence: true,
+ *   numericality: { onlyInteger: true, greaterThanOrEqualTo: 0 },
+ *   paramOptions: {
+ *     defaultWhenUndefined: 0,
+ *     coerce: validateParams.coercions.toNumber
+ *   }
+ * };
+ * validateParams.extractParamOption('name', pCons); // returns 'count'
+ * validateParams.extractParamOption('defaultWhenUndefined', pCons); // returns 0
+ */
+validateParams.extractParamOption = function(optName, pCons){
+    optName = String(optName); // force the option name to a string
+    var optVal;
+    if(optName.length > 0 && validate.isObject(pCons)){
+        // look for the vopt_ prefixed key for the option
+        var prefixedKey = 'vpopt_' + optName;
+        if(typeof pCons[prefixedKey] !== 'undefined'){
+            optVal = pCons[prefixedKey];
+        }
+            
+        // look for the option inside paramOptions
+        if(validate.isObject(pCons.paramOptions) && typeof pCons.paramOptions[optName] !== 'undefined'){
+            optVal = pCons.paramOptions[optName];
+        }
+    }
+    return optVal;
+};
+
+/**
+ * A helper function to find the custom message with the highest priority for a
+ * given validator.
+ *
+ * The highest priority is given to a message passed via the options, next,
+ * a message defined in the validator's `message` property, and finally, a
+ * message defined in the validator's `options` object.
+ *
+ * This function does not throw errors, it simply ignores invalid data and
+ * returns an empty string.
+ *
+ * @alias module:validateParams.extractValidatorMessage
+ * @param {function} validator - a reference to the validator to extract the
+ * message from.
+ * @param {object} options - the options value passed to the validator function.
+ * @returns {string} - if a custom message is found, it is returned, if not, an
+ * empty string is returned.
+ * @since version 1.2.1
+ */
+validateParams.extractValidatorMessage = function(validator, options){
+    var ans = '';
+    if(validate.isObject(validator)){
+        if(validate.isObject(validator.options) && validate.isString(validator.options.message)){
+            ans = validator.options.message;
+        }
+        if(validate.isString(validator.message)){
+            ans = validator.message;
+        }
+    }
+    if(validate.isObject(options) && validate.isString(options.message)){
+        ans = options.message;
+    }
+    return ans;
+}
 
 /**
  * A function to test if a given value is a JavaScript primitive, i.e a boolean,
@@ -1751,40 +1813,6 @@ validateParams._warn = function(msg){
     }
 };
 
-/**
- * A helper function to find the custom message with the highest priority for a
- * validator.
- *
- * The highest priority is given to a message passed via the options, next,
- * a message defined in the validator's `message` property, and finally, a
- * message defined in the validator's `options` object.
- *
- * This function does not throw errors, it simply ignores invalid data.
- *
- * @alias module:validateParams._extractCustomValidatorMessage
- * @private
- * @param {function} validator - a reference to the validator to extract the
- * message from.
- * @param {object} options - the options value passed to the validator function.
- * @returns {string} - if a custom message is found, it is returned, if not, an
- * empty string is returned.
- */
-validateParams._extractCustomValidatorMessage = function(validator, options){
-    var ans = '';
-    if(validate.isObject(validator)){
-        if(validate.isObject(validator.options) && validate.isString(validator.options.message)){
-            ans = validator.options.message;
-        }
-        if(validate.isString(validator.message)){
-            ans = validator.message;
-        }
-    }
-    if(validate.isObject(options) && validate.isString(options.message)){
-        ans = options.message;
-    }
-    return ans;
-}
-
 //
 //=== Custom Validators ========================================================
 //
@@ -1898,7 +1926,7 @@ validateParams.validators = {
         
         // build up a base config from the pre-defined defaults
         var config = { rejectUndefined: true };
-        config.message = validateParams._extractCustomValidatorMessage(this, options);
+        config.message = validateParams.extractValidatorMessage(this, options);
         
         // interpret the passed value
         if(typeof options === 'boolean'){
@@ -1974,7 +2002,7 @@ validateParams.validators = {
         var config = {};
         config.types = validate.isArray(this.options.types) ? this.options.types : [];
         config.inverseMatch = this.options.inverseMatch ? true : false;
-        config.message = validateParams._extractCustomValidatorMessage(this, options);
+        config.message = validateParams.extractValidatorMessage(this, options);
         
         // interpret the passed value
         if(typeof options === 'string'){
@@ -2086,7 +2114,7 @@ validateParams.validators = {
         var config = {};
         config.prototypes = validate.isArray(this.options.prototypes) ? this.options.prototypes : [];
         config.inverseMatch = this.options.inverseMatch ? true : false;
-        config.message = validateParams._extractCustomValidatorMessage(this, options);
+        config.message = validateParams.extractValidatorMessage(this, options);
         
         // interpret the passed value
         if(typeof options === 'boolean'){
@@ -2223,7 +2251,7 @@ validateParams.validators = {
         config.sizeIs = parseInt(this.options.sizeIs); // NaN means ignore this option
         config.minimumSize = parseInt(this.options.minimumSize); // NaN means ignore this option
         config.maximumSize = parseInt(this.options.maximumSize); // NaN means ignore this option
-        config.message = validateParams._extractCustomValidatorMessage(this, options);
+        config.message = validateParams.extractValidatorMessage(this, options);
         
         // interpret the passed value
         if(typeof options === 'boolean'){
@@ -2371,7 +2399,7 @@ validateParams.validators = {
         config.lengthIs = parseInt(this.options.lengthIs); // NaN means ignore this option
         config.minimumLength = parseInt(this.options.minimumLength); // NaN means ignore this option
         config.maximumLength = parseInt(this.options.maximumLength); // NaN means ignore this option
-        config.message = validateParams._extractCustomValidatorMessage(this, options);
+        config.message = validateParams.extractValidatorMessage(this, options);
         
         // interpret the passed value
         if(typeof options === 'boolean'){

@@ -209,6 +209,9 @@ are not added directly to the contrainst, but inside an object named
 }
 ```
 
+If the same option is specified with both syntaxes, the valued defined in
+`paramOptions` will be used.
+
 The following per-parameter options are supported:
 
 * `name` - for altering the names parameters are given in the generated
