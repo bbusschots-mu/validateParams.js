@@ -3,11 +3,11 @@
 A wrapper around [validate.js](https://validatejs.org/) to facilitate easy
 function parameter validation in JavaScript.
 
-`Validate.js` is designed to valid web forms.  HTML form data is fundamentally a
-collection of name-value pairs, so it makes sense that the validation functions
-provided by `valiate.js` expect both the data to be validated, and the
-constraints to be applied to that data to be specified as collections of
-name-value pairs (JavaScript objects).
+`validate.js` is designed to validate web forms.  HTML form data is
+fundamentally a collection of name-value pairs, so it makes sense that the
+validation functions provided by `validate.js` expect both the data to be
+validated, and the constraints to be applied to that data to be specified as
+collections of name-value pairs (JavaScript objects).
 
 Function parameters are not name-value pairs, they are lists of values. Hence,
 the validation functions provided by this module expect both the data to be
@@ -22,10 +22,6 @@ provides a number of other additional features which focus on parameter
 validation, including the specification of default values, support for data
 coercion, improved support for nested constraints, and a number of additional
 validators.
-
-so it needs both the data to be
-validated and the constraints to be applied to that data as collections of
-name-value pairs.  are fundamentally name-value pairs, so this
 
 ## Installation
 
