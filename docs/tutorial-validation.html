@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Validation Overview - Documentation</title>
+    <title>Parameter Validation - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -24,39 +24,38 @@
 <label for="nav-trigger" class="overlay"></label>
 
 <nav>
-    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Tutorials</li><li class="nav-item"><a href="tutorial-argumentsNote.html">Note on `arguments`</a></li><li class="nav-item"><a href="tutorial-coercions.html">Parameter Value Coercion</a></li><li class="nav-item"><a href="tutorial-defaultValues.html">Default Value Injection</a></li><li class="nav-item"><a href="tutorial-nestedValidation.html">Nested Validation</a></li><li class="nav-item"><a href="tutorial-paramNames.html">Parameter Naming</a></li><li class="nav-item"><a href="tutorial-validation.html">Validation Overview</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-validateParams.Result.html">validateParams.Result</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#asString">asString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#constraintsList">constraintsList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#errorDetails">errorDetails</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#errorList">errorList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#errors">errors</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#fail">fail</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#numErrors">numErrors</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#options">options</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#parameterList">parameterList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#pass">pass</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#validateAttributes">validateAttributes</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#validateConstraints">validateConstraints</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-validateParams.ValidationError.html">validateParams.ValidationError</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.ValidationError.html#errors">errors</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.ValidationError.html#numErrors">numErrors</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-validateParams.html">validateParams</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.asOrdinal">asOrdinal</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.assert">assert</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.coerce">coerce</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.extendObject">extendObject</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.extractParamOption">extractParamOption</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.extractValidatorMessage">extractValidatorMessage</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.getValidateInstance">getValidateInstance</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.injectDefaults">injectDefaults</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isArguments">isArguments</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isPlainObject">isPlainObject</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isPrimitive">isPrimitive</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isTypeofString">isTypeofString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.paramToAttrConstraints">paramToAttrConstraints</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.registerValidators">registerValidators</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.shallowCopy">shallowCopy</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.v">v</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.validate">validate</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.validateJS">validateJS</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#~validateParams">validateParams</a></span></li><li class="nav-heading">Externals</li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isArray.html">external:isArray</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isEmpty.html">external:isEmpty</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isObject.html">external:isObject</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-single.html">external:single</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-validate.html">external:validate</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-Validator.html">external:Validator</a></span></li><li class="nav-heading">Namespaces</li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="module-validateParams.coercions.html">validateParams.coercions</a></span></li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="module-validateParams.validators.html">validateParams.validators</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Tutorials</li><li class="nav-item type-tutorial"><a href="tutorial-argumentsNote.html">Note on the 'arguments' Variable</a></li><li class="nav-item type-tutorial"><a href="tutorial-conceptsAndTerms.html">Concepts & Terminology</a></li><li class="nav-item type-tutorial"><a href="tutorial-validation.html">Parameter Validation</a><ul><li class="nav-item type-tutorial"><a href="tutorial-paramNames.html">Parameter Naming</a></li><li class="nav-item type-tutorial"><a href="tutorial-defaultValues.html">Default Value Injection</a></li><li class="nav-item type-tutorial"><a href="tutorial-coercions.html">Parameter Value Coercion</a></li><li class="nav-item type-tutorial"><a href="tutorial-nestedConstraints.html">Nested Constraints</a></li></ul></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-validateParams.Result.html">validateParams.Result</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#asString">asString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#constraintsList">constraintsList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#errorDetails">errorDetails</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#errorList">errorList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#errors">errors</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#fail">fail</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#numErrors">numErrors</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#options">options</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#parameterList">parameterList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#pass">pass</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#validateAttributes">validateAttributes</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.Result.html#validateConstraints">validateConstraints</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="module-validateParams.ValidationError.html">validateParams.ValidationError</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.ValidationError.html#errors">errors</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.ValidationError.html#numErrors">numErrors</a></span></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-validateParams.html">validateParams</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.asOrdinal">asOrdinal</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.assert">assert</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.coerce">coerce</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.extendObject">extendObject</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.extractParamOption">extractParamOption</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.extractValidatorMessage">extractValidatorMessage</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.getValidateInstance">getValidateInstance</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.injectDefaults">injectDefaults</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isArguments">isArguments</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isPlainObject">isPlainObject</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isPrimitive">isPrimitive</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.isTypeofString">isTypeofString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.paramToAttrConstraints">paramToAttrConstraints</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.registerValidators">registerValidators</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.shallowCopy">shallowCopy</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.v">v</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.validate">validate</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#.validateJS">validateJS</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-validateParams.html#~validateParams">validateParams</a></span></li><li class="nav-heading">Externals</li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isArray.html">external:isArray</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isEmpty.html">external:isEmpty</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-isObject.html">external:isObject</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-single.html">external:single</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-validate.html">external:validate</a></span></li><li class="nav-heading"><span class="nav-item-type type-external">E</span><span class="nav-item-name"><a href="external-Validator.html">external:Validator</a></span></li><li class="nav-heading">Namespaces</li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="module-validateParams.coercions.html">validateParams.coercions</a></span></li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="module-validateParams.validators.html">validateParams.validators</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li>
 </nav>
 
 <div id="main">
     
-    <h1 class="page-title">Validation Overview</h1>
+    <h1 class="page-title">Parameter Validation</h1>
     
 
     <section>
 
-<header>
-    
-</header>
-
 <article>
-    <h2>The Validation Functions</h2><p>This module provides three validation functions for three different coding
-styles. Which to use will depend on the situation, and your preferences. All
-three functions take the same arguments, and perform the same validations in the
-same way, the difference is in how they behave when validation fails.</p>
+    <p>This tutotial assumes you have read the <a href="tutorial-conceptsAndTerms.html">Concepts & Terminology</a> tutorial.</p>
+<h2>The Validation Functions</h2><p>This module provides three validation functions, each supporting a different
+coding style. Which to use will depend on the situation, and your preferences.
+All three take the same arguments, and perform the same validations in the same
+way - the difference betweem them in the values they return and how they behave
+when a value fails to pass all the specified constraints.</p>
 <p>As this module is a wrapper for <code>validate.js</code>, the primary validation function
-<a href="module-validateParams.html#~validateParams">validateParams()</a> responds to
-errors in the same way the <a href="external-validate.html">validate()</a> function from
+<a href="module-validateParams.html#~validateParams">validateParams()</a> behaves in the
+same way that the <a href="external-validate.html">validate()</a> function from
 <code>validate.js</code> does - it returns <code>undefined</code> if there were no errors, or a
 collection of one or more error strings if there were errors. The format of the
 returned error data is determined by the <code>format</code> option
 <a href="https://validatejs.org/#validate-error-formatting">as described in the validate.js documentation</a>.</p>
 <p>Because HTML forms fundamentally consist of name-value pairs, and <code>validate.js</code>
 was designed to validate web forms, the validation functions provided by that
-module expect the data to be validated and the constraints to be applied to be
-passed as name-value pairs.</p>
+module expect both the data to be validated and the constraints to be applied
+to validate that data to be passed as name-value pairs.</p>
 <p>Function parameters on the other hand are lists, not name-value pairs, so the
 validation functions provided by this module expect both the data to be
-validated and the constraints to be applied to be specified as lists.</p>
+validated and the constraints to be applied to that data to be specified as
+lists.</p>
 <p>The following three validation functions are provided by this module:</p>
 <ul>
 <li><p><a href="module-validateParams.html#~validateParams">validateParams()</a> - returns the
@@ -92,13 +91,7 @@ the parameter list. The constraints defined in the first entry in the
 costraints list will be applied to the value in the first entry of the parameter
 list, the constraints in the second entry of the constraints list to the value
 in the second entry of the parameter list, and so on.</p>
-<p>The constraints should be in the format expected by <code>validate.js</code>, that is:</p>
-<pre class="prettyprint source"><code>{
-  &lt;VALIDATOR_NAME>: {
-     &lt;VALIDATOR_VALUE>
-  }
-  ...
-}</code></pre><p>For example, the following constraints list defines one constraint to be applied
+<p>For example, the following constraints list defines one constraint to be applied
 to the first parameter, and two to the second:</p>
 <pre class="prettyprint source"><code>[
   { // constraint for the first parameter
@@ -109,15 +102,16 @@ to the first parameter, and two to the second:</p>
     hasTypeof: 'function' // the value must be a callback
   }
 ]</code></pre><h3>Validation Options</h3><p>All three validation functions can optionally accept a collection of options as
-a third parameter. This object can contain options that control the behaviour of
-both the validation functions provided this module, and, the valdiation
-functions from <code>validate.js</code> that this module uses to perform the validation.</p>
+a third parameter. This object can contain options that control the behaviour
+of both the validation functions provided by this module, and, the valdiation
+functions from <code>validate.js</code> that this module uses to perform validations.</p>
 <p>For example, the error formatting can be altered from the default grouped
 formatting to a flat formatting by passing <code>{format: 'flat'}</code> as the third
 parameter.</p>
 <p>For details on the options supported by <code>validate.js</code>, see the
 <a href="https://validatejs.org/#overview">validate.js documentation</a>.</p>
-<p>The validation functions provided by this module support the following options:</p>
+<p>The validation functions provided by this module support the following
+additional options:</p>
 <ul>
 <li><code>coerce</code> - a truthy value enables the coercion feature, a falsy value disables
 it. This option defaults to <code>true</code>.</li>
@@ -130,19 +124,12 @@ if all data does not pass all constraints. This option genereally defaults to
 <a href="module-validateParams.html#.assert">validateParams.assert()</a> function, which
 forces the option to <code>true</code> regardless of the value specified in the options.</li>
 </ul>
-<h2>Constraints and Validators</h2><p>Constraints are built up by specifying validators and the options those
-validators should obey when validating the data. Each validator defines its own
-rules for the options it supports.</p>
-<p>All the validators that ship with <code>validate.js</code> are available through this
-module, and this module provides a number of additional validators. You can also
-create your own custom validators for use with this module.</p>
-<p>For more information about how validators work, see the
-<a href="https://validatejs.org/#validators">Validators section of the validate.js documentation</a>.</p>
-<h3>Required Parameters &amp; Presence -v- Defined</h3><p>The standard validations provided by <code>validate.js</code> all implicitly pass values
-that evaluate to true via the <a href="external-isEmpty.html">validate.isEmpty()</a>
-function. Similarly, the validations provided by this module all implicitly pass
+<h3>Required Parameters &amp; Presence -v- Defined</h3><p>The standard validators provided by <code>validate.js</code> all implicitly pass values
+that evaluate to <code>true</code> via the <a href="external-isEmpty.html">validate.isEmpty()</a>
+function. Similarly, the validators provided by this module all implicitly pass
 <code>undefined</code>.</p>
-<p>To make a parameter required, you need to add one of two special validators:</p>
+<p>To make a parameter required, you need to use of one of the following
+validators:</p>
 <ul>
 <li>The <a href="https://validatejs.org/#validators-presence">Presence Validator</a> from
 <code>validate.js</code>. This validator not only forces the value to be defined, but
@@ -244,6 +231,21 @@ var e2 = factorial(3.14); // throws error - argument is not an integer
 var e3 = factorial(-4); // throws error - argument is not >= 0</code></pre>
 </article>
 
+<article>
+    
+    <h2>Sub-Tutorials</h2>
+	<ul>
+        <li><a href="tutorial-paramNames.html">Parameter Naming</a></li>
+    
+        <li><a href="tutorial-defaultValues.html">Default Value Injection</a></li>
+    
+        <li><a href="tutorial-coercions.html">Parameter Value Coercion</a></li>
+    
+        <li><a href="tutorial-nestedConstraints.html">Nested Constraints</a></li>
+    </ul>
+    
+</article>
+
 </section>
 
 </div>
@@ -251,7 +253,7 @@ var e3 = factorial(-4); // throws error - argument is not >= 0</code></pre>
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Jul 25 2017 12:53:45 GMT+0100 (IST) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.3</a> on Thu Jul 27 2017 00:41:09 GMT+0100 (IST) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>

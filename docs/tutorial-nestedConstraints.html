@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>isEmpty - Documentation</title>
+    <title>Nested Constraints - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,112 +29,146 @@
 
 <div id="main">
     
-    <h1 class="page-title">isEmpty</h1>
+    <h1 class="page-title">Nested Constraints</h1>
     
 
-    
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>
-        isEmpty
-        </h2>
-        
-    
-</header>
+    <section>
 
 <article>
-    <div class="container-overview">
-    
-        
-            <div class="description"><p>The <code>isEmpty()</code> function from <a href="http://validatejs.org/">validate.js</a>.</p></div>
-        
+    <p>When a parameter is a list or a dictionary, constraints can be specified on the
+members of that list or dictionary as well as on the parameter itself. Nesting
+is supported arbitarily far down, so you can specify that you wany a 2D array
+of objects each indexed by two-letter keys, and each mapping to a number.</p>
+<p>Support for nesting is provided via validator options supported on two build-in
+validators, <code>list</code> and <code>dictionary</code> - see the
+<a href="module-validateParams.validators.html">validateParams.validators</a> namespace.</p>
+<h2>Validating Every Element in a List or Dictionary</h2><p>The simplest nested constraints are those which specify that all items within
+a list or a dictionary pass a given set of validation. For example, require an
+array if numbers, or an object who's values are all strings. This is what the
+<code>valueConstraints</code> option provides.</p>
+<p>For example, the following function requires the first parameter be an array
+of numbers:</p>
+<pre class="prettyprint source"><code>function sumList(nums){
+  validateParams.assert(arguments, [{
+    defined: true,
+    list: {
+      valueConstraints: { hasTypeof: 'number' }
+    }
+  }]);
+  var ans = 0;
+  nums.forEach(function(n){
+    ans += n;
+  });
+  return ans;
+}</code></pre><p>Similarly, the following function requires the first argument to be a plain
+object containing only instances of the <code>Date</code> prototype:</p>
+<pre class="prettyprint source"><code>function printDates(dates){
+  validateParams.assert(arguments, [{
+    defined: true,
+    dictionary: {
+      valueConstraints: { isInstanceof: [Date] }
+    }
+  }]);
+  Object.keys(dates).forEach(function(dateName){
+    console.log(dateName + ': ' + dates[dateName].toString());
+  });
+}</code></pre><h2>Validating the Keys in a Dictionary</h2><p>Since dictionaries are key-value pairs, it makes sense to be able to validate
+they keys as well as the values. This functionality is provided via the
+<code>dictionary</code> validator's <code>keyConstraints</code> option.</p>
+<p>For example, the following function requires that the first parameter be a
+dictionary which maps three-letter acronyms to strings:</p>
+<pre class="prettyprint source"><code>function printTLAs(TLAs){
+  validateParams.assert(arguments, [{
+    defined: true,
+    dictionary: {
+      keyConstraints: { format: /[A-Z]{3}/ },
+      valueConstraints: {
+        length: { minimum: 1 },
+        hasTypeof: 'string'
+      }
+    }
+  }]);
+  Object.keys(TLAs).forEach(function(TLA){
+    console.log(TLA + ': ' + TLAs[TLA]);
+  });
+}</code></pre><h2>Validating Specific Name-Value Pairs in a Dictionary</h2><p>When dictionaries are used for things like passing options to a function, then
+different constraints will need to be applied to different keys, and some keys
+may not be optional.</p>
+<p>Support for specifying separate constraints on different keys is provided via
+<code>dictionary</code> validator's <code>mapConstraints</code> option. Keys can be marked as required
+using either the <code>presence</code> or <code>defined</code> validators. The <code>rejectUnspecifiedKeys</code>
+option can be used to allow only keys for which a definition exists in the
+<code>mapConstraints</code> option.</p>
+<p>For example, the following function requires it be passed an object of numbers
+indexed by x and y, and allows an optional z key, but no other keys:</p>
+<pre class="prettyprint source"><code>function renderCoord(c){
+  validateParams.assert(arguments, [{
+    defined: true,
+    dictionary: {
+      valueConstraints: { numericality: true }, // all the values should be numbers
+      mapConstraints: {
+        x: { presence: true }, // required
+        y: { presence: true }, // required
+        z: {} // permitted but no constraints beyond the valueConstraints
+      },
+      rejectUnspecifiedKeys: true // do not allow keys other than x, y, or z
+    }
+  }]);
+  var ans = '(' + c.x + ', ' + c.y;
+  if(validateParams.isNumeric(c.z)){
+    ans += ', ' + c.z;
+  }
+  ans += ')';
+  return ans;
+}</code></pre><p>Note the <code>valueConstraints</code> are applied to all the values as well as the
+key-specific constraints specified in the <code>mapConstraints</code> option. If the same
+validator is used in both <code>valueConstraints</code> and <code>mapConstraints</code>, the value
+from <code>mapConstraints</code> takes precedence.</p>
+<h2>Deep Nesting Example</h2><p>The constraints within any of the <code>valueConstraints</code>, <code>keyConstraints</code> or
+<code>mapConstraints</code> options to either of the <code>list</code> or <code>dictionary</code> validators can
+contain <code>list</code> or <code>dictionary</code> validators which themselves specify any of the
+<code>valueConstraints</code>, <code>keyConstraints</code> or <code>mapConstraints</code> options. This allows
+arbitarily deep nesting of constraints.</p>
+<p>For example, the following function requires a list of coordinates, where each
+coordinate is a plain object of numbers indexed by x, y, and optionally z:</p>
+<pre class="prettyprint source"><code>function renderCoordList(coordArray){
+  validateParams.assert(arguments, [{
+    defined: true,
+    list: {
+      valueConstraints: {
+        dictionary: {
+          valueConstraints: { numericality: true },
+          mapConstraints: {
+            x: { presence: true },
+            y: { presence: true },
+            z: {}
+          },
+          rejectUnspecifiedKeys: true
+        }
+      }
+    }
+  }]);
+  var ans = '';
+  coordArray.forEach(function(c, i){
+    if(i > 0) ans += ', ';
+    ans += renderCoord(c); // call function from previous example
+  });
+  return ans;
+}</code></pre>
+</article>
 
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li><a href="https://validatejs.org/#utilities-is-empty">https://validatejs.org/#utilities-is-empty</a></li>
-        </ul>
-    </dd>
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-
-    
-
+<article>
     
 </article>
 
 </section>
-
-
-
 
 </div>
 
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.3</a> on Thu Jul 27 2017 00:41:08 GMT+0100 (IST) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.3</a> on Thu Jul 27 2017 00:41:09 GMT+0100 (IST) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>

@@ -1,8 +1,13 @@
 {
-    "validation"       : { "title" : "Validation Overview" },
-    "paramNames"       : { "title" : "Parameter Naming" },
-    "defaultValues"    : { "title" : "Default Value Injection" },
-    "coercions"        : { "title" : "Parameter Value Coercion" },
-    "nestedValidation" : { "title" : "Nested Validation" },
-    "argumentsNote"    : { "title" : "Note on `arguments`" }
+    "conceptsAndTerms"         : { "title" : "Concepts & Terminology" },
+	"validation"       : {
+		"title" : "Parameter Validation",
+		"children" : {
+			"paramNames"       : { "title" : "Parameter Naming" },
+			"defaultValues"    : { "title" : "Default Value Injection" },
+			"coercions"        : { "title" : "Parameter Value Coercion" },
+			"nestedConstraints" : { "title" : "Nested Constraints" }
+		}
+	},
+    "argumentsNote"    : { "title" : "Note on the 'arguments' Variable" }
 }

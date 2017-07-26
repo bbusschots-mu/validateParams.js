@@ -1,6 +1,6 @@
 {
   "name": "@maynoothuniversity/validate-params",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "A wrapper around validate.js to facilitate easy function parameter validation in JavaScript.",
   "main": "validateParams.js",
   "scripts": {
@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/bbusschots-mu/validateParams.js#readme",
   "devDependencies": {
-    "@bbusschots/minami-bartificer": "^1.2.3",
+    "@bbusschots/minami-bartificer": "^1.2.4-bartificer.2",
     "jsdoc": "^3.4.3",
     "qunitjs": "^2.3.3",
     "shelljs": "^0.7.8"
