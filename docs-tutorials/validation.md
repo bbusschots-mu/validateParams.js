@@ -1,13 +1,16 @@
+This tutotial assumes you have read the {@tutorial conceptsAndTerms} tutorial.
+
 ## The Validation Functions
 
-This module provides three validation functions for three different coding
-styles. Which to use will depend on the situation, and your preferences. All
-three functions take the same arguments, and perform the same validations in the
-same way, the difference is in how they behave when validation fails.
+This module provides three validation functions, each supporting a different
+coding style. Which to use will depend on the situation, and your preferences.
+All three take the same arguments, and perform the same validations in the same
+way - the difference betweem them in the values they return and how they behave
+when a value fails to pass all the specified constraints.
 
 As this module is a wrapper for `validate.js`, the primary validation function
-[validateParams()]{@link module:validateParams~validateParams} responds to
-errors in the same way the [validate()]{@link external:validate} function from
+[validateParams()]{@link module:validateParams~validateParams} behaves in the
+same way that the [validate()]{@link external:validate} function from
 `validate.js` does - it returns `undefined` if there were no errors, or a
 collection of one or more error strings if there were errors. The format of the
 returned error data is determined by the `format` option
@@ -15,12 +18,13 @@ returned error data is determined by the `format` option
 
 Because HTML forms fundamentally consist of name-value pairs, and `validate.js`
 was designed to validate web forms, the validation functions provided by that
-module expect the data to be validated and the constraints to be applied to be
-passed as name-value pairs.
+module expect both the data to be validated and the constraints to be applied
+to validate that data to be passed as name-value pairs.
 
 Function parameters on the other hand are lists, not name-value pairs, so the
 validation functions provided by this module expect both the data to be
-validated and the constraints to be applied to be specified as lists.
+validated and the constraints to be applied to that data to be specified as
+lists.
 
 The following three validation functions are provided by this module:
 
@@ -75,17 +79,6 @@ costraints list will be applied to the value in the first entry of the parameter
 list, the constraints in the second entry of the constraints list to the value
 in the second entry of the parameter list, and so on.
 
-The constraints should be in the format expected by `validate.js`, that is:
-
-```
-{
-  <VALIDATOR_NAME>: {
-     <VALIDATOR_VALUE>
-  }
-  ...
-}
-```
-
 For example, the following constraints list defines one constraint to be applied
 to the first parameter, and two to the second:
 
@@ -104,9 +97,9 @@ to the first parameter, and two to the second:
 ### Validation Options
 
 All three validation functions can optionally accept a collection of options as
-a third parameter. This object can contain options that control the behaviour of
-both the validation functions provided this module, and, the valdiation
-functions from `validate.js` that this module uses to perform the validation.
+a third parameter. This object can contain options that control the behaviour
+of both the validation functions provided by this module, and, the valdiation
+functions from `validate.js` that this module uses to perform validations.
 
 For example, the error formatting can be altered from the default grouped
 formatting to a flat formatting by passing `{format: 'flat'}` as the third
@@ -115,7 +108,8 @@ parameter.
 For details on the options supported by `validate.js`, see the
 [validate.js documentation](https://validatejs.org/#overview).
 
-The validation functions provided by this module support the following options:
+The validation functions provided by this module support the following
+additional options:
 
 * `coerce` - a truthy value enables the coercion feature, a falsy value disables
   it. This option defaults to `true`.
@@ -128,27 +122,15 @@ The validation functions provided by this module support the following options:
   [validateParams.assert()]{@link module:validateParams.assert} function, which
   forces the option to `true` regardless of the value specified in the options.
 
-## Constraints and Validators
-
-Constraints are built up by specifying validators and the options those
-validators should obey when validating the data. Each validator defines its own
-rules for the options it supports.
-
-All the validators that ship with `validate.js` are available through this
-module, and this module provides a number of additional validators. You can also
-create your own custom validators for use with this module.
-
-For more information about how validators work, see the
-[Validators section of the validate.js documentation](https://validatejs.org/#validators).
-
 ### Required Parameters & Presence -v- Defined
 
-The standard validations provided by `validate.js` all implicitly pass values
-that evaluate to true via the [validate.isEmpty()]{@link external:isEmpty}
-function. Similarly, the validations provided by this module all implicitly pass
+The standard validators provided by `validate.js` all implicitly pass values
+that evaluate to `true` via the [validate.isEmpty()]{@link external:isEmpty}
+function. Similarly, the validators provided by this module all implicitly pass
 `undefined`.
 
-To make a parameter required, you need to add one of two special validators:
+To make a parameter required, you need to use of one of the following
+validators:
 
 * The [Presence Validator](https://validatejs.org/#validators-presence) from
   `validate.js`. This validator not only forces the value to be defined, but
