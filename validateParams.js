@@ -192,7 +192,7 @@
 
 // if we're not in a Node environment, and validate does not exist, throw an error
 if(typeof require !== 'function' && typeof require !== 'function'){
-    throw new Error('valdiate.js is a prerequisite of validateParams.js, but has not been loaded');
+    throw new Error('validate.js is a prerequisite of validateParams.js, but has not been loaded');
 }
 
 // If we are in a Node environment, require validate.js
@@ -282,7 +282,7 @@ var validateParams = function(params, constraints, options){
  * ['stuff', [1, 2, 3], {a: 'b'}]
  * ```
  *
- * get transformed into valdiate.js-compatible attribute objects of the form:
+ * get transformed into validate.js-compatible attribute objects of the form:
  *
  * ```
  * {
@@ -518,21 +518,21 @@ validateParams.validate = function(params, constraints, options){
     }
     
     // build the values and constraints objects
-    var valdiateAttributes = {};
+    var validateAttributes = {};
     var validateConstraints = {};
     for(i = 0; i < constraints.length; i++){
         var paramName = validateParams._generateParamName(i, constraints[i]);
-        valdiateAttributes[paramName] = params[i];
+        validateAttributes[paramName] = params[i];
         validateConstraints[paramName] = validate.isObject(constraints[i]) ? validateParams.paramToAttrConstraints(constraints[i]) : {};
         
         // deal with any possible nesting
-        validateParams._processNestedValidations(paramName, validateConstraints, valdiateAttributes[paramName]);
+        validateParams._processNestedValidations(paramName, validateConstraints, validateAttributes[paramName]);
     }
     
     // do the validation
     var validateOptions = validateParams.extendObject({}, options);
     validateOptions.format = 'detailed';
-    var errorDetails = validate(valdiateAttributes, validateConstraints, validateOptions);
+    var errorDetails = validate(validateAttributes, validateConstraints, validateOptions);
     
     // format the errors
     var errors = errorDetails;
@@ -545,7 +545,7 @@ validateParams.validate = function(params, constraints, options){
     }
     
     // build the results object and either throw or return it
-    var results = new validateParams.Result(params, constraints, options, valdiateAttributes, validateConstraints, errorDetails, errors);
+    var results = new validateParams.Result(params, constraints, options, validateAttributes, validateConstraints, errorDetails, errors);
     if(doThrow && errors){
         throw new validateParams.ValidationError(results);
     }
@@ -1755,11 +1755,82 @@ validateParams.asOrdinal = function(n){
 validateParams.extendObject = validate.extend;
 
 /**
+ * Register a validator in an instance of the
+ * [validate()]{@link external:validate} function from validate.js. Defaults to
+ * registering the validator in the instance of `validate` used by this module.
+ *
+ * @alias module:validateParams.registerValidator
+ * @param {string} vn - the name to register the validator with.
+ * @param {} v - the validator to register.
+ * @param {function} [vjs] - the instance of the
+ * [validate()]{@link external:validate} function to registe the custom
+ * validators into. Defaults to the instance of `validate()` used within this
+ * module.
+ * @throws {TypeError} An type error is thrown if invalid parameters are passed.
+ */
+validateParams.registerValidator = function(vn, v, vjs){
+    // validate the arguments
+    if(!validate.isString(vn) || validate.isEmpty(vn)){
+        throw new TypeError('invalid validator name passed');
+    }
+    if(!validate.isFunction(v)){
+        throw new TypeError('invalid validator function passed');
+    }
+    if(validate.isDefined(vjs)){
+        if(!validate.isFunction(vjs)){
+            throw new TypeError('if present, the third parameter must be an instance of the validate function from validate.js');
+        }
+    }else{
+        vjs = validate;
+    }
+    
+    // register the validator
+    vjs.validators[vn] = v;
+};
+
+/**
+ * Register multiple validators into an instance of the
+ * [validate()]{@link external:validate} function from validate.js. Defaults to
+ * registering the validator in the instance of `validate` used by this module.
+ *
+ * @alias module:validateParams.registerValidators
+ * @param {Object} vObj - an object mapping the names to register the validators
+ * with to the validators to be registered.
+ * @param {function} [vjs] - the instance of the
+ * [validate()]{@link external:validate} function to registe the custom
+ * validators into. Defaults to the instance of `validate()` used within this
+ * module.
+ * @throws {TypeError} An type error is thrown if invalid parameters are passed.
+ */
+validateParams.registerValidators = function(vObj, vjs){
+    if(!validate.isObject(vObj)){
+        throw new TypeError('invalid validator object passed as first parameter');
+    }
+    Object.keys(vObj).forEach(function(vn){
+        if(!validate.isObject(vObj[vn])){
+            throw new TypeError('invalid validator found in passed validator object');
+        }
+    });
+    if(validate.isDefined(vjs)){
+        if(!validate.isFunction(vjs)){
+            throw new TypeError('if present, the second parameter must be an instance of the validate function from validate.js');
+        }
+    }else{
+        vjs = validate;
+    }
+    
+    // register each validator
+    Object.keys(vObj).forEach(function(vn){
+        validateParams.registerValidator(vn, vObj[vn], vjs);
+    });
+};
+
+/**
  * Register the custom validators defined in
  * {@link module:validateParams.validators} into an instance of the
  * [validate()]{@link external:validate} function.
  *
- * @alias module:validateParams.registerValidators
+ * @alias module:validateParams.registerBuiltinValidators
  * @param {function} [v] - the instance of the
  * [validate()]{@link external:validate} function to registe the custom
  * validators into. Defaults to the instance of `validate()` used within this
@@ -1771,7 +1842,7 @@ validateParams.extendObject = validate.extend;
  * @see [validate.js Custom Validators]{@link https://validatejs.org/#custom-validator}
  * @since version 0.1.1
  */
-validateParams.registerValidators = function(v){
+validateParams.registerBuiltinValidators = function(v){
     // default to using the loaded copy of validate
     if(typeof v === 'undefined'){
         v = validate;
@@ -1783,9 +1854,11 @@ validateParams.registerValidators = function(v){
     }
     
     // register all our validators
-    Object.keys(validateParams.validators).forEach(function(vName){
-        v.validators[vName] = validateParams.validators[vName];
-    });
+    validateParams.registerValidators(validateParams.validators, v);
+    
+    //Object.keys(validateParams.validators).forEach(function(vName){
+    //    v.validators[vName] = validateParams.validators[vName];
+    //});
 }
 
 //
@@ -1819,7 +1892,7 @@ validateParams._warn = function(msg){
  * These validators are automatically registered with the instance of
  * validate.js loaded by this module. They can be loaded into another instance
  * with the
- * [validateParams.registerValidators()]{@link module:validateParams.registerValidators}
+ * [validateParams.registerBuiltinValidators()]{@link module:validateParams.registerBuiltinValidators}
  * function.
  *
  * These validators all follow the conventions outlined in the validate.js
@@ -1868,7 +1941,7 @@ validateParams._warn = function(msg){
  * v.options = validateParams.extendObject({notUndefined: true}, v.options);
  * ```
  *
- * Because validate.js was designed to valdiate web forms, it uses a very fuzzy
+ * Because validate.js was designed to validate web forms, it uses a very fuzzy
  * definition of undefinedness for its `presence` validator, specifically, the
  * function [validate.isEmpty()]{@link external:isEmpty}. All the standard
  * validators that ship with validate.js implicitly pass any value that
@@ -1884,7 +1957,7 @@ validateParams._warn = function(msg){
  *
  * @alias module:validateParams.validators
  * @namespace
- * @see module:validateParams.registerValidators
+ * @see module:validateParams.registerBuiltinValidators
  * @see [validate.js Custom Validators]{@link https://validatejs.org/#custom-validator}
  * @since version 0.1.1
  */
@@ -2348,7 +2421,7 @@ validateParams.validators = {
      * This validator supports the following options in addition to the standard
      * `message` option:
      * * `arrayOnly` - must evaluate to `true` when passed to the
-     *   [valdiate.isArray()]{@link external:isArray} function from validate.js.
+     *   [validate.isArray()]{@link external:isArray} function from validate.js.
      *   Defaults to `false`.
      * * `valueConstraints` - a plain object defining constraints to be
      *   applied to each of the values in the list. This option cannot be set on
@@ -2470,7 +2543,7 @@ validateParams.validators.hasTypeOf = validateParams.validators.hasTypeof;
  */
 validateParams.validators.isInstanceOf = validateParams.validators.isInstanceof;
 
-validateParams.registerValidators(); // register all the defined validators
+validateParams.registerBuiltinValidators(); // register all the defined validators
 
 //
 //=== Pre-defined Coercions ====================================================

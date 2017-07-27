@@ -1807,6 +1807,60 @@ QUnit.module('validateParams.asOrdinal() function', {}, function(){
     });
 });
 
+QUnit.module('validateParams.registerValidator() function', {}, function(){
+    QUnit.test('function exists', function(a){
+        a.equal(typeof validateParams.registerValidator, 'function');
+    });
+    
+    QUnit.test('validator registered correctly', function(a){
+        a.expect(1);
+        var dummyName = 'testValidator';
+        var dummyFn = function(){ return undefined; };
+        var dummyValidate = function(){ return undefined; };
+        dummyValidate.validators = {};
+        validateParams.registerValidator(dummyName, dummyFn, dummyValidate);
+        a.strictEqual(dummyValidate.validators[dummyName], dummyFn, "test validator registered successfully");
+    });
+});
+
+QUnit.module('validateParams.registerValidators() function', {}, function(){
+    QUnit.test('function exists', function(a){
+        a.equal(typeof validateParams.registerValidators, 'function');
+    });
+    
+    QUnit.test('all validators registered correctly', function(a){
+        var dummyValidators = {
+            testValidator1: function(){ return undefined; },
+            testValidator2: function(){ return undefined; },
+        };
+        var vNames = Object.keys(dummyValidators);
+        a.expect(vNames.length);
+        var dummyValidate = function(){ return undefined; };
+        dummyValidate.validators = {};
+        validateParams.registerValidators(dummyValidators, dummyValidate);
+        vNames.forEach(function(vn){
+            a.ok(validate.isFunction(dummyValidate.validators[vn]), "test validator '" + vn + "' successfully registered");
+        });
+    });
+});
+
+QUnit.module('validateParams.registerBuiltinValidators() function', {}, function(){
+    QUnit.test('function exists', function(a){
+        a.equal(typeof validateParams.registerBuiltinValidators, 'function');
+    });
+    
+    QUnit.test('all validators registered correctly', function(a){
+        var vNames = Object.keys(validateParams.validators);
+        a.expect(vNames.length);
+        var dummyValidate = function(){ return undefined; };
+        dummyValidate.validators = {};
+        validateParams.registerBuiltinValidators(dummyValidate);
+        vNames.forEach(function(vn){
+            a.ok(validate.isFunction(dummyValidate.validators[vn]), "builtin validator '" + vn + "' registered");
+        });
+    });
+});
+
 QUnit.module('validateParams.extendObject() function', {}, function(){
     QUnit.test('is an alias to validate.extend()', function(a){
         a.strictEqual(validateParams.extendObject, validate.extend);
