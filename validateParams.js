@@ -995,6 +995,15 @@ validateParams.assert = function(params, constraints, options){
     return validateParams.validate(params, constraints, options).validateAttributes();
 };
 
+/**
+ * An alias for the
+ * [validateParams.assert()]{@link module:validateParams.assert} function.
+ *
+ * @see module:validateParams.assert
+ * @since version 1.2.2
+ */
+validateParams.a = validateParams.assert;
+
 //
 //=== Validation Result Prototype ==============================================
 //
@@ -1755,6 +1764,17 @@ validateParams.asOrdinal = function(n){
 validateParams.extendObject = validate.extend;
 
 /**
+ * An alias for the [validate.extend()]{@link external:extend} function from
+ * validate.js.
+ *
+ * @alias module:validateParams.eo
+ * @function
+ * @see external:extend
+ * @since version 1.2.2
+ */
+validateParams.eo = validate.extend;
+
+/**
  * Register a validator in an instance of the
  * [validate()]{@link external:validate} function from validate.js. Defaults to
  * registering the validator in the instance of `validate` used by this module.
@@ -1767,6 +1787,7 @@ validateParams.extendObject = validate.extend;
  * validators into. Defaults to the instance of `validate()` used within this
  * module.
  * @throws {TypeError} An type error is thrown if invalid parameters are passed.
+ * @since version 1.2.2
  */
 validateParams.registerValidator = function(vn, v, vjs){
     // validate the arguments
@@ -1801,6 +1822,7 @@ validateParams.registerValidator = function(vn, v, vjs){
  * validators into. Defaults to the instance of `validate()` used within this
  * module.
  * @throws {TypeError} An type error is thrown if invalid parameters are passed.
+ * @since version 1.2.2
  */
 validateParams.registerValidators = function(vObj, vjs){
     if(!validate.isObject(vObj)){
@@ -1840,7 +1862,7 @@ validateParams.registerValidators = function(vObj, vjs){
  * @see module:validateParams.validators
  * @see external:validate
  * @see [validate.js Custom Validators]{@link https://validatejs.org/#custom-validator}
- * @since version 0.1.1
+ * @since version 1.2.2
  */
 validateParams.registerBuiltinValidators = function(v){
     // default to using the loaded copy of validate
