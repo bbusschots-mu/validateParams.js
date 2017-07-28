@@ -1,4 +1,4 @@
-This tutotial assumes you have read the {@tutorial conceptsAndTerms} tutorial.
+This tutotial assumes you have read the {@tutorial conceptsAndTerms} tutorial. 
 
 ## The Validation Functions
 
