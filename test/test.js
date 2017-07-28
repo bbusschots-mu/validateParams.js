@@ -1220,6 +1220,10 @@ QUnit.module('validateParams.assert() function', {}, function(){
         a.throws(function(){ fatalFn('boogers'); }, validateParams.ValidationError, 'throws as expected');
         a.ok((function(){ fatalFn(2, 3); return true; })(), 'does not throw on valid params');
     });
+	
+	QUnit.test('validateParams.a() is an alias for validateParams.assert()', function(a){
+		a.strictEqual(validateParams.a, validateParams.assert);
+	});
 });
 
 QUnit.module('validateParams.ValidationError prototype', {}, function(){
@@ -1864,6 +1868,12 @@ QUnit.module('validateParams.registerBuiltinValidators() function', {}, function
 QUnit.module('validateParams.extendObject() function', {}, function(){
     QUnit.test('is an alias to validate.extend()', function(a){
         a.strictEqual(validateParams.extendObject, validate.extend);
+    });
+});
+
+QUnit.module('validateParams.eo() function', {}, function(){
+    QUnit.test('is an alias to validate.extend()', function(a){
+        a.strictEqual(validateParams.eo, validate.extend);
     });
 });
 
