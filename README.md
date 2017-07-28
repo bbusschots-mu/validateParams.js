@@ -93,7 +93,7 @@ function fact(n){
                 greaterThanOrEqualTo: 0
             }
         }
-    ]); // will throw validateParams.ValidationError on invalid params
+    ]); // will throw a validateParams.ValidationError on invalid params
     
     // do the calculation
     var ans = 1;
