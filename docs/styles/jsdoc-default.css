@@ -253,18 +253,6 @@ nav li {
 	margin-left: 1em;
 }
 
-nav li.nav-item.type-tutorial {
-	list-style-type: initial;
-}
-nav li.nav-item.type-tutorial ul {
-	margin-top: 0px;
-	margin-bottom: 0px;
-	padding-left: 1em;
-}
-nav li.nav-item.type-tutorial ul li {
-	list-style-type: square;
-}
-
 .nav-item-type {
   /* margin-left: 5px; */
   width: 18px;
@@ -304,7 +292,7 @@ nav li.nav-item.type-tutorial ul li {
 }
 
 /** Item Icons **/
-.type-icon {
+.icon {
 	display: inline-block;
 	vertical-align: baseline;
 	text-align: center;
@@ -314,7 +302,7 @@ nav li.nav-item.type-tutorial ul li {
 	line-height: 2em;
 	margin-right: 0.5em;
 }
-.type-icon small{
+.icon small{
 	font-weight: normal;
 }
 
