@@ -1,6 +1,6 @@
 {
   "name": "@maynoothuniversity/validate-params",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "A wrapper around validate.js to facilitate easy function parameter validation in JavaScript.",
   "main": "validateParams.js",
   "scripts": {
@@ -30,6 +30,6 @@
   },
   "dependencies": {
     "@maynoothuniversity/human-join": "^0.1.1",
-    "validate.js": "^0.11.1"
+    "validate.js": "^0.12.0"
   }
 }

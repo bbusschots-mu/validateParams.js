@@ -1,6 +1,6 @@
 /**
  * @file Provides the [validateParams]{@link module:validateParams} module.
- * @version 1.2.2
+ * @version 1.2.3
  * @author Bart Busschots <bart.busschots@mu.ie>
  * @license MIT
  * @see https://github.com/bbusschots-mu/validateParams.js
